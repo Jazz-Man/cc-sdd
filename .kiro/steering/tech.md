@@ -17,9 +17,21 @@ A Claude Code extension system that uses hooks and slash commands to implement K
 - macOS (darwin platform)
 
 ### Project Dependencies
-- Claude Code hooks system
-- Slash command support
+- Claude Code slash commands (.claude/commands/)
 - File system access for steering/spec management
+- No external package dependencies (pure markdown/JSON system)
+- TodoWrite tool integration for task management
+
+### Language Specifications
+- **Thinking**: English (internal processing)
+- **Responses**: Japanese (user-facing content)
+- **Documentation**: Bilingual with Japanese emphasis
+
+### Task Tracking Approach
+- **Manual Progress**: Checkbox manipulation in tasks.md files
+- **Automatic Parsing**: Progress percentage calculation from checkboxes
+- **Enhanced Tracking**: Improved hook error resolution and progress monitoring
+- **TodoWrite Integration**: Active task management during implementation
 
 ## Key Commands
 
@@ -52,11 +64,29 @@ A Claude Code extension system that uses hooks and slash commands to implement K
 │       ├── requirements.md # Feature requirements
 │       ├── design.md      # Technical design
 │       └── tasks.md       # Implementation tasks
-└── hooks/             # Claude Code automation hooks
 
-docs/
-├── claude-code/       # Claude Code documentation
-└── kiro/             # Kiro methodology docs
+.claude/
+└── commands/          # Slash command definitions
+    ├── spec-init.md
+    ├── spec-requirements.md
+    ├── spec-design.md
+    ├── spec-tasks.md
+    ├── spec-status.md
+    ├── steering-init.md
+    ├── steering-update.md
+    └── steering-custom.md
+
+docs/                  # Comprehensive documentation
+├── claude-code/       # Claude Code specific guides
+│   ├── hooks-guide.md # Hook system implementation
+│   ├── hooks.md       # Hook reference
+│   └── slash-commands.md # Command reference
+└── kiro/              # Kiro IDE reference and examples
+    ├── llms.txt       # Kiro IDE documentation
+    ├── specs-example/ # Example specifications
+    └── steering-example/ # Example steering documents
+
+README.md             # Japanese user documentation with workflow diagrams
 ```
 
 ## Integration Points
@@ -64,13 +94,22 @@ docs/
 - **Git**: Version control for specs and steering
 - **File System**: Markdown file management
 - **Hooks System**: Automated tracking and compliance
+- **TodoWrite Tool**: Task progress tracking and management
 
 ## Development Workflow
-1. Initialize project steering
-2. Create feature specifications
-3. Follow 3-phase approval process
-4. Implement with task tracking
-5. Update steering as needed
+1. Initialize project steering with `/steering-init`
+2. Create feature specifications with `/spec-init`
+3. Follow 3-phase approval process (Requirements → Design → Tasks)
+4. Implement with manual task tracking via checkbox manipulation
+5. Monitor progress with `/spec-status`
+6. Update steering as needed with `/steering-update`
+
+## Task Progress Management
+- **Manual Tracking**: Update tasks.md checkboxes during implementation
+- **Progress Calculation**: Automatic percentage computation from checkbox states  
+- **Enhanced Monitoring**: Improved hook error resolution and progress tracking
+- **Status Monitoring**: Use `/spec-status` for current progress overview
+- **TodoWrite Integration**: Track active work items during development sessions
 
 ## Security & Access
 - Local file system based

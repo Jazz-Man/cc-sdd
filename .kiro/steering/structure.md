@@ -6,10 +6,11 @@
 ```
 /
 ├── .kiro/              # Kiro spec-driven development system
-├── docs/               # Documentation
+├── .claude/            # Claude Code slash commands
+├── docs/               # Comprehensive documentation and examples
 ├── CLAUDE.md           # Claude Code instructions and project overview
-├── README.md           # Project readme
-└── BLOG.md            # Blog or additional documentation
+├── README.md           # Japanese user documentation with workflow diagrams
+└── .gitignore          # Git ignore file
 ```
 
 ### .kiro Directory
@@ -20,25 +21,53 @@
 │   ├── tech.md        # Architecture, tech stack, commands
 │   ├── structure.md   # This file - code organization
 │   └── *.md           # Custom steering documents
-├── specs/             # Feature specifications
-│   └── [feature-name]/
-│       ├── spec.json      # Metadata and approval status
-│       ├── requirements.md # User requirements
-│       ├── design.md      # Technical design
-│       └── tasks.md       # Implementation tasks
-└── hooks/             # Claude Code automation (if implemented)
+└── specs/             # Feature specifications
+    ├── examples-pdf-diagram-explanation-app/
+    ├── rubiks-cube-solver-app/
+    ├── sangiiin-senkyo-realtime-app/
+    └── [feature-name]/
+        ├── spec.json      # Metadata and approval status
+        ├── requirements.md # User requirements
+        ├── design.md      # Technical design
+        └── tasks.md       # Implementation tasks
 ```
 
-### Documentation Directory
+### .claude Directory
+```
+.claude/
+└── commands/          # Slash command definitions
+    ├── spec-init.md
+    ├── spec-requirements.md
+    ├── spec-design.md
+    ├── spec-tasks.md
+    ├── spec-status.md
+    ├── steering-init.md
+    ├── steering-update.md
+    └── steering-custom.md
+```
+
+### docs Directory
 ```
 docs/
-├── claude-code/       # Claude Code specific docs
-│   ├── hooks-guide.md
-│   ├── hooks.md
-│   └── slash-commands.md
-└── kiro/             # Kiro methodology docs
-    ├── llms.txt
-    └── specs/        # Example specifications
+├── claude-code/       # Claude Code specific documentation
+│   ├── hooks-guide.md # Implementation guide for hooks system
+│   ├── hooks.md       # Hook system reference
+│   └── slash-commands.md # Slash commands reference
+└── kiro/              # Kiro IDE reference and examples
+    ├── llms.txt       # Comprehensive Kiro IDE documentation
+    ├── specs-example/ # Example specifications for reference
+    │   ├── pdf-drawing-explainer/
+    │   │   ├── design.md
+    │   │   ├── requirements.md
+    │   │   └── tasks.md
+    │   └── task-management-service/
+    │       ├── design.md
+    │       ├── requirements.md
+    │       └── tasks.md
+    └── steering-example/ # Example steering documents
+        ├── product.md
+        ├── structure.md
+        └── tech.md
 ```
 
 ## Naming Conventions
@@ -62,6 +91,11 @@ docs/
 - **Pattern**: `/[action]-[target]`
 - Examples: `/steering-init`, `/spec-requirements`
 
+### Documentation Files
+- **README.md**: User-facing documentation (Japanese)
+- **llms.txt**: Reference documentation for Kiro IDE
+- **Example directories**: Kebab-case with descriptive names
+
 ## File Patterns
 
 ### Markdown Files
@@ -72,14 +106,32 @@ docs/
 ### JSON Files (spec.json)
 ```json
 {
-  "name": "feature-name",
-  "created": "ISO-8601 timestamp",
-  "phase": "initialized|requirements|design|tasks|implementation",
-  "approved": {
-    "requirements": false,
-    "design": false,
-    "tasks": false
-  }
+  "feature_name": "feature-name",
+  "project_description": "Description of the feature",
+  "created_at": "ISO-8601 timestamp",
+  "updated_at": "ISO-8601 timestamp",
+  "language": "japanese|english",
+  "phase": "requirements-generated|design-generated|tasks-generated|implementation",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": false
+    },
+    "design": {
+      "generated": true,
+      "approved": false
+    },
+    "tasks": {
+      "generated": true,
+      "approved": false
+    }
+  },
+  "progress": {
+    "requirements": 100,
+    "design": 100,
+    "tasks": 100
+  },
+  "ready_for_implementation": false
 }
 ```
 
@@ -101,9 +153,9 @@ docs/
    - Changes tracked through commits
 
 4. **Automation Points**
-   - Hooks monitor spec changes
-   - Commands enforce workflow
-   - Status tracking automated
+   - Slash commands enforce workflow
+   - Status tracking through spec.json
+   - Phase progression validation
 
 ## Best Practices
 
@@ -121,8 +173,13 @@ docs/
    - Clear, actionable language
    - Consistent formatting
    - Regular updates to steering
+   - **Language Standards**:
+     - Internal thinking: English
+     - User-facing content: Japanese
+     - Technical documentation: Bilingual with context-appropriate language
 
 4. **Workflow Compliance**
    - Follow 3-phase approval process
    - Update spec.json for approvals
-   - Keep status current
+   - **Manual task tracking**: Update tasks.md checkboxes during implementation
+   - Monitor progress with `/spec-status`
