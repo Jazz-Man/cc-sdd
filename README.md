@@ -7,7 +7,7 @@
 > 初期バージョンのため、使いながら適宜改善していく予定
 
 📝 **関連記事**  
-**[Claude Code + Kiro式「仕様書駆動開発」で小規模なプロダクト開発を効率化する](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
+**[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
 
 Claude CodeのSlash CommandsとCLAUDE.mdを使用して、Kiro IDEに組み込まれているSpec-Driven Developmentを実践するためのプロジェクト。Kiroでの実際の仕様書駆動開発の流れをディレクトリ構成も含めてほぼそのまま再現している。
 
