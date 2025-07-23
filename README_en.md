@@ -1,5 +1,8 @@
 # Claude Code Spec-Driven Development
 
+> 🌐 **Language**  
+> 📖 **English Version** (This page) | 📖 **[日本語版 README](README.md)**
+
 > [!Warning]
 > This is an initial version and will be improved as we use it
 
