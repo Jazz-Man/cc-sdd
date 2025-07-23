@@ -26,14 +26,14 @@ To integrate Claude Code Spec-Driven Development into your project, simply copy 
 
 1. **Copy files** (see above)
 2. **Copy CLAUDE_en.md and rename it to CLAUDE.md**, then adjust it for your project
-3. **Configure language** (if needed): If generated content appears in Japanese, change `"language": "japanese"` to `"language": "english"` in `.claude/commands/spec-init.md`
+3. **Configure language** (if needed): If generated content appears in Japanese, change `"language": "japanese"` to `"language": "english"` in `.claude/commands/kiro/spec-init.md`
 4. **Run initial commands**:
    ```bash
    # Optional: Create steering documents
-   /steering-init
+   /kiro:steering-init
    
    # Create your first feature specification
-   /spec-init "Detailed description of your project"
+   /kiro:spec-init "Detailed description of your project"
    ```
 
 ### Required Directory Structure
@@ -57,27 +57,27 @@ your-project/
 
 ```bash
 # Optional: Generate project steering (recommended but not required)
-/steering-init
+/kiro:steering-init
 
 # Step 1: Start creating new feature specification (include detailed description)
-/spec-init "I want to create a feature where users can upload PDFs, extract diagrams and charts from them, and have AI explain the content. Tech stack: Next.js, TypeScript, Tailwind CSS."
+/kiro:spec-init "I want to create a feature where users can upload PDFs, extract diagrams and charts from them, and have AI explain the content. Tech stack: Next.js, TypeScript, Tailwind CSS."
 
 # Step 2: Requirements definition (use auto-generated feature-name)
-/spec-requirements pdf-diagram-extractor
+/kiro:spec-requirements pdf-diagram-extractor
 # → Review and edit .kiro/specs/pdf-diagram-extractor/requirements.md
 
 # Step 3: Requirements approval (manual)
 # Set "requirements": true in spec.json
 
 # Step 4: Technical design
-/spec-design pdf-diagram-extractor
+/kiro:spec-design pdf-diagram-extractor
 # → Review and edit .kiro/specs/pdf-diagram-extractor/design.md
 
 # Step 5: Design approval (manual)
 # Set "design": true in spec.json
 
 # Step 6: Task generation
-/spec-tasks pdf-diagram-extractor
+/kiro:spec-tasks pdf-diagram-extractor
 # → Review and edit .kiro/specs/pdf-diagram-extractor/tasks.md
 
 # Step 7: Task approval (manual)
@@ -90,13 +90,13 @@ your-project/
 
 ```bash
 # Optional: Update steering (if there have been major changes to the project)
-/steering-update
+/kiro:steering-update
 
 # Or, if creating steering for an existing project for the first time
-/steering-init
+/kiro:steering-init
 
 # Step 1: Start creating new feature specification
-/spec-init "Detailed description of the new feature here"
+/kiro:spec-init "Detailed description of the new feature here"
 # Following steps are the same as for new projects
 ```
 
@@ -104,7 +104,7 @@ your-project/
 
 ```bash
 # Check progress of a specific feature
-/spec-status my-feature
+/kiro:spec-status my-feature
 
 # Displays current phase, approval status, and task progress
 ```
@@ -120,25 +120,25 @@ In this flow, each phase includes updating spec.json as part of "Review & Approv
 ```mermaid
 graph TD
     A["Project Start"] --> B{"Document<br/>Steering?"}
-    B -->|Yes| C["/steering-init"]
-    B -->|No| D["/spec-init"]
+    B -->|Yes| C["/kiro:steering-init"]
+    B -->|No| D["/kiro:spec-init"]
     C --> D
     
-    D --> E["/spec-requirements"]
+    D --> E["/kiro:spec-requirements"]
     E --> F["requirements.md"]
     F --> G{"Satisfied?"}
     G -->|No| G1["Edit & Revise"]
     G1 --> F
     G -->|Yes| H["spec.json: requirements=true"]
     
-    H --> I["/spec-design"]
+    H --> I["/kiro:spec-design"]
     I --> J["design.md"]
     J --> K{"Satisfied?"}
     K -->|No| K1["Edit & Revise"]
     K1 --> J
     K -->|Yes| L["spec.json: design=true"]
     
-    L --> M["/spec-tasks"]
+    L --> M["/kiro:spec-tasks"]
     M --> N["tasks.md"]
     N --> O{"Satisfied?"}
     O -->|No| O1["Edit & Revise"]
@@ -146,13 +146,13 @@ graph TD
     O -->|Yes| P["spec.json: tasks=true"]
     
     P --> Q["Start Implementation"]
-    Q --> R["/spec-status"]
+    Q --> R["/kiro:spec-status"]
     R --> S{"Complete?"}
     S -->|No| Q
     S -->|Yes| T["Feature Complete"]
     
     T --> U{"Update<br/>Steering?"}
-    U -->|Yes| V["/steering-update"]
+    U -->|Yes| V["/kiro:steering-update"]
     U -->|No| W["Done"]
     V --> W
     
@@ -182,9 +182,9 @@ graph TD
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/steering-init` | Generate initial steering documents | When documentation is needed for new/existing projects |
-| `/steering-update` | Update steering documents | After major changes, during regular maintenance |
-| `/steering-custom` | Create custom steering documents | When special conventions or guidelines are needed |
+| `/kiro:steering-init` | Generate initial steering documents | When documentation is needed for new/existing projects |
+| `/kiro:steering-update` | Update steering documents | After major changes, during regular maintenance |
+| `/kiro:steering-custom` | Create custom steering documents | When special conventions or guidelines are needed |
 
 **Note**: Steering documents are recommended but not required. They can be omitted for small feature additions or experimental development.
 
@@ -198,16 +198,16 @@ graph TD
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/spec-init [detailed project description]` | Initialize specification structure from project description | When starting new feature development |
-| `/spec-requirements [feature-name]` | Generate requirements document | Immediately after spec initialization |
-| `/spec-design [feature-name]` | Generate technical design document | After requirements approval |
-| `/spec-tasks [feature-name]` | Generate implementation tasks | After design approval |
+| `/kiro:spec-init [detailed project description]` | Initialize specification structure from project description | When starting new feature development |
+| `/kiro:spec-requirements [feature-name]` | Generate requirements document | Immediately after spec initialization |
+| `/kiro:spec-design [feature-name]` | Generate technical design document | After requirements approval |
+| `/kiro:spec-tasks [feature-name]` | Generate implementation tasks | After design approval |
 
 ### 📊 Phase 2: Progress Management
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/spec-status [feature-name]` | Check current progress and phase | Regularly during development |
+| `/kiro:spec-status [feature-name]` | Check current progress and phase | Regularly during development |
 
 ## 3-Phase Approval Workflow
 
@@ -219,21 +219,21 @@ sequenceDiagram
     participant C as Claude Code
     participant H as Human Reviewer
     
-    D->>C: "/spec-requirements feature"
+    D->>C: "/kiro:spec-requirements feature"
     C->>C: "Generate Requirements"
     C->>D: "requirements.md"
     D->>H: "Request Review"
     H->>H: "Review & Edit"
     H->>D: "Approve (update spec.json)"
     
-    D->>C: "/spec-design feature"
+    D->>C: "/kiro:spec-design feature"
     C->>C: "Generate Design (based on requirements)"
     C->>D: "design.md"
     D->>H: "Request Review"
     H->>H: "Review & Edit"
     H->>D: "Approve (update spec.json)"
     
-    D->>C: "/spec-tasks feature"
+    D->>C: "/kiro:spec-tasks feature"
     C->>C: "Generate Tasks (based on design)"
     C->>D: "tasks.md"
     D->>H: "Request Review"
@@ -248,19 +248,19 @@ sequenceDiagram
 ### ✅ Recommendations
 
 1. **Always start with steering**
-   - Always run `/steering-init` for new projects
-   - Update existing projects with `/steering-update`
+   - Always run `/kiro:steering-init` for new projects
+   - Update existing projects with `/kiro:steering-update`
 
 2. **Don't skip phases**
    - Strictly follow the order: Requirements → Design → Tasks
    - Ensure human review at each phase
 
 3. **Regular progress checks**
-   - Use `/spec-status` to understand current situation
+   - Use `/kiro:spec-status` to understand current situation
    - Update task completion status appropriately
 
 4. **Maintain steering**
-   - Run `/steering-update` after major changes
+   - Run `/kiro:steering-update` after major changes
    - Update as the project grows
 
 ### ❌ Things to Avoid
@@ -280,14 +280,15 @@ sequenceDiagram
 .
 ├── .claude/
 │   └── commands/          # Slash command definitions
-│       ├── spec-init.md
-│       ├── spec-requirements.md
-│       ├── spec-design.md
-│       ├── spec-tasks.md
-│       ├── spec-status.md
-│       ├── steering-init.md
-│       ├── steering-update.md
-│       └── steering-custom.md
+│       └── kiro/
+│           ├── spec-init.md
+│           ├── spec-requirements.md
+│           ├── spec-design.md
+│           ├── spec-tasks.md
+│           ├── spec-status.md
+│           ├── steering-init.md
+│           ├── steering-update.md
+│           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # Steering documents
 │   │   ├── product.md
@@ -324,7 +325,7 @@ The following are automated through Claude Code's hook functionality:
 ### When stuck in approval flow
 1. Manually check approval flags in `spec.json`
 2. Verify previous phase approval is complete
-3. Use `/spec-status` to diagnose current state
+3. Use `/kiro:spec-status` to diagnose current state
 
 ## Summary
 
