@@ -30,7 +30,7 @@ To integrate Claude Code Spec-Driven Development into your project, simply copy 
 4. **Run initial commands**:
    ```bash
    # Optional: Create steering documents
-   /kiro:steering-init
+   /kiro:steering
    
    # Create your first feature specification
    /kiro:spec-init "Detailed description of your project"
@@ -62,7 +62,7 @@ your-project/
 
 ```bash
 # Optional: Generate project steering (recommended but not required)
-/kiro:steering-init
+/kiro:steering
 
 # Step 1: Start creating new feature specification (include detailed description)
 /kiro:spec-init "I want to create a feature where users can upload PDFs, extract diagrams and charts from them, and have AI explain the content. Tech stack: Next.js, TypeScript, Tailwind CSS."
@@ -95,10 +95,10 @@ your-project/
 
 ```bash
 # Optional: Update steering (if there have been major changes to the project)
-/kiro:steering-update
+/kiro:steering
 
 # Or, if creating steering for an existing project for the first time
-/kiro:steering-init
+/kiro:steering
 
 # Step 1: Start creating new feature specification
 /kiro:spec-init "Detailed description of the new feature here"
@@ -125,7 +125,7 @@ In this flow, each phase includes updating spec.json as part of "Review & Approv
 ```mermaid
 graph TD
     A["Project Start"] --> B{"Document<br/>Steering?"}
-    B -->|Yes| C["/kiro:steering-init"]
+    B -->|Yes| C["/kiro:steering"]
     B -->|No| D["/kiro:spec-init"]
     C --> D
     
@@ -157,7 +157,7 @@ graph TD
     S -->|Yes| T["Feature Complete"]
     
     T --> U{"Update<br/>Steering?"}
-    U -->|Yes| V["/kiro:steering-update"]
+    U -->|Yes| V["/kiro:steering"]
     U -->|No| W["Done"]
     V --> W
     
@@ -187,8 +187,9 @@ graph TD
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/kiro:steering-init` | Generate initial steering documents | When documentation is needed for new/existing projects |
-| `/kiro:steering-update` | Update steering documents | After major changes, during regular maintenance |
+| `/kiro:steering` | **Recommended** - Smart creation or update of steering documents | All scenarios (both new and updates) |
+| `/kiro:steering-init` | [DEPRECATED] Generate initial steering documents (⚠️ overwrites existing) | Deprecated - Use `/kiro:steering` instead |
+| `/kiro:steering-update` | [DEPRECATED] Update existing steering documents (preserves content) | Deprecated - Use `/kiro:steering` instead |
 | `/kiro:steering-custom` | Create custom steering documents | When special conventions or guidelines are needed |
 
 **Note**: Steering documents are recommended but not required. They can be omitted for small feature additions or experimental development.
@@ -253,8 +254,9 @@ sequenceDiagram
 ### ✅ Recommendations
 
 1. **Always start with steering**
-   - Always run `/kiro:steering-init` for new projects
-   - Update existing projects with `/kiro:steering-update`
+   - **Recommended**: Use `/kiro:steering` for all scenarios (intelligently handles both creation and updates)
+   - Legacy `steering-init` and `steering-update` commands are deprecated
+   - The new unified command protects existing files while handling them appropriately
 
 2. **Don't skip phases**
    - Strictly follow the order: Requirements → Design → Tasks
@@ -265,7 +267,7 @@ sequenceDiagram
    - Update task completion status appropriately
 
 4. **Maintain steering**
-   - Run `/kiro:steering-update` after major changes
+   - Run `/kiro:steering` after major changes (automatically determines update strategy)
    - Update as the project grows
 
 ### ❌ Things to Avoid
@@ -291,8 +293,9 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering-init.md
-│           ├── steering-update.md
+│           ├── steering.md          # NEW: Unified steering command
+│           ├── steering-init.md     # [DEPRECATED]
+│           ├── steering-update.md   # [DEPRECATED]
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # Steering documents

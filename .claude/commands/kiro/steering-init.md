@@ -1,11 +1,33 @@
 ---
-description: Initialize Kiro steering documents for persistent project knowledge
+description: [DEPRECATED - Use /kiro:steering instead] Initialize Kiro steering documents for persistent project knowledge
 allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
 ---
 
 # Kiro Steering Initialization
 
+> ⚠️ **DEPRECATED**: This command is deprecated. Please use `/kiro:steering` instead, which intelligently handles both creation and updates of steering documents.
+
 Create foundational steering documents in `.kiro/steering/` to establish consistent project standards and conventions that will guide AI interactions throughout spec-driven development.
+
+## Existing Files Check
+
+### Check for existing steering documents
+- Product overview: !`[ -f ".kiro/steering/product.md" ] && echo "⚠️  EXISTS - Will be OVERWRITTEN" || echo "✅ Not found - Will be created"`
+- Technology stack: !`[ -f ".kiro/steering/tech.md" ] && echo "⚠️  EXISTS - Will be OVERWRITTEN" || echo "✅ Not found - Will be created"`
+- Project structure: !`[ -f ".kiro/steering/structure.md" ] && echo "⚠️  EXISTS - Will be OVERWRITTEN" || echo "✅ Not found - Will be created"`
+
+### 🚨 WARNING: Existing Files Detected
+
+If any files show "⚠️ EXISTS" above, they will be completely overwritten without backup.
+
+**Recommended Actions:**
+
+1. **To UPDATE existing documents** → Use `/kiro:steering-update` instead
+2. **To BACKUP before overwriting** → Run: `cp -r .kiro/steering .kiro/steering.backup`
+3. **To CANCEL this operation** → Stop now and do not proceed
+4. **To OVERWRITE completely** → Continue with the instructions below
+
+**Note:** This command is intended for initial setup. For existing projects, `/kiro:steering-update` is usually more appropriate.
 
 ## Project Analysis
 
@@ -59,6 +81,21 @@ This ensures generated code fits seamlessly into the existing codebase.
 
 ## Instructions
 
+### IMPORTANT: Check Existing Files First
+
+Before proceeding with steering document generation:
+
+1. **Check the "Existing Files Check" section above**
+   - If any files show "EXISTS", those steering documents already exist
+   - Existing files will be OVERWRITTEN if you proceed
+
+2. **If existing files are found:**
+   - Consider using `/kiro:steering-update` instead to update existing documents
+   - Or manually backup existing files before proceeding
+   - Only proceed if you intentionally want to regenerate from scratch
+
+### Generation Instructions
+
 1. **Create `.kiro/steering/` directory** if it doesn't exist
 2. **Analyze the codebase thoroughly** to understand current patterns and architecture
 3. **Generate comprehensive but focused documents** - each file should be readable in 2-3 minutes
@@ -66,6 +103,18 @@ This ensures generated code fits seamlessly into the existing codebase.
 5. **Include concrete examples** where helpful for understanding
 6. **Focus on facts over assumptions** - document what exists, not what might be ideal
 7. **Follow spec-driven development principles** - these documents will guide future specifications
+
+### 🔄 Alternative: Incremental Update
+
+If you have existing steering documents and want to preserve their content while updating:
+
+```bash
+# Option 1: Use the update command
+/kiro:steering-update
+
+# Option 2: Manual backup before regeneration
+cp -r .kiro/steering .kiro/steering.backup.$(date +%Y%m%d_%H%M%S)
+```
 
 The goal is to create a solid foundation of project knowledge that will make all future AI interactions more consistent and aligned with your project's standards, enabling effective spec-driven development.
 ultrathink

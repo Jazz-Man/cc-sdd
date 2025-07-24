@@ -11,11 +11,11 @@ Create custom steering documents in `.kiro/steering/` for specialized contexts b
 
 ### Existing Steering Documents
 - Core steering files: !`ls -la .kiro/steering/*.md 2>/dev/null || echo "No steering directory found"`
-- Custom steering count: !`find .kiro/steering -name "*.md" | grep -v -E "(product|tech|structure).md" | wc -l || echo "0"`
+- Custom steering count: !`count=0; for f in .kiro/steering/*.md; do if [ -f "$f" ] && [ "$f" != ".kiro/steering/product.md" ] && [ "$f" != ".kiro/steering/tech.md" ] && [ "$f" != ".kiro/steering/structure.md" ]; then count=$((count + 1)); fi; done 2>/dev/null; echo "$count"`
 
 ### Project Analysis
-- Specialized areas: !`find . -type d -name "test*" -o -name "spec*" -o -name "api" -o -name "auth" -o -name "security" | grep -v node_modules | grep -v .git | head -10`
-- Config patterns: !`find . -name "*.config.*" -o -name "*rc.*" -o -name ".*rc" | grep -v node_modules | head -10`
+- Specialized areas: !`find . -path ./node_modules -prune -o -path ./.git -prune -o -type d \( -name "test*" -o -name "spec*" -o -name "api" -o -name "auth" -o -name "security" \) -print 2>/dev/null || echo "No specialized directories found"`
+- Config patterns: !`find . -path ./node_modules -prune -o \( -name "*.config.*" -o -name "*rc.*" -o -name ".*rc" \) -print 2>/dev/null || echo "No config files found"`
 
 ## Task: Create Custom Steering Document
 
@@ -136,3 +136,4 @@ Create the custom steering document with:
    - Follows markdown best practices
 
 Remember: Custom steering documents should supplement, not replace, the foundational three files. They provide specialized context for specific aspects of your project.
+ultrathink

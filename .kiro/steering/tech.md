@@ -25,7 +25,8 @@ A Claude Code extension system that uses hooks and slash commands to implement K
 ### Language Specifications
 - **Thinking**: English (internal processing)
 - **Responses**: Japanese (user-facing content)
-- **Documentation**: Bilingual with Japanese emphasis
+- **Documentation**: Trilingual support (Japanese primary, English, Traditional Chinese)
+- **Configuration Files**: Language-specific CLAUDE.md variants (CLAUDE_en.md, CLAUDE_zh-TW.md)
 
 ### Task Tracking Approach
 - **Manual Progress**: Checkbox manipulation in tasks.md files
@@ -37,18 +38,19 @@ A Claude Code extension system that uses hooks and slash commands to implement K
 
 ### Steering Commands
 ```bash
-/steering-init          # Generate initial steering documents
-/steering-update        # Update steering after changes  
-/steering-custom        # Create custom steering for specialized contexts
+/kiro:steering          # NEW: Intelligently create or update steering documents (recommended)
+/kiro:steering-init     # [DEPRECATED] Generate initial steering documents (use /kiro:steering instead)
+/kiro:steering-update   # [DEPRECATED] Update steering after changes (use /kiro:steering instead)
+/kiro:steering-custom   # Create custom steering for specialized contexts
 ```
 
 ### Specification Commands
 ```bash
-/spec-init [feature-name]           # Initialize spec structure only
-/spec-requirements [feature-name]   # Generate requirements
-/spec-design [feature-name]         # Generate technical design
-/spec-tasks [feature-name]          # Generate implementation tasks
-/spec-status [feature-name]         # Check current progress and phases
+/kiro:spec-init [feature-name]           # Initialize spec structure only
+/kiro:spec-requirements [feature-name]   # Generate requirements
+/kiro:spec-design [feature-name]         # Generate technical design
+/kiro:spec-tasks [feature-name]          # Generate implementation tasks
+/kiro:spec-status [feature-name]         # Check current progress and phases
 ```
 
 ## File Structure
@@ -67,14 +69,16 @@ A Claude Code extension system that uses hooks and slash commands to implement K
 
 .claude/
 └── commands/          # Slash command definitions
-    ├── spec-init.md
-    ├── spec-requirements.md
-    ├── spec-design.md
-    ├── spec-tasks.md
-    ├── spec-status.md
-    ├── steering-init.md
-    ├── steering-update.md
-    └── steering-custom.md
+    └── kiro/
+        ├── spec-init.md
+        ├── spec-requirements.md
+        ├── spec-design.md
+        ├── spec-tasks.md
+        ├── spec-status.md
+        ├── steering.md          # NEW: Unified steering command
+        ├── steering-init.md     # [DEPRECATED]
+        ├── steering-update.md   # [DEPRECATED]
+        └── steering-custom.md
 
 docs/                  # Comprehensive documentation
 ├── claude-code/       # Claude Code specific guides
@@ -84,9 +88,17 @@ docs/                  # Comprehensive documentation
 └── kiro/              # Kiro IDE reference and examples
     ├── llms.txt       # Kiro IDE documentation
     ├── specs-example/ # Example specifications
+    │   ├── pdf-drawing-explainer/
+    │   └── task-management-service/
     └── steering-example/ # Example steering documents
 
 README.md             # Japanese user documentation with workflow diagrams
+README_en.md          # English version documentation
+README_zh-TW.md       # Traditional Chinese documentation
+CLAUDE.md             # Primary Claude Code configuration
+CLAUDE_en.md          # English Claude Code configuration
+CLAUDE_zh-TW.md       # Traditional Chinese Claude Code configuration
+BLOG.md               # Technical blog about implementation
 ```
 
 ## Integration Points
@@ -97,12 +109,12 @@ README.md             # Japanese user documentation with workflow diagrams
 - **TodoWrite Tool**: Task progress tracking and management
 
 ## Development Workflow
-1. Initialize project steering with `/steering-init`
-2. Create feature specifications with `/spec-init`
+1. Initialize project steering with `/kiro:steering` (intelligently handles both creation and updates)
+2. Create feature specifications with `/kiro:spec-init`
 3. Follow 3-phase approval process (Requirements → Design → Tasks)
 4. Implement with manual task tracking via checkbox manipulation
-5. Monitor progress with `/spec-status`
-6. Update steering as needed with `/steering-update`
+5. Monitor progress with `/kiro:spec-status`
+6. Update steering as needed with `/kiro:steering` (preserves user customizations)
 
 ## Task Progress Management
 - **Manual Tracking**: Update tasks.md checkboxes during implementation

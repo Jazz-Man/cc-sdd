@@ -29,7 +29,7 @@
 4. **執行初始指令**：
    ```bash
    # 選用：建立 steering 文件
-   /kiro:steering-init
+   /kiro:steering
    
    # 建立第一個功能規格
    /kiro:spec-init "請詳細描述你的專案"
@@ -61,7 +61,7 @@ your-project/
 
 ```bash
 # 選用：產生 steering 文件（建議但非必須）
-/kiro:steering-init
+/kiro:steering
 
 # 步驟1：建立新功能規格（請詳細描述需求）
 /kiro:spec-init "我想建立一個讓使用者上傳 PDF，從中擷取圖表並由 AI 解釋內容的功能。技術棧：Next.js、TypeScript、Tailwind CSS。"
@@ -94,10 +94,10 @@ your-project/
 
 ```bash
 # 選用：更新 steering（若專案有重大變更）
-/kiro:steering-update
+/kiro:steering
 
 # 或，首次為現有專案建立 steering
-/kiro:steering-init
+/kiro:steering
 
 # 步驟1：建立新功能規格
 /kiro:spec-init "請詳細描述新功能"
@@ -124,7 +124,7 @@ your-project/
 ```mermaid
 graph TD
     A["專案開始"] --> B{"建立<br/>Steering？"}
-    B -->|是| C["/kiro:steering-init"]
+    B -->|是| C["/kiro:steering"]
     B -->|否| D["/kiro:spec-init"]
     C --> D
     
@@ -156,7 +156,7 @@ graph TD
     S -->|是| T["功能完成"]
     
     T --> U{"更新<br/>Steering？"}
-    U -->|是| V["/kiro:steering-update"]
+    U -->|是| V["/kiro:steering"]
     U -->|否| W["結束"]
     V --> W
     
@@ -186,8 +186,9 @@ graph TD
 
 | 指令 | 目的 | 使用時機 |
 |------|------|----------|
-| `/kiro:steering-init` | 產生初始 steering 文件 | 新專案或現有專案需建立文件時 |
-| `/kiro:steering-update` | 更新 steering 文件 | 專案有重大變更或定期維護時 |
+| `/kiro:steering` | **推薦** - 智慧建立或更新 steering 文件 | 所有情況（新建和更新） |
+| `/kiro:steering-init` | [已棄用] 產生初始 steering 文件（⚠️ 覆蓋現有文件） | 已棄用 - 請使用 `/kiro:steering` |
+| `/kiro:steering-update` | [已棄用] 更新現有 steering 文件（保留內容） | 已棄用 - 請使用 `/kiro:steering` |
 | `/kiro:steering-custom` | 建立自訂 steering 文件 | 需特殊規範或指引時 |
 
 **備註**：Steering 文件建議建立，但非強制。小型功能或實驗性開發可省略。
@@ -252,8 +253,9 @@ sequenceDiagram
 ### ✅ 建議事項
 
 1. **務必從 steering 開始**
-   - 新專案請先執行 `/kiro:steering-init`
-   - 既有專案請用 `/kiro:steering-update` 維護
+   - **推薦**：所有情況都使用 `/kiro:steering`（智慧處理新建和更新）
+   - 舊版 `steering-init` 和 `steering-update` 指令已棄用
+   - 新的統一指令會適當保護現有文件並妥善處理
 
 2. **不可跳過階段**
    - 嚴格遵循：需求 → 設計 → 任務
@@ -264,7 +266,7 @@ sequenceDiagram
    - 任務完成狀態要及時更新
 
 4. **維護 steering 文件**
-   - 重大變更後執行 `/kiro:steering-update`
+   - 重大變更後執行 `/kiro:steering`（自動判斷更新策略）
    - 隨專案成長持續更新
 
 ### ❌ 避免事項
@@ -290,8 +292,9 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering-init.md
-│           ├── steering-update.md
+│           ├── steering.md          # 新增：統一 steering 指令
+│           ├── steering-init.md     # [已棄用]
+│           ├── steering-update.md   # [已棄用]
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # Steering 文件

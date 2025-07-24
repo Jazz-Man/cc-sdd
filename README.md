@@ -33,7 +33,7 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 3. **最初のコマンドを実行**:
    ```bash
    # オプション: ステアリング文書を作成
-   /kiro:steering-init
+   /kiro:steering
    
    # 最初の機能仕様を作成
    /kiro:spec-init "あなたのプロジェクトの詳細な説明"
@@ -65,7 +65,7 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 
 ```bash
 # オプション: プロジェクトステアリング生成（推奨だが必須ではない）
-/kiro:steering-init
+/kiro:steering
 
 # ステップ1: 新機能の仕様作成開始（詳細な説明を含める）
 /kiro:spec-init "ユーザーがPDFをアップロードして、その中の図表を抽出し、AIが内容を説明する機能を作りたい。技術スタックはNext.js、TypeScript、Tailwind CSSを使用。"
@@ -98,10 +98,10 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 
 ```bash
 # オプション: ステアリング更新（プロジェクトに大きな変更があった場合）
-/kiro:steering-update
+/kiro:steering
 
 # または、既存プロジェクトでも初めてステアリングを作成する場合
-/kiro:steering-init
+/kiro:steering
 
 # ステップ1: 新機能の仕様作成開始
 /kiro:spec-init "新しい機能の詳細な説明をここに記述"
@@ -128,7 +128,7 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 ```mermaid
 graph TD
     A["プロジェクト開始"] --> B{"ステアリング<br/>文書化？"}
-    B -->|はい| C["/kiro:steering-init"]
+    B -->|はい| C["/kiro:steering"]
     B -->|いいえ| D["/kiro:spec-init"]
     C --> D
     
@@ -160,7 +160,7 @@ graph TD
     S -->|はい| T["機能完成"]
     
     T --> U{"ステアリング<br/>更新？"}
-    U -->|はい| V["/kiro:steering-update"]
+    U -->|はい| V["/kiro:steering"]
     U -->|いいえ| W["完了"]
     V --> W
     
@@ -190,8 +190,9 @@ graph TD
 
 | コマンド | 用途 | 使用タイミング |
 |---------|------|---------------|
-| `/kiro:steering-init` | 初期ステアリング文書の生成 | 新規/既存プロジェクトで文書化が必要な時 |
-| `/kiro:steering-update` | ステアリング文書の更新 | 大きな変更後、定期的なメンテナンス時 |
+| `/kiro:steering` | **推奨** - ステアリング文書のスマート作成・更新 | すべての場面（新規・更新どちらも） |
+| `/kiro:steering-init` | [非推奨] 初期ステアリング文書の生成（⚠️ 既存ファイルを上書き） | 使用非推奨 - `/kiro:steering`を使用 |
+| `/kiro:steering-update` | [非推奨] 既存ステアリング文書の更新（内容を保持） | 使用非推奨 - `/kiro:steering`を使用 |
 | `/kiro:steering-custom` | カスタムステアリング文書の作成 | 特殊な規約やガイドラインが必要な時 |
 
 **注意**: ステアリング文書は推奨されるが必須ではない。小規模な機能追加や試験的な開発では省略可能。
@@ -256,8 +257,9 @@ sequenceDiagram
 ### ✅ 推奨事項
 
 1. **常にステアリングから開始**
-   - 新規プロジェクトでは必ず `/kiro:steering-init` を実行
-   - 既存プロジェクトでも `/kiro:steering-update` で最新化
+   - **推奨**: すべての場面で `/kiro:steering` を使用（スマートに新規作成・更新を判断）
+   - 既存の `steering-init` と `steering-update` は非推奨
+   - 新しい統合コマンドは既存ファイルを保護しつつ適切に処理
 
 2. **フェーズを飛ばさない**
    - 要件 → 設計 → タスクの順序を厳守
@@ -268,7 +270,7 @@ sequenceDiagram
    - タスクの完了状況を適切に更新
 
 4. **ステアリングの保守**
-   - 大きな変更後は `/kiro:steering-update` を実行
+   - 大きな変更後は `/kiro:steering` を実行（自動的に更新を判断）
    - プロジェクトの成長に合わせて更新
 
 ### ❌ 避けるべきこと
@@ -294,8 +296,9 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering-init.md
-│           ├── steering-update.md
+│           ├── steering.md          # NEW: 統合ステアリングコマンド
+│           ├── steering-init.md     # [非推奨]
+│           ├── steering-update.md   # [非推奨]
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # ステアリング文書

@@ -18,14 +18,15 @@ A Kiro-style specification-driven development system for Claude Code that provid
    - Custom steering for specialized contexts
 
 3. **Slash Commands**
-   - `/steering-init` - Initialize steering documents
-   - `/steering-update` - Update steering after changes
-   - `/steering-custom` - Create custom steering
-   - `/spec-init` - Initialize spec structure
-   - `/spec-requirements` - Generate requirements
-   - `/spec-design` - Generate technical design
-   - `/spec-tasks` - Generate implementation tasks
-   - `/spec-status` - Check progress and phases
+   - `/kiro:steering` - **NEW** Intelligently create or update steering documents (recommended)
+   - ~~`/kiro:steering-init`~~ - [DEPRECATED] Initialize steering documents (use `/kiro:steering` instead)
+   - ~~`/kiro:steering-update`~~ - [DEPRECATED] Update steering after changes (use `/kiro:steering` instead)
+   - `/kiro:steering-custom` - Create custom steering
+   - `/kiro:spec-init` - Initialize spec structure
+   - `/kiro:spec-requirements` - Generate requirements
+   - `/kiro:spec-design` - Generate technical design
+   - `/kiro:spec-tasks` - Generate implementation tasks
+   - `/kiro:spec-status` - Check progress and phases
 
 4. **Task Progress Tracking**
    - Manual task tracking through tasks.md checkboxes
@@ -42,10 +43,16 @@ A Kiro-style specification-driven development system for Claude Code that provid
    - Example specifications and steering documents
    - Step-by-step workflow diagrams
 
-6. **Language Support**
+6. **Multi-Language Support**
+   - Trilingual documentation: Japanese (primary), English, Traditional Chinese
    - Bilingual operation: English thinking, Japanese responses
-   - Japanese README with comprehensive workflow documentation
-   - Localized user interface and command descriptions
+   - Comprehensive localized README files with workflow documentation
+   - Localized Claude Code configuration files for different languages
+
+7. **GitHub Actions Integration**
+   - Claude Code Review workflow for automated code analysis
+   - Claude PR Assistant workflow for pull request support
+   - Seamless CI/CD integration with development workflows
 
 ## Development Status
 > **Initial Version Warning**: This is an initial version under active development and improvement based on usage feedback.
@@ -55,7 +62,7 @@ A Kiro-style specification-driven development system for Claude Code that provid
 - **Project Documentation**: Maintain living documentation through steering files
 - **Team Collaboration**: Clear approval workflow ensures alignment
 - **Quality Assurance**: Phase-based approvals prevent premature implementation
-- **Real-world Applications**: Proven with complex specs including Rubik's cube solver app and real-time election results tracking app
+- **Real-world Applications**: Proven with comprehensive example specs including PDF diagram explainer and task management service applications
 
 ## Value Proposition
 - **Reduced Development Risk**: Structured approach catches issues early
@@ -64,9 +71,11 @@ A Kiro-style specification-driven development system for Claude Code that provid
 - **Faster Iteration**: Well-defined tasks and clear progress tracking
 - **Context Preservation**: Manual tracking maintains project knowledge
 - **Easy Integration**: Simple copy-and-paste setup for existing projects
-- **Language Flexibility**: Bilingual support (English thinking, Japanese responses)
+- **Language Flexibility**: Trilingual documentation support with bilingual operation (English thinking, Japanese responses)
 - **Comprehensive Learning**: Technical blog and documentation provide deep understanding
-- **Real-world Validation**: Proven with complex example specifications including Rubik's cube solver and election tracking applications
+- **Real-world Validation**: Proven with complex example specifications including PDF diagram explainer and task management service
+- **Smart Document Management**: New unified `/kiro:steering` command intelligently handles creation and updates while preserving user customizations
+- **GitHub Integration**: Automated workflows for code review and PR assistance enhance development productivity
 
 ## Target Users
 - Software development teams using Claude Code

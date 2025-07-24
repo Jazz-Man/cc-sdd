@@ -23,10 +23,18 @@ This project implements Kiro-style Spec-Driven Development for Claude Code using
 
 #### Kiro Steering (`.kiro/steering/`)
 ```
-/kiro:steering-init          # Generate initial steering documents
-/kiro:steering-update        # Update steering after changes
+/kiro:steering               # Intelligently create or update steering documents (RECOMMENDED)
+/kiro:steering-init          # [DEPRECATED] Generate initial steering documents (⚠️ overwrites existing)
+/kiro:steering-update        # [DEPRECATED] Update existing steering documents (preserves content)
 /kiro:steering-custom        # Create custom steering for specialized contexts
 ```
+
+**Recommended Approach:**
+- **`/kiro:steering`**: The new unified command that intelligently detects existing files and handles them appropriately. Creates new files if needed, updates existing ones while preserving user customizations.
+
+**Legacy Commands (Deprecated):**
+- **`steering-init`**: [DEPRECATED] For first-time setup. Will OVERWRITE any existing steering documents. Use `/kiro:steering` instead.
+- **`steering-update`**: [DEPRECATED] For existing projects. Updates documents while preserving manual edits. Use `/kiro:steering` instead.
 
 **Note**: For new features or empty projects, steering is recommended but not required. You can proceed directly to spec-requirements if needed.
 
@@ -69,12 +77,12 @@ Only after all three phases are approved can implementation begin.
 
 ## Development Rules
 
-1. **Consider steering**: Run `/kiro:steering-init` before major development (optional for new features)
+1. **Consider steering**: Run `/kiro:steering` before major development (optional for new features)
 2. **Follow the 3-phase approval workflow**: Requirements → Design → Tasks → Implementation
 3. **Manual approval required**: Each phase must be explicitly approved by human review
 4. **No skipping phases**: Design requires approved requirements; Tasks require approved design
 5. **Update task status**: Mark tasks as completed when working on them
-6. **Keep steering current**: Run `/kiro:steering-update` after significant changes
+6. **Keep steering current**: Run `/kiro:steering` after significant changes
 7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
 
 ## Automation
@@ -95,7 +103,7 @@ When working on implementation:
 
 ## Getting Started
 
-1. Initialize steering documents: `/kiro:steering-init`
+1. Initialize steering documents: `/kiro:steering`
 2. Create your first spec: `/kiro:spec-init [your-feature-name]`
 3. Follow the workflow through requirements, design, and tasks
 

@@ -1,9 +1,11 @@
 ---
-description: Update Kiro steering documents based on recent project changes
+description: [DEPRECATED - Use /kiro:steering instead] Update Kiro steering documents based on recent project changes
 allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
 ---
 
 # Kiro Steering Update
+
+> ⚠️ **DEPRECATED**: This command is deprecated. Please use `/kiro:steering` instead, which intelligently handles both creation and updates of steering documents.
 
 Update existing steering documents in `.kiro/steering/` to reflect recent project changes and maintain accurate project knowledge for ongoing spec-driven development.
 

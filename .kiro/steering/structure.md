@@ -8,8 +8,13 @@
 ├── .kiro/              # Kiro spec-driven development system
 ├── .claude/            # Claude Code slash commands
 ├── docs/               # Comprehensive documentation and examples
-├── CLAUDE.md           # Claude Code instructions and project overview
+├── CLAUDE.md           # Primary Claude Code configuration
+├── CLAUDE_en.md        # English Claude Code configuration
+├── CLAUDE_zh-TW.md     # Traditional Chinese Claude Code configuration
 ├── README.md           # Japanese user documentation with workflow diagrams
+├── README_en.md        # English version documentation
+├── README_zh-TW.md     # Traditional Chinese documentation
+├── BLOG.md             # Technical blog about implementation
 └── .gitignore          # Git ignore file
 ```
 
@@ -36,14 +41,16 @@
 ```
 .claude/
 └── commands/          # Slash command definitions
-    ├── spec-init.md
-    ├── spec-requirements.md
-    ├── spec-design.md
-    ├── spec-tasks.md
-    ├── spec-status.md
-    ├── steering-init.md
-    ├── steering-update.md
-    └── steering-custom.md
+    └── kiro/
+        ├── spec-init.md
+        ├── spec-requirements.md
+        ├── spec-design.md
+        ├── spec-tasks.md
+        ├── spec-status.md
+        ├── steering.md          # NEW: Unified steering command
+        ├── steering-init.md     # [DEPRECATED]
+        ├── steering-update.md   # [DEPRECATED]
+        └── steering-custom.md
 ```
 
 ### docs Directory
@@ -87,12 +94,19 @@ docs/
   - `api-standards.md`, `testing-approach.md`, etc.
 
 ### Commands
-- **Format**: Slash prefix with kebab-case
-- **Pattern**: `/[action]-[target]`
-- Examples: `/steering-init`, `/spec-requirements`
+- **Format**: Slash prefix with namespace and kebab-case
+- **Pattern**: `/kiro:[action]-[target]` or `/kiro:[action]`
+- Examples: `/kiro:steering`, `/kiro:spec-requirements`
+- **Legacy**: Old format without namespace is deprecated
 
 ### Documentation Files
-- **README.md**: User-facing documentation (Japanese)
+- **README.md**: Primary user documentation (Japanese)
+- **README_en.md**: English version documentation
+- **README_zh-TW.md**: Traditional Chinese documentation
+- **CLAUDE.md**: Primary Claude Code configuration
+- **CLAUDE_en.md**: English Claude Code configuration
+- **CLAUDE_zh-TW.md**: Traditional Chinese Claude Code configuration
+- **BLOG.md**: Technical blog about implementation approach
 - **llms.txt**: Reference documentation for Kiro IDE
 - **Example directories**: Kebab-case with descriptive names
 
@@ -182,4 +196,9 @@ docs/
    - Follow 3-phase approval process
    - Update spec.json for approvals
    - **Manual task tracking**: Update tasks.md checkboxes during implementation
-   - Monitor progress with `/spec-status`
+   - Monitor progress with `/kiro:spec-status`
+   
+5. **Multi-language Consistency**
+   - Keep all language versions synchronized
+   - Use appropriate language for target audience
+   - Maintain consistent structure across language variants

@@ -23,12 +23,20 @@ This project implements Kiro-style Spec-Driven Development for Claude Code using
 
 #### Kiro Steering (`.kiro/steering/`)
 ```
-/kiro:steering-init          # Generate initial steering documents
-/kiro:steering-update        # Update steering after changes
-/kiro:steering-custom        # Create custom steering for specialized contexts
+/kiro:steering               # 智慧建立或更新引導文件（推薦）
+/kiro:steering-init          # [已棄用] 產生初始引導文件（⚠️ 覆蓋現有文件）
+/kiro:steering-update        # [已棄用] 更新現有引導文件（保留內容）
+/kiro:steering-custom        # 為特定情境建立自訂引導
 ```
 
-**Note**: For new features or empty projects, steering is recommended but not required. You can proceed directly to spec-requirements if needed.
+**推薦方式：**
+- **`/kiro:steering`**：新的統一指令，智慧偵測現有文件並適當處理。需要時建立新文件，更新現有文件同時保留使用者自訂內容。
+
+**舊版指令（已棄用）：**
+- **`steering-init`**：[已棄用] 首次設定使用。將會覆蓋任何現有的引導文件。請改用 `/kiro:steering`。
+- **`steering-update`**：[已棄用] 現有專案使用。更新文件同時保留手動編輯的內容。請改用 `/kiro:steering`。
+
+**注意**：對於新功能或空專案，引導文件是建議但非必要的。您可以直接進行 spec-requirements。
 
 ### Phase 1: Specification Creation
 ```
@@ -69,12 +77,12 @@ Only after all three phases are approved can implementation begin.
 
 ## Development Rules
 
-1. **Consider steering**: Run `/kiro:steering-init` before major development (optional for new features)
+1. **考慮引導設定**: 在主要開發前執行 `/kiro:steering`（新功能時為選用）
 2. **Follow the 3-phase approval workflow**: Requirements → Design → Tasks → Implementation
 3. **Manual approval required**: Each phase must be explicitly approved by human review
 4. **No skipping phases**: Design requires approved requirements; Tasks require approved design
 5. **Update task status**: Mark tasks as completed when working on them
-6. **Keep steering current**: Run `/kiro:steering-update` after significant changes
+6. **保持引導文件最新**: 重大變更後執行 `/kiro:steering`
 7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
 
 ## Automation
@@ -95,7 +103,7 @@ When working on implementation:
 
 ## Getting Started
 
-1. Initialize steering documents: `/kiro:steering-init`
+1. 初始化引導文件：`/kiro:steering`
 2. Create your first spec: `/kiro:spec-init [your-feature-name]`
 3. Follow the workflow through requirements, design, and tasks
 
