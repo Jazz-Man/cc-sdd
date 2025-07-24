@@ -74,23 +74,25 @@ You will create a new custom steering document based on user requirements. Commo
 
 ## Inclusion Mode Selection
 
-Ask the user to specify the inclusion mode for the custom steering document:
+Choose the inclusion mode based on how frequently and in what context this steering document should be referenced:
 
-### 1. Always Included (Default)
-- Loaded in every AI interaction
-- Best for: Universal standards that apply to all code
-- Example: Security policies, general code style
+### 1. Always Included (Use sparingly for custom files)
+- **When to use**: Universal standards that apply to ALL code (security policies, core conventions)
+- **Impact**: Increases context size for every interaction
+- **Example**: `security-standards.md` for critical security requirements
+- **Recommendation**: Only use for truly universal guidelines
 
-### 2. Conditional Inclusion
-- Loaded only when working with matching files
-- Specify patterns like: `"*.test.js"`, `"src/api/**/*"`, `"**/auth/*"`
-- Best for: Context-specific guidelines
-- Example: Test conventions only when editing test files
+### 2. Conditional Inclusion (Recommended for most custom files)  
+- **When to use**: Domain-specific guidelines for particular file types or directories
+- **File patterns**: `"*.test.js"`, `"src/api/**/*"`, `"**/auth/*"`, `"*.config.*"`
+- **Example**: `testing-approach.md` only loads when editing test files
+- **Benefits**: Relevant context without overwhelming general interactions
 
-### 3. Manual Inclusion
-- Only loaded when explicitly referenced with `#filename`
-- Best for: Specialized, occasionally-needed context
-- Example: Migration guides, complex architectural decisions
+### 3. Manual Inclusion (Best for specialized contexts)
+- **When to use**: Specialized knowledge needed occasionally 
+- **Usage**: Reference with `@filename.md` during specific conversations
+- **Example**: `deployment-runbook.md` for deployment-specific tasks
+- **Benefits**: Available when needed, doesn't clutter routine interactions
 
 ## Document Structure Guidelines
 
@@ -111,6 +113,19 @@ Create the custom steering document with:
 4. **Integration Points**
    - How this relates to other steering documents
    - Dependencies or prerequisites
+
+## Security and Quality Guidelines
+
+### Security Requirements
+- **Never include sensitive data**: No API keys, passwords, database URLs, secrets
+- **Review sensitive context**: Avoid internal server names, private API endpoints
+- **Team access awareness**: All steering content is shared with team members
+
+### Content Quality Standards
+- **Single responsibility**: One steering file = one domain (don't mix API + database guidelines)
+- **Concrete examples**: Include code snippets and real project examples  
+- **Clear rationale**: Explain WHY certain approaches are preferred
+- **Maintainable size**: Target 2-3 minute read time per file
 
 ## Instructions
 

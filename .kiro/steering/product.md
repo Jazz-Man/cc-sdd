@@ -1,84 +1,43 @@
 # Product Overview
 
-## Product Name
-Claude Code Spec-Driven Development System
-
-## Product Description
-A Kiro-style specification-driven development system for Claude Code that provides structured workflows, automated progress tracking, and phase-based approval processes for software development projects.
+Claude Code Spec-Driven Development is a comprehensive framework that implements Kiro-style specification-driven development workflows within Claude Code using hooks and slash commands.
 
 ## Core Features
-1. **Spec-Driven Development Workflow**
-   - Three-phase approval process (Requirements → Design → Tasks)
-   - Manual approval gates between phases
-   - Structured document generation
 
-2. **Steering System**
-   - Project context management through markdown files
-   - Core steering documents (product, tech, structure)
-   - Custom steering for specialized contexts
+- **3-Phase Approval Workflow**: Requirements → Design → Tasks → Implementation with mandatory human review at each phase
+- **Intelligent Steering System**: Automated creation and maintenance of project knowledge documents (product, tech, structure)
+- **Slash Command Toolset**: 7 specialized commands for managing the complete spec-driven development lifecycle
+- **Automated Progress Tracking**: Hook-based system for monitoring task completion and specification compliance
+- **Multi-language Support**: Complete documentation and configurations in Japanese, English, and Traditional Chinese
+- **Context Preservation**: Smart context management during Claude Code session compression
+- **Project Template System**: Ready-to-use examples and templates for quick project setup
 
-3. **Slash Commands**
-   - `/kiro:steering` - **NEW** Intelligently create or update steering documents (recommended)
-   - ~~`/kiro:steering-init`~~ - [DEPRECATED] Initialize steering documents (use `/kiro:steering` instead)
-   - ~~`/kiro:steering-update`~~ - [DEPRECATED] Update steering after changes (use `/kiro:steering` instead)
-   - `/kiro:steering-custom` - Create custom steering
-   - `/kiro:spec-init` - Initialize spec structure
-   - `/kiro:spec-requirements` - Generate requirements
-   - `/kiro:spec-design` - Generate technical design
-   - `/kiro:spec-tasks` - Generate implementation tasks
-   - `/kiro:spec-status` - Check progress and phases
+## Target Use Case
 
-4. **Task Progress Tracking**
-   - Manual task tracking through tasks.md checkboxes
-   - Progress monitoring with checkbox parsing
-   - TodoWrite integration for active work items
-   - Spec compliance checking
-   - Context preservation during compaction
-   - Minimal automation to prevent hook errors
+This framework is designed for software development teams and individual developers who want to:
 
-5. **Comprehensive Documentation**
-   - Technical blog explaining implementation approach
-   - Structured docs/ directory with examples and guides
-   - Kiro IDE reference documentation (llms.txt)
-   - Example specifications and steering documents
-   - Step-by-step workflow diagrams
+- **Maintain consistency** across AI-assisted development sessions
+- **Ensure quality** through structured review processes
+- **Track progress** transparently on complex feature development
+- **Preserve project knowledge** through persistent steering documents
+- **Follow systematic development** rather than ad-hoc coding approaches
+- **Integrate AI assistance** into established development workflows
 
-6. **Multi-Language Support**
-   - Trilingual documentation: Japanese (primary), English, Traditional Chinese
-   - Bilingual operation: English thinking, Japanese responses
-   - Comprehensive localized README files with workflow documentation
-   - Localized Claude Code configuration files for different languages
+The system is particularly valuable for:
+- Complex feature development requiring multiple development sessions
+- Team environments where project knowledge needs to be shared
+- Long-term projects where architectural decisions need documentation
+- Quality-focused development requiring structured review processes
 
-7. **GitHub Actions Integration**
-   - Claude Code Review workflow for automated code analysis
-   - Claude PR Assistant workflow for pull request support
-   - Seamless CI/CD integration with development workflows
+## Key Value Proposition
 
-## Development Status
-> **Initial Version Warning**: This is an initial version under active development and improvement based on usage feedback.
+**Bridging the gap between Kiro IDE's advanced spec-driven development and Claude Code's powerful AI assistance.** 
 
-## Use Cases
-- **New Feature Development**: Start with steering, create specs, implement with confidence
-- **Project Documentation**: Maintain living documentation through steering files
-- **Team Collaboration**: Clear approval workflow ensures alignment
-- **Quality Assurance**: Phase-based approvals prevent premature implementation
-- **Real-world Applications**: Proven with comprehensive example specs including PDF diagram explainer and task management service applications
+The framework provides:
+- **Structured AI Collaboration**: Transforms ad-hoc AI interactions into systematic development processes
+- **Knowledge Persistence**: Maintains project context across sessions through steering documents
+- **Quality Assurance**: Enforces human review at critical development phases
+- **Automation with Control**: Automates routine tasks while preserving human oversight
+- **Proven Methodology**: Implements battle-tested Kiro development patterns in Claude Code environment
 
-## Value Proposition
-- **Reduced Development Risk**: Structured approach catches issues early
-- **Improved Communication**: Clear specifications and approval process
-- **Better Documentation**: Living steering documents stay current with comprehensive guides
-- **Faster Iteration**: Well-defined tasks and clear progress tracking
-- **Context Preservation**: Manual tracking maintains project knowledge
-- **Easy Integration**: Simple copy-and-paste setup for existing projects
-- **Language Flexibility**: Trilingual documentation support with bilingual operation (English thinking, Japanese responses)
-- **Comprehensive Learning**: Technical blog and documentation provide deep understanding
-- **Real-world Validation**: Proven with complex example specifications including PDF diagram explainer and task management service
-- **Smart Document Management**: New unified `/kiro:steering` command intelligently handles creation and updates while preserving user customizations
-- **GitHub Integration**: Automated workflows for code review and PR assistance enhance development productivity
-
-## Target Users
-- Software development teams using Claude Code
-- Projects requiring structured development workflows
-- Teams needing clear documentation and approval processes
-- Developers seeking better spec-driven development tools
+This enables developers to achieve the same level of systematic, high-quality development that Kiro users enjoy, while leveraging Claude Code's accessibility and powerful AI capabilities.

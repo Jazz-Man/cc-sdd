@@ -48,6 +48,20 @@ Generate comprehensive initial content covering all aspects of the project.
 4. **Mark deprecated content** - Rather than deleting
 5. **Maintain formatting** - Keep consistent with existing style
 
+## Inclusion Modes for Core Steering Files
+
+The three core steering files (product.md, tech.md, structure.md) are designed to be **Always Included** - loaded in every AI interaction to provide consistent project context.
+
+### Understanding Inclusion Modes
+- **Always Included (Default for core files)**: Loaded in every interaction - ensures consistent project knowledge
+- **Conditional**: Loaded only when working with matching file patterns (mainly for custom steering)  
+- **Manual**: Referenced on-demand with @filename syntax (for specialized contexts)
+
+### Core Files Strategy
+- `product.md`: Always - Business context needed for all development decisions
+- `tech.md`: Always - Technical constraints affect all code generation
+- `structure.md`: Always - Architectural decisions impact all file organization
+
 ## Task: Create or Update Steering Documents
 
 ### 1. Product Overview (`product.md`)
@@ -130,6 +144,17 @@ If custom steering files exist:
 
 ## Important Principles
 
+### Security Guidelines
+- **Never include sensitive data**: No API keys, passwords, database credentials, or personal information
+- **Review before commit**: Always review steering content before version control
+- **Team sharing consideration**: Remember steering files are shared with all project collaborators
+
+### Content Quality Guidelines  
+- **Single domain focus**: Each steering file should cover one specific area
+- **Clear, descriptive content**: Provide concrete examples and rationale for decisions
+- **Regular maintenance**: Review and update steering files after major project changes
+- **Actionable guidance**: Write specific, implementable guidelines rather than abstract principles
+
 ### Preservation Strategy
 - **User sections**: Any section not in the standard template should be preserved
 - **Custom examples**: User-added examples should be maintained
@@ -143,3 +168,4 @@ If custom steering files exist:
 - **Explain changes**: Brief notes on why something was updated
 
 The goal is to maintain living documentation that stays current while respecting user customizations, supporting effective spec-driven development without requiring users to worry about losing their work.
+ultrathink
