@@ -23,18 +23,12 @@ This project implements Kiro-style Spec-Driven Development for Claude Code using
 
 #### Kiro Steering (`.kiro/steering/`)
 ```
-/kiro:steering               # 智慧建立或更新引導文件（推薦）
-/kiro:steering-init          # [已棄用] 產生初始引導文件（⚠️ 覆蓋現有文件）
-/kiro:steering-update        # [已棄用] 更新現有引導文件（保留內容）
+/kiro:steering               # 智慧建立或更新引導文件
 /kiro:steering-custom        # 為特定情境建立自訂引導
 ```
 
-**推薦方式：**
-- **`/kiro:steering`**：新的統一指令，智慧偵測現有文件並適當處理。需要時建立新文件，更新現有文件同時保留使用者自訂內容。
-
-**舊版指令（已棄用）：**
-- **`steering-init`**：[已棄用] 首次設定使用。將會覆蓋任何現有的引導文件。請改用 `/kiro:steering`。
-- **`steering-update`**：[已棄用] 現有專案使用。更新文件同時保留手動編輯的內容。請改用 `/kiro:steering`。
+**引導管理：**
+- **`/kiro:steering`**：統一指令，智慧偵測現有文件並適當處理。需要時建立新文件，更新現有文件同時保留使用者自訂內容。
 
 **注意**：對於新功能或空專案，引導文件是建議但非必要的。您可以直接進行 spec-requirements。
 

@@ -186,9 +186,7 @@ graph TD
 
 | 指令 | 目的 | 使用時機 |
 |------|------|----------|
-| `/kiro:steering` | **推薦** - 智慧建立或更新 steering 文件 | 所有情況（新建和更新） |
-| `/kiro:steering-init` | [已棄用] 產生初始 steering 文件（⚠️ 覆蓋現有文件） | 已棄用 - 請使用 `/kiro:steering` |
-| `/kiro:steering-update` | [已棄用] 更新現有 steering 文件（保留內容） | 已棄用 - 請使用 `/kiro:steering` |
+| `/kiro:steering` | 智慧建立或更新 steering 文件 | 所有情況（新建和更新） |
 | `/kiro:steering-custom` | 建立自訂 steering 文件 | 需特殊規範或指引時 |
 
 **備註**：Steering 文件建議建立，但非強制。小型功能或實驗性開發可省略。
@@ -253,9 +251,8 @@ sequenceDiagram
 ### ✅ 建議事項
 
 1. **務必從 steering 開始**
-   - **推薦**：所有情況都使用 `/kiro:steering`（智慧處理新建和更新）
-   - 舊版 `steering-init` 和 `steering-update` 指令已棄用
-   - 新的統一指令會適當保護現有文件並妥善處理
+   - 所有情況都使用 `/kiro:steering`（智慧處理新建和更新）
+   - 統一指令會適當保護現有文件並妥善處理
 
 2. **不可跳過階段**
    - 嚴格遵循：需求 → 設計 → 任務
@@ -292,9 +289,7 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering.md          # 新增：統一 steering 指令
-│           ├── steering-init.md     # [已棄用]
-│           ├── steering-update.md   # [已棄用]
+│           ├── steering.md          # 統一 steering 指令
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # Steering 文件

@@ -23,18 +23,12 @@ This project implements Kiro-style Spec-Driven Development for Claude Code using
 
 #### Kiro Steering (`.kiro/steering/`)
 ```
-/kiro:steering               # Intelligently create or update steering documents (RECOMMENDED)
-/kiro:steering-init          # [DEPRECATED] Generate initial steering documents (⚠️ overwrites existing)
-/kiro:steering-update        # [DEPRECATED] Update existing steering documents (preserves content)
+/kiro:steering               # Intelligently create or update steering documents
 /kiro:steering-custom        # Create custom steering for specialized contexts
 ```
 
-**Recommended Approach:**
-- **`/kiro:steering`**: The new unified command that intelligently detects existing files and handles them appropriately. Creates new files if needed, updates existing ones while preserving user customizations.
-
-**Legacy Commands (Deprecated):**
-- **`steering-init`**: [DEPRECATED] For first-time setup. Will OVERWRITE any existing steering documents. Use `/kiro:steering` instead.
-- **`steering-update`**: [DEPRECATED] For existing projects. Updates documents while preserving manual edits. Use `/kiro:steering` instead.
+**Steering Management:**
+- **`/kiro:steering`**: Unified command that intelligently detects existing files and handles them appropriately. Creates new files if needed, updates existing ones while preserving user customizations.
 
 **Note**: For new features or empty projects, steering is recommended but not required. You can proceed directly to spec-requirements if needed.
 

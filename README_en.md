@@ -187,9 +187,7 @@ graph TD
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `/kiro:steering` | **Recommended** - Smart creation or update of steering documents | All scenarios (both new and updates) |
-| `/kiro:steering-init` | [DEPRECATED] Generate initial steering documents (⚠️ overwrites existing) | Deprecated - Use `/kiro:steering` instead |
-| `/kiro:steering-update` | [DEPRECATED] Update existing steering documents (preserves content) | Deprecated - Use `/kiro:steering` instead |
+| `/kiro:steering` | Smart creation or update of steering documents | All scenarios (both new and updates) |
 | `/kiro:steering-custom` | Create custom steering documents | When special conventions or guidelines are needed |
 
 **Note**: Steering documents are recommended but not required. They can be omitted for small feature additions or experimental development.
@@ -254,9 +252,8 @@ sequenceDiagram
 ### ✅ Recommendations
 
 1. **Always start with steering**
-   - **Recommended**: Use `/kiro:steering` for all scenarios (intelligently handles both creation and updates)
-   - Legacy `steering-init` and `steering-update` commands are deprecated
-   - The new unified command protects existing files while handling them appropriately
+   - Use `/kiro:steering` for all scenarios (intelligently handles both creation and updates)
+   - The unified command protects existing files while handling them appropriately
 
 2. **Don't skip phases**
    - Strictly follow the order: Requirements → Design → Tasks
@@ -293,9 +290,7 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering.md          # NEW: Unified steering command
-│           ├── steering-init.md     # [DEPRECATED]
-│           ├── steering-update.md   # [DEPRECATED]
+│           ├── steering.md          # Unified steering command
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # Steering documents

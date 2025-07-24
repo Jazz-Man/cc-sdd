@@ -190,9 +190,7 @@ graph TD
 
 | コマンド | 用途 | 使用タイミング |
 |---------|------|---------------|
-| `/kiro:steering` | **推奨** - ステアリング文書のスマート作成・更新 | すべての場面（新規・更新どちらも） |
-| `/kiro:steering-init` | [非推奨] 初期ステアリング文書の生成（⚠️ 既存ファイルを上書き） | 使用非推奨 - `/kiro:steering`を使用 |
-| `/kiro:steering-update` | [非推奨] 既存ステアリング文書の更新（内容を保持） | 使用非推奨 - `/kiro:steering`を使用 |
+| `/kiro:steering` | ステアリング文書のスマート作成・更新 | すべての場面（新規・更新どちらも） |
 | `/kiro:steering-custom` | カスタムステアリング文書の作成 | 特殊な規約やガイドラインが必要な時 |
 
 **注意**: ステアリング文書は推奨されるが必須ではない。小規模な機能追加や試験的な開発では省略可能。
@@ -257,9 +255,8 @@ sequenceDiagram
 ### ✅ 推奨事項
 
 1. **常にステアリングから開始**
-   - **推奨**: すべての場面で `/kiro:steering` を使用（スマートに新規作成・更新を判断）
-   - 既存の `steering-init` と `steering-update` は非推奨
-   - 新しい統合コマンドは既存ファイルを保護しつつ適切に処理
+   - すべての場面で `/kiro:steering` を使用（スマートに新規作成・更新を判断）
+   - 統合コマンドは既存ファイルを保護しつつ適切に処理
 
 2. **フェーズを飛ばさない**
    - 要件 → 設計 → タスクの順序を厳守
@@ -296,9 +293,7 @@ sequenceDiagram
 │           ├── spec-design.md
 │           ├── spec-tasks.md
 │           ├── spec-status.md
-│           ├── steering.md          # NEW: 統合ステアリングコマンド
-│           ├── steering-init.md     # [非推奨]
-│           ├── steering-update.md   # [非推奨]
+│           ├── steering.md          # 統合ステアリングコマンド
 │           └── steering-custom.md
 ├── .kiro/
 │   ├── steering/          # ステアリング文書
