@@ -1,7 +1,7 @@
 # Claude Code Spec-Driven Development
 
 > 🌐 **Language**  
-> 📖 **English Version** (This page) | 📖 **[日本語版 README](README.md)**
+> 📖 **English Version** (This page) | 📖 **[日本語版 README](README.md)** | 📖 **[繁體中文說明](README_zh-TW.md)**
 
 > [!Warning]
 > This is an initial version and will be improved as we use it
@@ -47,7 +47,12 @@ your-project/
 ├── .kiro/
 │   ├── steering/          # Auto-generated steering documents
 │   └── specs/             # Auto-generated feature specifications  
-├── CLAUDE.md              # Copied and renamed from CLAUDE_en.md
+├── CLAUDE.md              # Copied and renamed from a language-specific file (e.g., CLAUDE_en.md or CLAUDE_zh-TW.md)
+├── CLAUDE_en.md           # English version of Claude Code configuration
+├── CLAUDE_zh-TW.md        # Traditional Chinese version of Claude Code configuration
+├── README.md              # Japanese version README
+├── README_en.md           # English version README
+├── README_zh-TW.md        # Traditional Chinese version README
 └── (your project files)
 ```
 
@@ -300,10 +305,13 @@ sequenceDiagram
 │           ├── requirements.md # Requirements document
 │           ├── design.md      # Technical design document
 │           └── tasks.md       # Implementation tasks
-├── CLAUDE.md              # Claude Code configuration
-├── CLAUDE_en.md           # English version of Claude Code configuration
-├── README.md              # This file (Japanese)
-└── README_en.md           # English version README
+├── CLAUDE.md              # Main config (copied from a language-specific file below)
+├── CLAUDE_en.md           # English version config
+├── CLAUDE_zh-TW.md        # Traditional Chinese version config
+├── README.md              # Japanese version README
+├── README_en.md           # English version README
+├── README_zh-TW.md        # Traditional Chinese version README
+└── (your project files)
 ```
 
 ## Automation Features

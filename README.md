@@ -1,7 +1,7 @@
 # Claude Code Spec-Driven Development
 
 > 🌐 **Language**  
-> 📖 **[English Version README](README_en.md)** | 📖 **日本語版** (This page)
+> �� **[English Version](README_en.md)** | 📖 **日本語版 README** (このページ) | 📖 **[繁體中文說明](README_zh-TW.md)**
 
 > [!Warning]
 > 初期バージョンのため、使いながら適宜改善していく予定
@@ -49,7 +49,12 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 ├── .kiro/
 │   ├── steering/          # 自動生成されるステアリング文書
 │   └── specs/             # 自動生成される機能仕様
-├── CLAUDE.md              # コピーした設定ファイル
+├── CLAUDE.md              # 言語別ファイル（例: CLAUDE_en.md, CLAUDE_zh-TW.md）からコピーしてリネーム
+├── CLAUDE_en.md           # 英語版 Claude Code 設定
+├── CLAUDE_zh-TW.md        # 繁体字中国語版 Claude Code 設定
+├── README.md              # 日本語版 README
+├── README_en.md           # 英語版 README
+├── README_zh-TW.md        # 繁体字中国語版 README
 └── （あなたのプロジェクトファイル）
 ```
 
@@ -302,8 +307,13 @@ sequenceDiagram
 │           ├── requirements.md # 要件定義書
 │           ├── design.md      # 技術設計書
 │           └── tasks.md       # 実装タスク
-├── CLAUDE.md              # Claude Code用設定
-└── README.md              # このファイル
+├── CLAUDE.md              # メイン設定（下記いずれかの言語ファイルからコピー）
+├── CLAUDE_en.md           # 英語版設定
+├── CLAUDE_zh-TW.md        # 繁体字版設定
+├── README.md              # 日本語版 README
+├── README_en.md           # 英語版 README
+├── README_zh-TW.md        # 繁体字版 README
+└── （あなたのプロジェクトファイル）
 ```
 
 ## 自動化機能
