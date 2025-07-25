@@ -17,7 +17,7 @@ Initialize a new specification based on the provided project description:
 - Product context: @.kiro/steering/product.md
 
 ### Verify Steering Exists
-- Steering files: !`ls -la .kiro/steering/`
+- Steering files: !`[ -d .kiro/steering ] && ls -la .kiro/steering/ || echo "Steering directory not found - proceeding without steering context"`
 
 **FLEXIBILITY**: For new features or empty projects, steering documents are recommended but not required. If steering documents are missing or empty, you may proceed directly to spec generation phase.
 

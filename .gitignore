@@ -70,3 +70,7 @@ coverage/
 
 # Project specific
 BLOG.md
+
+# Claude Code
+.claude/agents
+.claude/hooks
