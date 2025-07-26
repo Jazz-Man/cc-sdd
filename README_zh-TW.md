@@ -70,33 +70,24 @@ your-project/
 /kiro:spec-requirements pdf-diagram-extractor
 # → 編輯 .kiro/specs/pdf-diagram-extractor/requirements.md
 
-# 步驟3：需求審核（人工）
-# 在 spec.json 設定 "requirements": true
-
-# 步驟4：技術設計
+# 步驟3：技術設計（互動式核准）
 /kiro:spec-design pdf-diagram-extractor
+# → 回應「您已檢閱 requirements.md 了嗎？ [y/N]」
 # → 編輯 .kiro/specs/pdf-diagram-extractor/design.md
 
-# 步驟5：設計審核（人工）
-# 在 spec.json 設定 "design": true
-
-# 步驟6：產生實作任務
+# 步驟4：產生實作任務（互動式核准）
 /kiro:spec-tasks pdf-diagram-extractor
+# → 回應 requirements 與 design 的檢閱確認
 # → 編輯 .kiro/specs/pdf-diagram-extractor/tasks.md
 
-# 步驟7：任務審核（人工）
-# 在 spec.json 設定 "tasks": true
-
-# 步驟8：開始實作
+# 步驟5：開始實作
 ```
 
 ### 2. 為現有專案新增功能
 
 ```bash
-# 選用：更新 steering（若專案有重大變更）
-/kiro:steering
-
-# 或，首次為現有專案建立 steering
+# 選用：建立或更新 steering
+# 同一指令可處理新建與更新
 /kiro:steering
 
 # 步驟1：建立新功能規格
@@ -117,7 +108,7 @@ your-project/
 
 ### 流程圖
 
-在此流程中，每個階段的「審查與核准」都包含更新 spec.json。
+在此流程中，每個階段都需要「審查與核准」。
 
 **Steering 文件**：記錄專案持久知識（架構、技術棧、程式規範等），建立與維護 steering 文件雖非強制，但對長期維護極有幫助。
 
@@ -133,21 +124,21 @@ graph TD
     F --> G{"滿意？"}
     G -->|否| G1["編輯修正"]
     G1 --> F
-    G -->|是| H["spec.json: requirements=true"]
+    G -->|是| H["進入下階段"]
     
     H --> I["/kiro:spec-design"]
     I --> J["design.md"]
     J --> K{"滿意？"}
     K -->|否| K1["編輯修正"]
     K1 --> J
-    K -->|是| L["spec.json: design=true"]
+    K -->|是| L["進入下階段"]
     
     L --> M["/kiro:spec-tasks"]
     M --> N["tasks.md"]
     N --> O{"滿意？"}
     O -->|否| O1["編輯修正"]
     O1 --> N
-    O -->|是| P["spec.json: tasks=true"]
+    O -->|是| P["準備實作"]
     
     P --> Q["開始實作"]
     Q --> R["/kiro:spec-status"]
@@ -227,21 +218,22 @@ sequenceDiagram
     C->>D: "requirements.md"
     D->>H: "請求審核"
     H->>H: "審查與編輯"
-    H->>D: "核准（更新 spec.json）"
     
     D->>C: "/kiro:spec-design feature"
+    C->>D: "檢閱確認：您已檢閱 requirements.md 了嗎？"
+    D->>C: "y"
     C->>C: "根據需求產生設計"
     C->>D: "design.md"
     D->>H: "請求審核"
     H->>H: "審查與編輯"
-    H->>D: "核准（更新 spec.json）"
     
     D->>C: "/kiro:spec-tasks feature"
+    C->>D: "檢閱確認：requirements/design 確認"
+    D->>C: "y"
     C->>C: "根據設計產生任務"
     C->>D: "tasks.md"
     D->>H: "請求審核"
     H->>H: "審查與編輯"
-    H->>D: "核准（更新 spec.json）"
     
     D->>C: "開始實作"
 ```
@@ -269,7 +261,7 @@ sequenceDiagram
 ### ❌ 避免事項
 
 1. **未核准就進入下一階段**
-   - 務必手動更新 spec.json
+   - 務必回應確認提示
 
 2. **忽略 steering 文件**
    - 過時資訊會阻礙開發
@@ -328,9 +320,10 @@ sequenceDiagram
 3. 確保使用最新版 Claude Code
 
 ### 卡在審核流程時
-1. 手動檢查 spec.json 的核准標記
+1. 確認是否正確回應檢閱確認提示
 2. 確認前一階段已核准
 3. 用 `/kiro:spec-status` 診斷目前狀態
+4. 必要時手動檢查/編輯 spec.json
 
 ## 摘要
 

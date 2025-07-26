@@ -52,17 +52,17 @@ Kiro's spec-driven development follows a strict **3-phase approval workflow**:
 ### Phase 1: Requirements Generation & Approval
 1. **Generate**: `/kiro:spec-requirements [feature-name]` - Generate requirements document
 2. **Review**: Human reviews `requirements.md` and edits if needed
-3. **Approve**: Manually update `spec.json` to set `"requirements": true`
+3. **Approve**: See Phase 2 for streamlined approval
 
 ### Phase 2: Design Generation & Approval
-1. **Generate**: `/kiro:spec-design [feature-name]` - Generate technical design (requires requirements approval)
-2. **Review**: Human reviews `design.md` and edits if needed
-3. **Approve**: Manually update `spec.json` to set `"design": true`
+1. **Generate**: `/kiro:spec-design [feature-name]` - Interactive approval prompt appears
+2. **Review confirmation**: "requirements.mdをレビューしましたか？ [y/N]"
+3. **Approve**: Reply 'y' to approve and proceed, or manually update `spec.json`
 
 ### Phase 3: Tasks Generation & Approval
-1. **Generate**: `/kiro:spec-tasks [feature-name]` - Generate implementation tasks (requires design approval)
-2. **Review**: Human reviews `tasks.md` and edits if needed
-3. **Approve**: Manually update `spec.json` to set `"tasks": true`
+1. **Generate**: `/kiro:spec-tasks [feature-name]` - Interactive approval prompts appear
+2. **Review confirmation**: Confirms both requirements and design have been reviewed
+3. **Approve**: Reply 'y' to approve all phases, or manually update `spec.json`
 
 ### Implementation
 Only after all three phases are approved can implementation begin.
@@ -73,7 +73,7 @@ Only after all three phases are approved can implementation begin.
 
 1. **Consider steering**: Run `/kiro:steering` before major development (optional for new features)
 2. **Follow the 3-phase approval workflow**: Requirements → Design → Tasks → Implementation
-3. **Manual approval required**: Each phase must be explicitly approved by human review
+3. **Approval required**: Each phase requires human review (interactive prompt or manual)
 4. **No skipping phases**: Design requires approved requirements; Tasks require approved design
 5. **Update task status**: Mark tasks as completed when working on them
 6. **Keep steering current**: Run `/kiro:steering` after significant changes
