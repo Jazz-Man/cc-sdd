@@ -124,16 +124,27 @@ Add the new spec to the active specifications list with the generated feature na
 
 ## Next Steps After Initialization
 
-Follow the proper spec-driven development workflow:
+Follow the proper spec-driven development workflow with **interactive approval**:
 
-**Standard workflow:**
+**Streamlined workflow with interactive approval:**
 1. **Generate requirements**: `/spec-requirements {feature-name}`
-2. **Review and approve requirements**: Update spec.json
-3. **Generate design**: `/spec-design {feature-name}` (after requirements approval)
-4. **Review and approve design**: Update spec.json
-5. **Generate tasks**: `/spec-tasks {feature-name}` (after design approval)
-6. **Review and approve tasks**: Update spec.json
-7. **Start implementation**: After all approvals are complete
+2. **Generate design with interactive approval**: `/spec-design {feature-name}`
+   - Will prompt: "requirements.mdをレビューしましたか？ [y/N]"
+   - If 'y': Auto-approves requirements and generates design
+   - If 'N': Stops for manual review
+3. **Generate tasks with interactive approval**: `/spec-tasks {feature-name}`
+   - Will prompt for both requirements and design review
+   - Auto-approves both phases when confirmed
+4. **Start implementation**: After all phases are complete
+
+**Benefits of interactive approval:**
+- ✅ **No manual spec.json editing** required
+- ✅ **Review enforcement** maintained through confirmation prompts
+- ✅ **Streamlined workflow** with immediate progression
+- ✅ **Safety preserved** with ability to stop for proper review
+
+**Traditional manual approval still available:**
+If you prefer manual control, you can still edit spec.json directly between phases.
 
 ## Instructions
 

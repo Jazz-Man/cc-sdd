@@ -7,56 +7,48 @@ allowed-tools: Bash, Read, Write, Edit, Update, MultiEdit
 
 Generate detailed implementation tasks for feature: **$ARGUMENTS**
 
-## Approval Gate: Requirements & Design Check
+## Interactive Approval: Requirements & Design Review
 
-**CRITICAL**: Tasks can only be generated after both requirements and design are approved.
+**CRITICAL**: Tasks can only be generated after both requirements and design are reviewed and approved.
 
-### Approval Status Check
+### Interactive Review Process
+- Requirements document: @.kiro/specs/$ARGUMENTS/requirements.md
+- Design document: @.kiro/specs/$ARGUMENTS/design.md
 - Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
 
-**STOP HERE** if spec.json shows:
-```json
-"approvals": {
-  "requirements": {
-    "approved": false  // Must be true
-  },
-  "design": {
-    "approved": false  // Must be true
-  }
-}
-```
+**Interactive Approval Process**:
+1. **Check if documents exist** - Verify that requirements.md and design.md have been generated
+2. **Prompt for requirements review** - Ask user: "requirements.mdをレビューしましたか？ [y/N]"
+3. **Prompt for design review** - Ask user: "design.mdをレビューしましたか？ [y/N]"
+4. **If both 'y' (yes)**: Automatically update spec.json to approve both phases and proceed with tasks generation
+5. **If any 'N' (no)**: Stop execution and instruct user to review respective documents first
 
-**Required Actions for Full Approval**:
-
-### If Requirements Not Approved:
-1. **Review requirements.md** - Read through the generated requirements thoroughly
-2. **Edit if needed** - Make any necessary changes directly in the requirements.md file
-3. **Manual approval required** - Update spec.json to set `"requirements": {"approved": true}`
-
-### If Design Not Approved:
-1. **Review design.md** - Read through the generated design thoroughly
-2. **Edit if needed** - Make any necessary changes directly in the design.md file
-3. **Manual approval required** - Update spec.json to set `"design": {"approved": true}`
-4. **Reasoning**: Human review ensures technical design accuracy before task breakdown
-
-**Example full approval in spec.json**:
+**Auto-approval update in spec.json when user confirms both reviews**:
 ```json
 {
   "approvals": {
     "requirements": {
       "generated": true,
-      "approved": true  // ← Human reviewed and approved
+      "approved": true  // ← Automatically set to true when user confirms
     },
     "design": {
       "generated": true,
-      "approved": true  // ← Human reviewed and approved
+      "approved": true  // ← Automatically set to true when user confirms
     }
   },
   "phase": "design-approved"
 }
 ```
 
-**Only proceed to task generation after both requirements and design are explicitly approved by human review.**
+**User Interaction Example**:
+```
+📋 Requirements and Design review required before generating tasks.
+📄 Please review: .kiro/specs/feature-name/requirements.md
+❓ requirements.mdをレビューしましたか？ [y/N]: y
+📄 Please review: .kiro/specs/feature-name/design.md
+❓ design.mdをレビューしましたか？ [y/N]: y
+✅ Requirements and Design approved automatically. Proceeding with tasks generation...
+```
 
 ## Context Analysis
 
@@ -274,46 +266,34 @@ Update the tracking metadata to reflect task generation completion.
 
 ---
 
-## REVIEW AND APPROVAL PROCESS (Not included in document)
+## INTERACTIVE APPROVAL IMPLEMENTED (Not included in document)
 
 The following is for Claude Code conversation only - NOT for the generated document:
 
-### Human Review Required
-After generating tasks.md, inform the user:
+### Interactive Approval Process
+This command now implements interactive approval for the final phase:
 
-**NEXT STEP**: Human review required before starting implementation.
+1. **Requirements & Design Review Prompts**: Automatically prompts user to confirm both documents are reviewed
+2. **Auto-approval**: Updates spec.json automatically when user confirms both with 'y'
+3. **Tasks Generation**: Proceeds immediately after dual approval
+4. **Ready for Implementation**: Tasks are generated and spec is ready for implementation phase
 
-### Review Checklist:
+### Tasks Review for Implementation Phase
+After generating tasks.md, the implementation phase is ready to begin.
+
+**Final approval process for implementation**:
+```
+📋 Tasks review completed. Ready for implementation.
+📄 Generated: .kiro/specs/feature-name/tasks.md
+✅ All phases approved. Implementation can now begin.
+```
+
+### Review Checklist (for user reference):
 - [ ] Tasks are properly sized (2-4 hours each)
 - [ ] All requirements are covered by tasks
 - [ ] Task dependencies are correct
 - [ ] Technology choices match the design
 - [ ] Testing tasks are included
-
-### To Approve:
-After reviewing, update `.kiro/specs/$ARGUMENTS/spec.json`:
-```json
-{
-  "approvals": {
-    "requirements": {
-      "generated": true,
-      "approved": true
-    },
-    "design": {
-      "generated": true,
-      "approved": true
-    },
-    "tasks": {
-      "generated": true,
-      "approved": true
-    }
-  },
-  "phase": "ready-for-implementation",
-  "ready_for_implementation": true
-}
-```
-
-**Only after approval can you start implementation.**
 
 ## Instructions
 

@@ -23,6 +23,18 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 
 **CRITICAL**: Generate comprehensive initial requirements based on the feature idea WITHOUT asking sequential questions first. Create complete requirements covering all necessary aspects.
 
+### Initial Generation Requirements
+1. **Comprehensive Coverage**: Address all major functional areas from the feature idea
+2. **Include All Mandatory Elements**:
+   - Happy path scenarios for normal workflows
+   - Edge cases including error conditions and boundary values
+   - User experience considerations for intuitive interactions  
+   - Technical constraints from system architecture
+   - Success criteria with measurable outcomes
+3. **EARS Format Compliance**: All acceptance criteria must use proper EARS syntax
+4. **No Sequential Questions**: Do not ask clarifying questions before generating initial version
+5. **Complete Initial Draft**: Provide full requirements that can stand for review
+
 ### 1. EARS Format Requirements
 
 **EARS (Easy Approach to Requirements Syntax)** is the mandatory format for acceptance criteria:
@@ -159,23 +171,35 @@ Generate the requirements document content ONLY. Do not include any review or ap
 
 ---
 
-## REVIEW AND APPROVAL PROCESS (Not included in document)
+## INTERACTIVE APPROVAL AVAILABLE (Not included in document)
 
 The following is for Claude Code conversation only - NOT for the generated document:
 
-### Human Review Required
-After generating requirements.md, inform the user:
+### Next Phase Uses Interactive Approval
+After generating requirements.md, the next phase (`/spec-design $ARGUMENTS`) will use interactive approval:
 
-**NEXT STEP**: Human review required before proceeding to design phase.
+**Next interaction will be**:
+```
+/spec-design feature-name
+# → "requirements.mdをレビューしましたか？ [y/N]"
+# → If 'y': Auto-approval + design generation
+# → If 'N': Stop and request review first
+```
 
-### Review Checklist:
+### Benefits of Interactive Approval
+1. **Streamlined workflow**: No manual spec.json editing required
+2. **Review enforcement**: Still requires human confirmation of review
+3. **Immediate progression**: Approved phases proceed automatically
+4. **Safety maintained**: 'N' response stops execution for proper review
+
+### Review Checklist (for user reference):
 - [ ] Requirements are clear and complete
 - [ ] User stories cover all necessary functionality
 - [ ] Acceptance criteria are testable
 - [ ] Requirements align with project goals
 
-### To Approve:
-After reviewing, update `.kiro/specs/$ARGUMENTS/spec.json`:
+### Traditional Manual Approval Still Available
+If needed, you can still manually approve by updating `.kiro/specs/$ARGUMENTS/spec.json`:
 ```json
 {
   "approvals": {
@@ -188,7 +212,7 @@ After reviewing, update `.kiro/specs/$ARGUMENTS/spec.json`:
 }
 ```
 
-**Only after approval can you proceed to `/spec-design $ARGUMENTS`**
+**Recommended**: Use the interactive approval in `/spec-design $ARGUMENTS` for better user experience.
 
 ## Instructions
 

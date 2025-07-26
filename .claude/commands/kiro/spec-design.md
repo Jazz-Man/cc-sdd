@@ -7,42 +7,40 @@ allowed-tools: Bash, Read, Write, Edit, MultiEdit, Update, WebSearch, WebFetch
 
 Create comprehensive technical design for feature: **$ARGUMENTS**
 
-## Approval Gate: Requirements Check
+## Interactive Approval: Requirements Review
 
-**CRITICAL**: Design can only be generated after requirements are approved.
+**CRITICAL**: Design can only be generated after requirements are reviewed and approved.
 
-### Approval Status Check
+### Requirements Review Process
+- Requirements document: @.kiro/specs/$ARGUMENTS/requirements.md
 - Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
 
-**STOP HERE** if spec.json shows:
-```json
-"approvals": {
-  "requirements": {
-    "approved": false
-  }
-}
-```
+**Interactive Approval Process**:
+1. **Check if requirements exist** - Verify that requirements.md has been generated
+2. **Prompt for human review** - Ask user: "requirements.mdをレビューしましたか？ [y/N]"
+3. **If 'y' (yes)**: Automatically update spec.json to approve requirements and proceed with design generation
+4. **If 'N' (no)**: Stop execution and instruct user to review requirements.md first
 
-**Required Actions for Requirements Approval**:
-1. **Review requirements.md** - Read through the generated requirements thoroughly
-2. **Edit if needed** - Make any necessary changes directly in the requirements.md file
-3. **Manual approval required** - Update spec.json manually to set `"requirements": {"approved": true}`
-4. **Reasoning**: Human review ensures requirements accuracy before design phase
-
-**Example approval in spec.json**:
+**Auto-approval update in spec.json when user confirms review**:
 ```json
 {
   "approvals": {
     "requirements": {
       "generated": true,
-      "approved": true  // ← Set this to true after human review
+      "approved": true  // ← Automatically set to true when user confirms
     }
   },
   "phase": "requirements-approved"
 }
 ```
 
-**Only proceed to design generation after requirements are explicitly approved by human review.**
+**User Interaction Example**:
+```
+📋 Requirements review required before generating design.
+📄 Please review: .kiro/specs/feature-name/requirements.md
+❓ requirements.mdをレビューしましたか？ [y/N]: y
+✅ Requirements approved automatically. Proceeding with design generation...
+```
 
 ## Context Analysis
 
@@ -355,41 +353,34 @@ Update spec.json with:
 
 ---
 
-## REVIEW AND APPROVAL PROCESS (Not included in document)
+## INTERACTIVE APPROVAL IMPLEMENTED (Not included in document)
 
 The following is for Claude Code conversation only - NOT for the generated document:
 
-### Human Review Required
-After generating design.md, inform the user:
+### Interactive Approval Process
+This command now implements interactive approval:
 
-**NEXT STEP**: Human review required before proceeding to tasks phase.
+1. **Requirements Review Prompt**: Automatically prompts user to confirm requirements review
+2. **Auto-approval**: Updates spec.json automatically when user confirms with 'y'
+3. **Design Generation**: Proceeds immediately after approval
+4. **Next Phase**: Design is generated and ready for interactive approval by `/spec-tasks`
 
-### Review Checklist:
+### Design Review for Next Phase
+After generating design.md, the next phase (`/spec-tasks $ARGUMENTS`) will use similar interactive approval:
+
+**Preview of next interaction**:
+```
+📋 Design review required before generating tasks.
+📄 Please review: .kiro/specs/feature-name/design.md
+❓ design.mdをレビューしましたか？ [y/N]: 
+```
+
+### Review Checklist (for user reference):
 - [ ] Technical design is comprehensive and clear
 - [ ] Architecture aligns with existing system
 - [ ] Technology choices are appropriate
 - [ ] Components and interfaces are well-defined
 - [ ] Security and performance considerations are addressed
-
-### To Approve:
-After reviewing, update `.kiro/specs/$ARGUMENTS/spec.json`:
-```json
-{
-  "approvals": {
-    "requirements": {
-      "generated": true,
-      "approved": true
-    },
-    "design": {
-      "generated": true,
-      "approved": true
-    }
-  },
-  "phase": "design-approved"
-}
-```
-
-**Only after approval can you proceed to `/spec-tasks $ARGUMENTS`**
 
 ## Instructions
 
