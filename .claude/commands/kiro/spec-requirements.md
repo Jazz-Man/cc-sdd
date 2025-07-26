@@ -86,26 +86,21 @@ Generate requirements.md in the language specified in spec.json (check `@.kiro/s
 **User Story:** As a [role], I want [feature], so that [benefit]
 
 #### Acceptance Criteria
-**Happy Path Scenarios:**
+This section should have EARS requirements
+
 1. WHEN [normal user action] THEN [system] SHALL [expected response]
 2. WHEN [user completes workflow] THEN [system] SHALL [confirmation/next step]
-
-**Edge Cases and Error Handling:**
 3. IF [invalid input/error condition] THEN [system] SHALL [error handling/feedback]
 4. WHEN [boundary condition] THEN [system] SHALL [appropriate response]
-
-**User Experience Requirements:**
 5. WHILE [user is performing action] THE SYSTEM SHALL [provide feedback/guidance]
 6. WHERE [specific context] THE SYSTEM SHALL [contextual behavior]
-
-**Technical Constraints:**
 7. WHEN [technical condition] THEN [system] SHALL [meet performance/integration requirement]
 
 ### Requirement 2: [Next Major Feature Area]
 **User Story:** As a [role], I want [feature], so that [benefit]
 
-#### Acceptance Criteria
-[Follow same pattern: Happy Path → Edge Cases → UX → Technical]
+1. WHEN [event] THEN [system] SHALL [response]
+2. WHEN [event] AND [condition] THEN [system] SHALL [response]
 
 ### Requirement 3: [Additional Major Areas]
 [Continue pattern for all major functional areas]

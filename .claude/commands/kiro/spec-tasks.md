@@ -87,117 +87,121 @@ Create tasks.md in the language specified in spec.json (check `@.kiro/specs/$ARG
 
 - [ ] 1. Set up project structure and core interfaces
   - Create directory structure for models, services, repositories, and API components
-  - Write foundational TypeScript interfaces in `types/index.ts`
-  - Create base configuration files (tsconfig.json, package.json)
+  - Define interfaces that will be implemented in subsequent tasks
+  - Set up testing framework for test-driven development
   - _Requirements: 1.1_
 
-- [ ] 2. Implement data models and validation with tests
-- [ ] 2.1 Create core data model interfaces and types
-  - Write TypeScript interfaces for all data models in `types/models.ts`
-  - Create base Entity class in `models/base.ts` with common properties
-  - Write unit tests for base model functionality in `tests/models/base.test.ts`
+- [ ] 2. Implement data models with test-driven approach
+- [ ] 2.1 Create base model functionality
+  - Write tests for base model behavior first
+  - Implement base Entity class to pass tests
+  - Include common properties and validation methods
   - _Requirements: 2.1, 2.2_
 
-- [ ] 2.2 Implement User model with validation and tests
-  - Write User class in `models/user.ts` extending base Entity
-  - Implement email validation, password hashing methods
-  - Create comprehensive unit tests in `tests/models/user.test.ts`
-  - Test validation edge cases: invalid email, weak password, duplicate users
+- [ ] 2.2 Implement User model with validation
+  - Write User model tests including validation edge cases
+  - Create User class with email validation and password hashing
+  - Test edge cases: invalid email, weak password, duplicate users
   - _Requirements: 1.2, 1.3_
 
 - [ ] 2.3 Implement primary domain model with relationships
-  - Code [DomainModel] class in `models/[domain].ts` using User model from 2.2
-  - Implement relationship handling with User model
-  - Write unit tests for model creation and relationships in `tests/models/[domain].test.ts`
+  - Write tests for [Domain] model including relationships
+  - Code [Domain] class with relationship handling
+  - Implement business logic and validation rules
   - _Requirements: 2.3, 2.4_
 
 - [ ] 3. Create data access layer with test-driven approach
 - [ ] 3.1 Implement database connection utilities
-  - Write database connection class in `database/connection.ts`
-  - Create error handling utilities for database operations
-  - Write connection tests in `tests/database/connection.test.ts`
+  - Write tests for database connection scenarios first
+  - Implement connection utilities to pass the tests
+  - Add error handling and connection pooling
   - _Requirements: 3.1_
 
-- [ ] 3.2 Implement repository pattern for data access
-  - Code base repository interface in `repositories/base-repository.ts`
-  - Implement User repository in `repositories/user-repository.ts` using connection from 3.1
-  - Write repository tests in `tests/repositories/user-repository.test.ts`
-  - Test CRUD operations: create, read, update, delete scenarios
+- [ ] 3.2 Implement repository pattern for User data access
+  - Write repository tests for CRUD operations first
+  - Implement User repository with standard data operations
+  - Test create, read, update, delete scenarios
   - _Requirements: 3.2, 3.3_
 
 - [ ] 3.3 Implement domain-specific repository
-  - Code [Domain]Repository in `repositories/[domain]-repository.ts` extending base
-  - Use User repository from 3.2 for relationship queries
-  - Write comprehensive repository tests in `tests/repositories/[domain]-repository.test.ts`
+  - Write tests for domain repository operations
+  - Code [Domain]Repository with business-specific queries
+  - Include relationship loading and filtering capabilities
   - _Requirements: 3.4_
 
 - [ ] 4. Build API layer with test-first approach
 - [ ] 4.1 Create authentication service and endpoints
-  - Write authentication service in `services/auth-service.ts` using User repository
-  - Implement login/register methods with JWT token generation
-  - Create auth endpoints in `routes/auth.ts`
-  - Write API tests in `tests/api/auth.test.ts` for login/register flows
+  - Write API tests for authentication flows first
+  - Build AuthService with login and registration methods
+  - Implement JWT token generation and validation
+  - Create auth endpoints with proper error handling
   - _Requirements: 4.1, 4.2_
 
 - [ ] 4.2 Implement core API endpoints
-  - Code [Domain]Service in `services/[domain]-service.ts` using repositories from 3.2, 3.3
-  - Create REST endpoints in `routes/[domain].ts`
-  - Write API integration tests in `tests/api/[domain].test.ts`
-  - Test CRUD operations, validation, error handling
+  - Write API tests for domain operations first
+  - Code [Domain]Service with business logic
+  - Create REST endpoints with validation and error handling
+  - Implement authentication middleware for protected routes
   - _Requirements: 4.3, 4.4_
 
 - [ ] 5. Create frontend components with integrated testing
 - [ ] 5.1 Build foundational UI components
-  - Create reusable components in `components/ui/` (Button, Input, Form)
-  - Write component tests in `tests/components/ui/` using Testing Library
-  - Test component rendering, props, user interactions
+  - Write component tests for UI elements first
+  - Create reusable components (Button, Input, Form)
+  - Test component rendering, props, and user interactions
   - _Requirements: 5.1_
 
 - [ ] 5.2 Implement authentication components
-  - Code LoginForm component in `components/auth/LoginForm.tsx` using UI components from 5.1
-  - Connect to auth API from 4.1 using HTTP client
-  - Write component tests in `tests/components/auth/LoginForm.test.tsx`
-  - Test form submission, validation, error states
+  - Write tests for auth component behavior first
+  - Code LoginForm and RegisterForm components
+  - Implement API integration for authentication
+  - Handle loading states and error messages
   - _Requirements: 5.2, 5.3_
 
 - [ ] 5.3 Build main feature components
-  - Implement [Domain]List and [Domain]Form components in `components/[domain]/`
-  - Connect to domain API from 4.2 for data operations
-  - Write component tests covering user interactions and API integration
+  - Write tests for domain component interactions
+  - Implement [Domain]List and [Domain]Form components
+  - Add API integration for data operations
+  - Handle CRUD operations with proper feedback
   - _Requirements: 5.4, 5.5_
 
-- [ ] 6. Integrate components and add end-to-end testing
+- [ ] 6. Wire all components together and verify integration
 - [ ] 6.1 Create main application integration
-  - Code App component in `App.tsx` integrating auth and domain components
-  - Implement routing using components from 5.1, 5.2, 5.3
-  - Write integration tests in `tests/integration/app.test.tsx`
+  - Write integration tests for complete application flow
+  - Implement application routing and navigation
+  - Set up authentication guards for protected routes
+  - Verify all components work together as designed
   - _Requirements: 6.1_
 
 - [ ] 6.2 Implement automated end-to-end testing
-  - Write E2E tests in `tests/e2e/` covering complete user workflows
-  - Test authentication flow: register → login → use features → logout
-  - Test main feature workflows using all components and APIs
+  - Write E2E tests covering complete user workflows
+  - Test authentication flow: register → login → logout
+  - Test main feature workflows with CRUD operations
+  - Verify complete system integration
   - _Requirements: 6.2_
 ```
 
 **Code-Generation Prompt Format Rules**:
 - Hierarchical numbering: Major phases (1, 2, 3) and sub-tasks (1.1, 1.2)
-- Each task is a specific coding instruction for a code-generation LLM
-- Specify exact files to create/modify (e.g., `models/user.ts`, `tests/auth.test.ts`)
-- Build incrementally: each task uses outputs from previous tasks
-- Include test-first/test-integrated approach in every task
+- Each task is a prompt for a code-generation LLM that will implement the step
+- Specify what to create/modify but rely on design document for implementation details
+- Build incrementally: each task explicitly references outputs from previous tasks
+- Start with tests when appropriate (test-driven development)
+- Each task explains how it connects to subsequent tasks
 - End with specific requirement mapping: _Requirements: X.X, Y.Y_
 - Focus ONLY on writing, modifying, or testing code
 - Tasks should be completable in 1-3 hours each
+- Final task must wire everything together to prevent orphaned code
 
 ### 2. Code-Generation Quality Guidelines
-- **Executable Instructions**: Each task must be actionable by a coding agent without clarification
-- **Specific File References**: Specify exact files/components to create or modify
-- **Incremental Building**: Each task builds on artifacts from previous tasks
-- **Test Integration**: Include testing approach in each development task
+- **Prompt Optimization**: Each task is a clear prompt that a coding agent can execute
+- **Progressive Building**: Explicitly state which previous task outputs are used
+- **Test-First Approach**: Write tests before implementation when appropriate
+- **Forward References**: Explain how current task output will be used later
 - **Requirements Traceability**: Map to specific EARS requirements from requirements.md
-- **No Orphaned Code**: All code integrates into the growing system
+- **Integration Focus**: Final tasks must wire all components together
 - **Coding-Only Focus**: Exclude deployment, user testing, or non-coding activities
+- **Design Document Reliance**: Tasks reference design for implementation details
 
 ### 3. Mandatory Task Categories (Coding Only)
 Include ONLY coding tasks for:
