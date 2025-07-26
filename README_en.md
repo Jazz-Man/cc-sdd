@@ -71,33 +71,24 @@ your-project/
 /kiro:spec-requirements pdf-diagram-extractor
 # → Review and edit .kiro/specs/pdf-diagram-extractor/requirements.md
 
-# Step 3: Requirements approval (manual)
-# Set "requirements": true in spec.json
-
-# Step 4: Technical design
+# Step 3: Technical design (interactive approval)
 /kiro:spec-design pdf-diagram-extractor
+# → Respond to "Have you reviewed requirements.md? [y/N]"
 # → Review and edit .kiro/specs/pdf-diagram-extractor/design.md
 
-# Step 5: Design approval (manual)
-# Set "design": true in spec.json
-
-# Step 6: Task generation
+# Step 4: Task generation (interactive approval)
 /kiro:spec-tasks pdf-diagram-extractor
+# → Respond to review confirmation for requirements and design
 # → Review and edit .kiro/specs/pdf-diagram-extractor/tasks.md
 
-# Step 7: Task approval (manual)
-# Set "tasks": true in spec.json
-
-# Step 8: Start implementation
+# Step 5: Start implementation
 ```
 
 ### 2. Adding Features to Existing Projects
 
 ```bash
-# Optional: Update steering (if there have been major changes to the project)
-/kiro:steering
-
-# Or, if creating steering for an existing project for the first time
+# Optional: Create or update steering
+# Same command handles both new creation and updates
 /kiro:steering
 
 # Step 1: Start creating new feature specification
@@ -118,7 +109,7 @@ your-project/
 
 ### Process Flow Diagram
 
-In this flow, each phase includes updating spec.json as part of "Review & Approval".
+In this flow, each phase requires "Review & Approval".
 
 **Steering documents** are documents that record persistent knowledge about the project (architecture, tech stack, code conventions, etc.). Creating and updating them is optional but recommended for long-term maintainability of the project.
 
@@ -134,21 +125,21 @@ graph TD
     F --> G{"Satisfied?"}
     G -->|No| G1["Edit & Revise"]
     G1 --> F
-    G -->|Yes| H["spec.json: requirements=true"]
+    G -->|Yes| H["To Next Phase"]
     
     H --> I["/kiro:spec-design"]
     I --> J["design.md"]
     J --> K{"Satisfied?"}
     K -->|No| K1["Edit & Revise"]
     K1 --> J
-    K -->|Yes| L["spec.json: design=true"]
+    K -->|Yes| L["To Next Phase"]
     
     L --> M["/kiro:spec-tasks"]
     M --> N["tasks.md"]
     N --> O{"Satisfied?"}
     O -->|No| O1["Edit & Revise"]
     O1 --> N
-    O -->|Yes| P["spec.json: tasks=true"]
+    O -->|Yes| P["Ready for Implementation"]
     
     P --> Q["Start Implementation"]
     Q --> R["/kiro:spec-status"]
@@ -228,21 +219,22 @@ sequenceDiagram
     C->>D: "requirements.md"
     D->>H: "Request Review"
     H->>H: "Review & Edit"
-    H->>D: "Approve (update spec.json)"
     
     D->>C: "/kiro:spec-design feature"
+    C->>D: "Review confirmation: Have you reviewed requirements.md?"
+    D->>C: "y"
     C->>C: "Generate Design (based on requirements)"
     C->>D: "design.md"
     D->>H: "Request Review"
     H->>H: "Review & Edit"
-    H->>D: "Approve (update spec.json)"
     
     D->>C: "/kiro:spec-tasks feature"
+    C->>D: "Review confirmation: requirements/design check"
+    D->>C: "y"
     C->>C: "Generate Tasks (based on design)"
     C->>D: "tasks.md"
     D->>H: "Request Review"
     H->>H: "Review & Edit"
-    H->>D: "Approve (update spec.json)"
     
     D->>C: "Start Implementation"
 ```
@@ -270,7 +262,7 @@ sequenceDiagram
 ### ❌ Things to Avoid
 
 1. **Moving to next phase without approval**
-   - Don't forget to manually update spec.json
+   - Don't forget to respond to confirmation prompts
 
 2. **Neglecting steering documents**
    - Outdated information hinders development
@@ -329,9 +321,10 @@ The following are automated through Claude Code's hook functionality:
 3. Ensure you're using the latest version of Claude Code
 
 ### When stuck in approval flow
-1. Manually check approval flags in `spec.json`
+1. Check that you're responding correctly to review confirmation prompts
 2. Verify previous phase approval is complete
 3. Use `/kiro:spec-status` to diagnose current state
+4. Manually check/edit `spec.json` if needed
 
 ## Summary
 

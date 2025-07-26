@@ -74,33 +74,24 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 /kiro:spec-requirements pdf-diagram-extractor
 # → .kiro/specs/pdf-diagram-extractor/requirements.md をレビュー・編集
 
-# ステップ3: 要件承認（手動）
-# spec.json で "requirements": true に設定
-
-# ステップ4: 技術設計
+# ステップ3: 技術設計（インタラクティブ承認）
 /kiro:spec-design pdf-diagram-extractor
+# → "requirements.mdをレビューしましたか？ [y/N]" に応答
 # → .kiro/specs/pdf-diagram-extractor/design.md をレビュー・編集
 
-# ステップ5: 設計承認（手動）
-# spec.json で "design": true に設定
-
-# ステップ6: タスク生成
+# ステップ4: タスク生成（インタラクティブ承認）
 /kiro:spec-tasks pdf-diagram-extractor
+# → requirements と design のレビュー確認に応答
 # → .kiro/specs/pdf-diagram-extractor/tasks.md をレビュー・編集
 
-# ステップ7: タスク承認（手動）
-# spec.json で "tasks": true に設定
-
-# ステップ8: 実装開始
+# ステップ5: 実装開始
 ```
 
 ### 2. 既存プロジェクトへの機能追加
 
 ```bash
-# オプション: ステアリング更新（プロジェクトに大きな変更があった場合）
-/kiro:steering
-
-# または、既存プロジェクトでも初めてステアリングを作成する場合
+# オプション: ステアリング作成・更新
+# 新規作成の場合も、更新の場合も同じコマンドを使用
 /kiro:steering
 
 # ステップ1: 新機能の仕様作成開始
@@ -121,7 +112,7 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
 
 ### プロセスフロー図
 
-このフローでは、各フェーズで「レビュー・承認」にspec.jsonの更新が含まれている。
+このフローでは、各フェーズで「レビュー・承認」が必要となる。
 
 **ステアリング文書**は、プロジェクトに関する永続的な知識（アーキテクチャ、技術スタック、コード規約など）を記録するドキュメントです。作成・更新はオプションだが、プロジェクトの長期的な保守性を高めるために推奨される。
 
@@ -137,21 +128,21 @@ graph TD
     F --> G{"満足？"}
     G -->|いいえ| G1["編集・修正"]
     G1 --> F
-    G -->|はい| H["spec.json: requirements=true"]
+    G -->|はい| H["次フェーズへ"]
     
     H --> I["/kiro:spec-design"]
     I --> J["design.md"]
     J --> K{"満足？"}
     K -->|いいえ| K1["編集・修正"]
     K1 --> J
-    K -->|はい| L["spec.json: design=true"]
+    K -->|はい| L["次フェーズへ"]
     
     L --> M["/kiro:spec-tasks"]
     M --> N["tasks.md"]
     N --> O{"満足？"}
     O -->|いいえ| O1["編集・修正"]
     O1 --> N
-    O -->|はい| P["spec.json: tasks=true"]
+    O -->|はい| P["実装準備完了"]
     
     P --> Q["実装開始"]
     Q --> R["/kiro:spec-status"]
@@ -231,21 +222,22 @@ sequenceDiagram
     C->>D: "requirements.md"
     D->>H: "レビュー依頼"
     H->>H: "レビュー・編集"
-    H->>D: "承認 (spec.json更新)"
     
     D->>C: "/kiro:spec-design feature"
+    C->>D: "レビュー確認: requirements.mdをレビューしましたか？"
+    D->>C: "y"
     C->>C: "設計生成（要件ベース）"
     C->>D: "design.md"
     D->>H: "レビュー依頼"
     H->>H: "レビュー・編集"
-    H->>D: "承認 (spec.json更新)"
     
     D->>C: "/kiro:spec-tasks feature"
+    C->>D: "レビュー確認: requirements/design確認"
+    D->>C: "y"
     C->>C: "タスク生成（設計ベース）"
     C->>D: "tasks.md"
     D->>H: "レビュー依頼"
     H->>H: "レビュー・編集"
-    H->>D: "承認 (spec.json更新)"
     
     D->>C: "実装開始"
 ```
@@ -273,7 +265,7 @@ sequenceDiagram
 ### ❌ 避けるべきこと
 
 1. **承認なしでの次フェーズ移行**
-   - spec.jsonの手動更新を忘れない
+   - プロンプトへの確認応答を忘れない
 
 2. **ステアリング文書の放置**
    - 古い情報は開発の妨げになる
@@ -332,9 +324,10 @@ Claude Codeのフック機能により以下が自動化されている
 3. Claude Codeの最新バージョンを使用しているか確認
 
 ### 承認フローで詰まった場合
-1. `spec.json` の承認フラグを手動で確認
+1. レビュー確認プロンプトに正しく応答しているか確認
 2. 前フェーズの承認が完了しているか確認
 3. `/kiro:spec-status` で現在の状態を診断
+4. 必要に応じて `spec.json` を手動で確認・編集
 
 ## まとめ
 

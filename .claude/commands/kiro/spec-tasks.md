@@ -218,16 +218,6 @@ For each task, reference specific EARS requirements from requirements.md:
 - Ensure every EARS requirement is covered by implementation tasks
 - Use format: _Requirements: 2.1, 3.3, 1.2_ (refer to numbered requirements)
 
-### 5. Progress Tracking
-Include progress tracking section:
-```markdown
-## 進捗状況
-- Created: [timestamp]
-- Status: Ready for implementation
-- Total tasks: [count]
-- Completed: 0
-- Remaining: [count]
-```
 
 ### 6. Document Generation Only
 Generate the tasks document content ONLY. Do not include any review or approval instructions in the actual document file.
@@ -238,11 +228,6 @@ Update spec.json with:
 ```json
 {
   "phase": "tasks-generated",
-  "progress": {
-    "requirements": 100,
-    "design": 100, 
-    "tasks": 100
-  },
   "approvals": {
     "requirements": {
       "generated": true,

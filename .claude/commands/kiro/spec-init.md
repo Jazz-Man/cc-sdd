@@ -67,11 +67,6 @@ Create initial metadata with approval tracking and project description:
       "approved": false
     }
   },
-  "progress": {
-    "requirements": 0,
-    "design": 0,
-    "tasks": 0
-  },
   "ready_for_implementation": false
 }
 ```

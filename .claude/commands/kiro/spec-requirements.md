@@ -19,21 +19,17 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 - Current requirements: @.kiro/specs/$ARGUMENTS/requirements.md
 - Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
 
-## Task: Generate Detailed Requirements
+## Task: Generate Initial Requirements
 
-**CRITICAL**: Generate comprehensive initial requirements based on the feature idea WITHOUT asking sequential questions first. Create complete requirements covering all necessary aspects.
+Generate an initial set of requirements in EARS format based on the feature idea, then iterate with the user to refine them until they are complete and accurate.
 
-### Initial Generation Requirements
-1. **Comprehensive Coverage**: Address all major functional areas from the feature idea
-2. **Include All Mandatory Elements**:
-   - Happy path scenarios for normal workflows
-   - Edge cases including error conditions and boundary values
-   - User experience considerations for intuitive interactions  
-   - Technical constraints from system architecture
-   - Success criteria with measurable outcomes
-3. **EARS Format Compliance**: All acceptance criteria must use proper EARS syntax
-4. **No Sequential Questions**: Do not ask clarifying questions before generating initial version
-5. **Complete Initial Draft**: Provide full requirements that can stand for review
+Don't focus on code exploration in this phase. Instead, just focus on writing requirements which will later be turned into a design.
+
+### Requirements Generation Guidelines
+1. **Focus on Core Functionality**: Start with the essential features from the user's idea
+2. **Use EARS Format**: All acceptance criteria must use proper EARS syntax
+3. **No Sequential Questions**: Generate initial version first, then iterate based on user feedback
+4. **Keep It Manageable**: Create a solid foundation that can be expanded through user review
 
 ### 1. EARS Format Requirements
 
@@ -69,21 +65,11 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 ```
 
 **Granularity Guidelines:**
-- **High-level Requirements**: Major functional areas or user workflows
+- **High-level Requirements**: Major functional areas from the feature idea
 - **User Stories**: Specific user needs within each requirement area  
-- **Acceptance Criteria**: Detailed, testable conditions using EARS format
-- **Coverage**: Each requirement must address happy path, edge cases, UX, and technical aspects
+- **Acceptance Criteria**: Testable conditions using EARS format
 
-### 3. Mandatory Coverage Areas
-
-**Each requirement MUST consider:**
-
-1. **Edge Cases**: Error conditions, boundary values, exceptional scenarios
-2. **User Experience**: Intuitive workflows, clear feedback, accessibility
-3. **Technical Constraints**: Integration with existing architecture, performance limits
-4. **Success Criteria**: Measurable outcomes and acceptance thresholds
-
-### 4. Requirements Document Structure
+### 3. Requirements Document Structure
 Generate requirements.md in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
 
 ```markdown
@@ -100,13 +86,10 @@ Generate requirements.md in the language specified in spec.json (check `@.kiro/s
 #### Acceptance Criteria
 This section should have EARS requirements
 
-1. WHEN [normal user action] THEN [system] SHALL [expected response]
-2. WHEN [user completes workflow] THEN [system] SHALL [confirmation/next step]
-3. IF [invalid input/error condition] THEN [system] SHALL [error handling/feedback]
-4. WHEN [boundary condition] THEN [system] SHALL [appropriate response]
-5. WHILE [user is performing action] THE SYSTEM SHALL [provide feedback/guidance]
-6. WHERE [specific context] THE SYSTEM SHALL [contextual behavior]
-7. WHEN [technical condition] THEN [system] SHALL [meet performance/integration requirement]
+1. WHEN [event] THEN [system] SHALL [response]
+2. IF [precondition] THEN [system] SHALL [response]
+3. WHILE [ongoing condition] THE SYSTEM SHALL [continuous behavior]
+4. WHERE [location/context] THE SYSTEM SHALL [contextual behavior]
 
 ### Requirement 2: [Next Major Feature Area]
 **User Story:** As a [role], I want [feature], so that [benefit]
@@ -118,44 +101,11 @@ This section should have EARS requirements
 [Continue pattern for all major functional areas]
 ```
 
-### 5. Requirements Quality Guidelines
-
-**EARS Format Compliance:**
-- Use exact EARS syntax patterns (WHEN/THEN, IF/THEN, WHILE/SHALL, WHERE/SHALL)
-- Each acceptance criterion must be a complete, testable statement
-- Use "SHALL" for mandatory system behaviors
-
-**Comprehensive Coverage:**
-- **Happy Path**: Normal user workflows and expected behaviors
-- **Edge Cases**: Error conditions, boundary values, exceptional scenarios
-- **User Experience**: Clear feedback, intuitive interactions, accessibility considerations
-- **Technical Constraints**: Performance requirements, integration limits, system boundaries
-- **Success Criteria**: Measurable outcomes and acceptance thresholds
-
-**Structural Requirements:**
-- Group related functionality into hierarchical requirements
-- Each requirement represents a major feature area or user workflow
-- User stories provide high-level context for detailed acceptance criteria
-- Acceptance criteria are specific, testable, and complete
-
-### 6. Integration Considerations
-Based on steering context, ensure requirements address:
-- **Architectural Integration**: How feature aligns with existing system structure
-- **Technical Constraints**: Performance limits, data consistency, API limitations
-- **User Workflow Integration**: Seamless connection with existing user journeys
-- **Scalability Requirements**: System behavior under load and growth scenarios
-- **Security and Compliance**: Data protection, access control, regulatory requirements
-
 ### 4. Update Metadata
 Update spec.json with:
 ```json
 {
   "phase": "requirements-generated",
-  "progress": {
-    "requirements": 100,
-    "design": 0,
-    "tasks": 0
-  },
   "approvals": {
     "requirements": {
       "generated": true,
@@ -217,18 +167,11 @@ If needed, you can still manually approve by updating `.kiro/specs/$ARGUMENTS/sp
 ## Instructions
 
 1. **Check spec.json for language** - Use the language specified in the metadata
-2. **Generate comprehensive initial requirements** based on feature idea WITHOUT asking sequential questions first
-3. **Apply EARS format strictly** - Use exact EARS syntax patterns for all acceptance criteria
-4. **Ensure comprehensive coverage**:
-   - Happy path scenarios for normal user workflows
-   - Edge cases including error conditions and boundary values
-   - User experience considerations for intuitive interactions
-   - Technical constraints from steering documents and system architecture
-   - Success criteria with measurable outcomes
-5. **Structure hierarchically** - Group related functionality into major requirement areas
-6. **Make requirements testable** - Each acceptance criterion should be verifiable and specific
-7. **Consider integration** with existing system architecture and user workflows
-8. **Update tracking metadata** upon completion
+2. **Generate initial requirements** based on the feature idea WITHOUT asking sequential questions first
+3. **Apply EARS format** - Use proper EARS syntax patterns for all acceptance criteria
+4. **Focus on core functionality** - Start with essential features and user workflows
+5. **Structure clearly** - Group related functionality into logical requirement areas
+6. **Make requirements testable** - Each acceptance criterion should be verifiable
+7. **Update tracking metadata** upon completion
 
-Generate requirements that provide comprehensive foundation for design phase, covering all necessary aspects from the initial feature idea.
-ultrathink
+Generate requirements that provide a solid foundation for the design phase, focusing on the core functionality from the feature idea.

@@ -332,11 +332,6 @@ Update spec.json with:
 ```json
 {
   "phase": "design-generated",
-  "progress": {
-    "requirements": 100,
-    "design": 100,
-    "tasks": 0
-  },
   "approvals": {
     "requirements": {
       "generated": true,
