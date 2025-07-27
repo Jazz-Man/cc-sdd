@@ -1,6 +1,6 @@
 # Claude Code Spec-Driven Development
 
-Kiro-style Spec-Driven Development implementation using hooks and slash commands.
+Kiro-style Spec Driven Development implementation using claude code slash commands, hooks and agents.
 
 ## Project Context
 
