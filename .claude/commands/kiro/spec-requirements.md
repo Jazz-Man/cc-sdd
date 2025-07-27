@@ -175,3 +175,4 @@ If needed, you can still manually approve by updating `.kiro/specs/$ARGUMENTS/sp
 7. **Update tracking metadata** upon completion
 
 Generate requirements that provide a solid foundation for the design phase, focusing on the core functionality from the feature idea.
+think
