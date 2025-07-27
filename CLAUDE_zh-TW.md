@@ -9,6 +9,11 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - Specs: `.kiro/specs/`
 - Commands: `.claude/commands/`
 
+### Steering vs Specification
+
+**Steering** (`.kiro/steering/`) - 以專案層級的規則和情境引導AI  
+**Specs** (`.kiro/specs/`) - 將個別功能的開發流程正式化
+
 ### Active Specifications
 - Check `.kiro/specs/` for active specifications
 - Use `/kiro:spec-status [feature-name]` to check progress
