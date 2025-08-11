@@ -40,8 +40,8 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 **Primary EARS Patterns:**
 - WHEN [event/condition] THEN [system] SHALL [response]
 - IF [precondition/state] THEN [system] SHALL [response]
-- WHILE [ongoing condition] THE SYSTEM SHALL [continuous behavior]
-- WHERE [location/context] THE SYSTEM SHALL [contextual behavior]
+- WHILE [ongoing condition] THE [system] SHALL [continuous behavior]
+- WHERE [location/context/trigger] THE [system] SHALL [contextual behavior]
 
 **Combined Patterns:**
 - WHEN [event] AND [additional condition] THEN [system] SHALL [response]
@@ -66,8 +66,8 @@ This section should have EARS requirements
 
 1. WHEN [event] THEN [system] SHALL [response]
 2. IF [precondition] THEN [system] SHALL [response]
-3. WHILE [ongoing condition] THE SYSTEM SHALL [continuous behavior]
-4. WHERE [location/context] THE SYSTEM SHALL [contextual behavior]
+3. WHILE [ongoing condition] THE [system] SHALL [continuous behavior]
+4. WHERE [location/context/trigger] THE [system] SHALL [contextual behavior]
 
 ### Requirement 2: [Next Major Feature Area]
 **User Story:** As a [role], I want [feature], so that [benefit]
