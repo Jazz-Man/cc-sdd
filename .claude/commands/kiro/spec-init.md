@@ -1,6 +1,7 @@
 ---
 description: Initialize a new specification with detailed project description and requirements
 allowed-tools: Bash, Read, Write, Glob
+model: claude-sonnet-4-20250514
 ---
 
 # Spec Initialization
