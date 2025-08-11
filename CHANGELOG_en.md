@@ -4,20 +4,29 @@ Updates for Claude Code Spec-Driven Development.
 
 ---
 
-## Ver 0.2.2 (August 11, 2025 Update)
+## Ver 0.3.0 (August 12, 2025 Update)
 
-### spec-init.md Command Improvements
+### Major Kiro Spec-Driven Development Command Improvements
 
-**Lightweight and Performance Enhancement**
-- Reduced spec-init.md from 163 lines to 103 lines (37% reduction)
-- Removed unnecessary steering validation (handled in subsequent phases)
-- Removed detailed project analysis (simplified to lightweight name generation)
-- Removed redundant workflow explanations
+**Workflow Efficiency**
+- Added `-y` flag: `/kiro:spec-design feature-name -y` skips requirements approval and generates design
+- `/kiro:spec-tasks feature-name -y` skips requirements+design approval and generates tasks  
+- Added argument-hint: Commands now auto-display `<feature-name> [-y]` during input
+- Traditional step-by-step approval still available (spec.json editing or interactive approval)
 
-**Feature Enhancements**
-- Added feature name uniqueness check to prevent conflicts
-- Updated model to claude-sonnet-4-20250514
-- Focused design on core functionality (structure initialization)
+**Command Optimization**
+- spec-init.md: 162→104 lines (36% reduction, removed project_description and simplified templates)
+- spec-requirements.md: 177→124 lines (30% reduction, simplified verbose explanations)
+- spec-tasks.md: 295→198 lines (33% reduction, eliminated "Phase X:", functional naming, granularity optimization)
+
+**Task Structure Optimization**
+- Section headers for functional area organization
+- Task granularity limits (3-5 sub-items, 1-2 hour completion)
+- Standardized _Requirements: X.X, Y.Y_ format
+
+**Custom Steering Support**
+- All spec commands now utilize project-specific context
+- Flexible Always/Conditional/Manual mode configuration loading
 
 ---
 
