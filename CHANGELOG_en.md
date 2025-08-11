@@ -4,6 +4,23 @@ Updates for Claude Code Spec-Driven Development.
 
 ---
 
+## Ver 0.2.2 (August 11, 2025 Update)
+
+### spec-init.md Command Improvements
+
+**Lightweight and Performance Enhancement**
+- Reduced spec-init.md from 163 lines to 103 lines (37% reduction)
+- Removed unnecessary steering validation (handled in subsequent phases)
+- Removed detailed project analysis (simplified to lightweight name generation)
+- Removed redundant workflow explanations
+
+**Feature Enhancements**
+- Added feature name uniqueness check to prevent conflicts
+- Updated model to claude-sonnet-4-20250514
+- Focused design on core functionality (structure initialization)
+
+---
+
 ## Ver 0.2.1 (July 27, 2025 Update)
 
 ### CLAUDE.md Performance Optimization
