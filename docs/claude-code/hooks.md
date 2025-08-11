@@ -1,4 +1,4 @@
-<!-- updated at 2025-07-26 -->
+<!-- updated at 2025-08-09 -->
 # Hooks reference
 
 > This page provides reference documentation for implementing hooks in Claude Code.
@@ -103,7 +103,7 @@ Runs after Claude creates tool parameters and before processing the tool call.
 
 **Common matchers:**
 
-* `Task` - Sub agent tasks (see [sub agents documentation](/en/docs/claude-code/sub-agents))
+* `Task` - Subagent tasks (see [subagents documentation](/en/docs/claude-code/sub-agents))
 * `Bash` - Shell commands
 * `Glob` - File pattern matching
 * `Grep` - Content search
@@ -140,7 +140,7 @@ the stoppage occurred due to a user interrupt.
 
 ### SubagentStop
 
-Runs when a Claude Code sub agent (Task tool call) has finished responding.
+Runs when a Claude Code subagent (Task tool call) has finished responding.
 
 ### PreCompact
 
@@ -150,6 +150,18 @@ Runs before Claude Code is about to run a compact operation.
 
 * `manual` - Invoked from `/compact`
 * `auto` - Invoked from auto-compact (due to full context window)
+
+### SessionStart
+
+Runs when Claude Code starts a new session or resumes an existing session (which
+currently does start a new session under the hood). Useful for loading in
+development context like existing issues or recent changes to your codebase.
+
+**Matchers:**
+
+* `startup` - Invoked from startup
+* `resume` - Invoked from `--resume`, `--continue`, or `/resume`
+* `clear` - Invoked from `/clear`
 
 ## Hook Input
 
@@ -263,6 +275,17 @@ For `manual`, `custom_instructions` comes from what the user passes into
 }
 ```
 
+### SessionStart Input
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "hook_event_name": "SessionStart",
+  "source": "startup"
+}
+```
+
 ## Hook Output
 
 There are two ways for hooks to return output back to Claude Code. The output
@@ -274,7 +297,8 @@ and the user.
 Hooks communicate status through exit codes, stdout, and stderr:
 
 * **Exit code 0**: Success. `stdout` is shown to the user in transcript mode
-  (CTRL-R), except for `UserPromptSubmit`, where stdout is added to the context.
+  (CTRL-R), except for `UserPromptSubmit` and `SessionStart`, where stdout is
+  added to the context.
 * **Exit code 2**: Blocking error. `stderr` is fed back to Claude to process
   automatically. See per-hook-event behavior below.
 * **Other exit codes**: Non-blocking error. `stderr` is shown to the user and
@@ -296,6 +320,7 @@ Hooks communicate status through exit codes, stdout, and stderr:
 | `Stop`             | Blocks stoppage, shows stderr to Claude                            |
 | `SubagentStop`     | Blocks stoppage, shows stderr to Claude subagent                   |
 | `PreCompact`       | N/A, shows stderr to user only                                     |
+| `SessionStart`     | N/A, shows stderr to user only                                     |
 
 ### Advanced: JSON Output
 
@@ -399,6 +424,21 @@ to Claude.
 {
   "decision": "block" | undefined,
   "reason": "Must be provided when Claude is blocked from stopping"
+}
+```
+
+#### `SessionStart` Decision Control
+
+`SessionStart` hooks allow you to load in context at the start of a session.
+
+* `"hookSpecificOutput.additionalContext"` adds the string to the context.
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "My additional context here"
+  }
 }
 ```
 
