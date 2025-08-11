@@ -26,11 +26,10 @@ Create `.kiro/specs/{generated-feature-name}/` directory with template files:
 - `spec.json` - Metadata and approval tracking
 
 ### 3. Initialize spec.json Metadata
-Create initial metadata with approval tracking and project description:
+Create initial metadata with approval tracking:
 ```json
 {
   "feature_name": "{generated-feature-name}",
-  "project_description": "$ARGUMENTS",
   "created_at": "current_timestamp",
   "updated_at": "current_timestamp",
   "language": "japanese",
@@ -55,12 +54,12 @@ Create initial metadata with approval tracking and project description:
 
 ### 4. Create Template Files with Project Context
 
-#### requirements.md (Template with Context)
+#### requirements.md (Template)
 ```markdown
 # Requirements Document
 
-## Project Overview
-<!-- Brief summary of the project based on the provided description will be generated in /kiro:spec-requirements phase -->
+## Overview
+<!-- Project overview will be generated in /kiro:spec-requirements phase -->
 
 ## Project Description (User Input)
 $ARGUMENTS
