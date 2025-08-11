@@ -371,4 +371,4 @@ The `-y` flag auto-approves design and generates tasks directly, streamlining th
 11. **Update tracking metadata** upon completion
 
 Generate design that provides clear blueprint for implementation phase with proper consideration for scalability, security, and maintainability, all grounded in thorough research and explicit requirements traceability.
-ultrathink
+think deeply
