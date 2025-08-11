@@ -1,4 +1,4 @@
-<!-- updated at 2025-07-18 -->
+<!-- updated at 2025-08-09 -->
 # Slash commands
 
 > Control Claude's behavior during an interactive session with slash commands.
@@ -8,6 +8,7 @@
 | Command                   | Purpose                                                                        |
 | :------------------------ | :----------------------------------------------------------------------------- |
 | `/add-dir`                | Add additional working directories                                             |
+| `/agents`                 | Manage custom AI subagents for specialized tasks                               |
 | `/bug`                    | Report bugs (sends conversation to Anthropic)                                  |
 | `/clear`                  | Clear conversation history                                                     |
 | `/compact [instructions]` | Compact conversation with optional focus instructions                          |
@@ -135,9 +136,11 @@ For example:
 
 ```markdown
 # Reference a specific file
+
 Review the implementation in @src/utils/helpers.js
 
 # Reference multiple files
+
 Compare @src/old-version.js with @src/new-version.js
 ```
 
@@ -145,17 +148,29 @@ Compare @src/old-version.js with @src/new-version.js
 
 Slash commands can trigger extended thinking by including [extended thinking keywords](/en/docs/claude-code/common-workflows#use-extended-thinking).
 
-### File format
+### Frontmatter
 
-Command files support:
+Command files support frontmatter, useful for specifying metadata about the command:
 
-* **Markdown format** (`.md` extension)
-* **YAML frontmatter** for metadata:
-  * `allowed-tools`: List of tools the command can use
-  * `description`: Brief description of the command
-  * `argument-hint`: The arguments expected for the slash command. Example: `argument-hint: add [tagId] | remove [tagId] | list`. This hint is shown to the user when auto-completing the slash command.
-* **Dynamic content** with bash commands (`!`) and file references (`@`)
-* **Prompt instructions** as the main content
+| Frontmatter     | Purpose                                                                                                                                                                               | Default                             |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------- |
+| `allowed-tools` | List of tools the command can use                                                                                                                                                     | Inherits from the conversation      |
+| `argument-hint` | The arguments expected for the slash command. Example: `argument-hint: add [tagId] \| remove [tagId] \| list`. This hint is shown to the user when auto-completing the slash command. | None                                |
+| `description`   | Brief description of the command                                                                                                                                                      | Uses the first line from the prompt |
+| `model`         | `opus`, `sonnet`, `haiku`, or a specific model string                                                                                                                                 | Inherits from the conversation      |
+
+For example:
+
+```markdown
+---
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
+argument-hint: [message]
+description: Create a git commit
+model: haiku
+---
+
+An example command
+```
 
 ## MCP slash commands
 
