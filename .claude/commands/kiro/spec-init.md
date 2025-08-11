@@ -94,7 +94,7 @@ Add the new spec to the active specifications list with the generated feature na
 
 Follow the spec-driven development workflow:
 1. `/kiro:spec-requirements {feature-name}` - Generate requirements
-2. `/kiro:spec-design {feature-name}` - Generate design (interactive approval)  
+2. `/kiro:spec-design {feature-name}` - Generate design (interactive approval)
 3. `/kiro:spec-tasks {feature-name}` - Generate tasks (interactive approval)
 
 ## Output Format
