@@ -24,7 +24,7 @@ Claude Code Spec-Driven Developmentの更新内容をお知らせします。
 - タスク粒度制限（3-5サブアイテム、1-2時間完了）
 - _Requirements: X.X, Y.Y_ 形式の統一
 
-**カスタムステアリング対応**
+**Custom Steering対応**
 - 全specコマンドでプロジェクト固有コンテキスト活用
 - Always/Conditional/Manualモードによる柔軟な設定読み込み
 
