@@ -1,74 +1,113 @@
 # cc-sdd
 
-**Claude Code Spec-Driven Development Scaffolder**
+**Transform your coding workflow with Spec-Driven Development**
 
-> ⚠️ **Beta Release** - This is a beta version. Please report any issues on GitHub.
+> 📦 **Beta Release** - Ready to use, actively improving. [Report issues →](https://github.com/gotalab/claude-code-spec/issues)
 
-A one-command scaffolding tool that **easily introduces AI-DLC (AI Driven Development Lifecycle) and Spec-Driven Development cycles to coding agents like Claude Code**. Instantly deploy Kiro-style workflow slash commands and project rules that enable systematic, structured development with AI coding agents.
+One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows. Includes **Project Memory** (steering) that teaches Claude Code your project context and development patterns: **requirements → design → tasks → implementation**.
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
-# Set up AI-DLC slash commands and workflows
-npx cc-sdd
+# Basic installation
+npx cc-sdd@beta
 
-# With specific options
-npx cc-sdd --os mac --lang ja --dry-run
+# With language: --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
+# With OS: --os mac or --os windows (if auto-detection fails)
+npx cc-sdd@beta --lang ja --os mac
+
+# That's it! Then use /kiro:spec-init in Claude Code
 ```
 
-### Using Claude Code Slash Commands
+## ✨ What You Get
 
-After setup, use these slash commands in Claude Code for spec-driven development:
+After running cc-sdd, you'll have:
 
+- **7 powerful slash commands** (`/kiro:spec-init`, `/kiro:spec-requirements`, etc.)
+- **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
+- **Structured AI-DLC workflow** with quality gates and approvals
+- **Spec-Driven Development** methodology built-in
+- **Kiro IDE compatibility** for seamless spec management
+
+**Perfect for**: Feature development, code reviews, technical planning, and maintaining development standards across your team.
+
+## 🤖 Supported Coding Agents
+
+- **✅ Claude Code** - Fully supported with all 7 slash commands
+- **📅 Gemini CLI** - Planned (coming soon)
+- **📅 More agents** - Additional AI coding assistants planned
+
+*Currently optimized for Claude Code. Use `--agent claude-code` (default) for full functionality.*
+ 
+## 📋 AI-DLC Workflow
+
+**Step 0: Setup Project Memory (Recommended)**
 ```bash
-# 0. (optional but recommended) Setup existing project steering documents 
+# Teach Claude Code about your project
 /kiro:steering
-
-# 1. Initialize new feature specification
-/kiro:spec-init "I want to create a feature where users can upload PDFs, extract diagrams and charts from them, and have AI explain the content. Tech stack: Next.js, TypeScript, Tailwind CSS."
-
-# 2. Generate comprehensive requirements
-/kiro:spec-requirements pdf-diagram-extractor
-
-# 3. Create technical design (after requirements approval)
-/kiro:spec-design pdf-diagram-extractor -y
-
-# 4. Generate implementation tasks (after design approval)
-/kiro:spec-tasks pdf-diagram-extractor -y
-
-# 5. Execute tasks with TDD methodology (after tasks approval)
-/kiro:spec-impl pdf-diagram-extractor 1.1,1.2,1.3
 ```
 
-The `-y` flag auto-approves the previous phase, streamlining the workflow while maintaining quality gates.
+**SDD Development Flow:**
+```bash
+# 1. Start a new feature spec
+/kiro:spec-init "User authentication with OAuth and 2FA"
 
-## What it does
+# 2. Generate detailed requirements  
+/kiro:spec-requirements user-auth
 
-cc-sdd automatically sets up **Spec-Driven Development** for your project:
+# 3. Create technical design (after requirements review)
+/kiro:spec-design user-auth -y
 
-- **`.claude/commands/kiro/**`** - Complete slash commands for spec-driven development workflow
-- **`CLAUDE.md`** - AI agent instructions and project context with localized content  
-- **`.cc-sdd.json`** - Configuration file to track your preferences
+# 4. Break down into tasks (after design review)  
+/kiro:spec-tasks user-auth -y
 
-This enables coding agents to follow structured development processes: requirements → design → tasks → implementation with proper steering and progress tracking.
+# 5. Implement with TDD (after task review)
+/kiro:spec-impl user-auth 1.1,1.2,1.3
+```
 
-**Kiro IDE Compatible**: The generated directory structure (`.kiro/specs/`, `.kiro/steering/`) is fully compatible with Kiro's native format, allowing you to seamlessly use specs and steering documents directly in Kiro IDE while also leveraging them with Claude Code slash commands.
+**Quality Gates**: Each phase requires human approval before proceeding (use `-y` to auto-approve).
+
+## 🎯 Advanced Options
+
+```bash
+# Choose language and OS
+npx cc-sdd@beta --lang ja --os mac
+
+# Preview changes before applying
+npx cc-sdd@beta --dry-run
+
+# Safe update with backup
+npx cc-sdd@beta --backup --overwrite force
+
+# Custom specs directory
+npx cc-sdd@beta --kiro-dir custom/specs
+```
 
 ## Features
 
-✅ **One Command** - Auto-detects initial setup vs. updates  
-✅ **Cross-Platform** - macOS, Windows, Linux support with auto-detection  
+✅ **AI-DLC Integration** - Complete AI-Driven Development Life Cycle  
+✅ **Project Memory** - Steering that learns your codebase and patterns  
+✅ **Spec-Driven Development** - Structured requirements → design → tasks → implementation  
+✅ **Cross-Platform** - macOS and Windows support with auto-detection  
 ✅ **Multi-Language** - Japanese, English, Traditional Chinese  
 ✅ **Safe Updates** - Interactive prompts with backup options  
-✅ **Dry Run** - Preview changes before applying  
-✅ **Non-Interactive** - CI/CD friendly with `--yes` flag  
 
-## Command Options
+---
+
+## 📚 Additional Information
+
+### Kiro IDE Compatibility
+
+The specs and steering generated by cc-sdd are fully compatible with Kiro IDE:
+- Kiro-native structure: `<kiro-dir>/specs/`, `<kiro-dir>/steering/` (default `.kiro/`; changeable via `--kiro-dir`)
+- Open/edit in Kiro IDE and use the same files with Claude Code slash commands
+
+### Command Options
 
 | Option | What it does | Default |
 |--------|-------------|---------|
-| `--os <auto\|mac\|windows\|linux>` | Choose your operating system (auto-detects if not specified) | `auto` |
-| `--lang <ja\|en\|zh-TW>` | Language for generated documentation and commands | `en` |
+| `--os <auto\|mac\|windows>` | Choose your operating system (auto-detects if not specified) | `auto` |
+| `--lang <ja\|en\|zh-TW>` | Language for generated documentation (CLAUDE.md). Commands are English. | `en` |
 | `--dry-run` | Preview what files will be created/changed without actually doing it | - |
 | `--backup[=<dir>]` | Save copies of existing files before overwriting them | - |
 | `--overwrite <prompt\|skip\|force>` | What to do when files already exist:<br>• `prompt`: Ask for each file (default)<br>• `skip`: Never overwrite<br>• `force`: Always overwrite | `prompt` |
@@ -76,42 +115,17 @@ This enables coding agents to follow structured development processes: requireme
 | `--agent <claude-code>` | Which coding agent to set up commands for (currently Claude Code only) | `claude-code` |
 | `--kiro-dir <path>` | Where to create the specs directory (relative to project root) | `.kiro` |
 
-## Usage Examples
+### More Usage Examples
 
-### Initial Setup
 ```bash
-# Basic setup with English docs
-npx cc-sdd
-
 # Japanese docs for macOS
-npx cc-sdd --lang ja --os mac
+npx cc-sdd@beta --lang ja --os mac
 
-# Preview changes first
-npx cc-sdd --dry-run
-```
+# Safe update with backup
+npx cc-sdd@beta --backup
 
-### Updating Existing Project
-```bash
-# Safe update with interactive prompts and backup
-npx cc-sdd --backup
-
-# Automatic overwrite with backup (CI/CD safe)
-npx cc-sdd --yes --backup
-
-# Skip all overwrites (keep existing files)
-npx cc-sdd --overwrite skip
-
-# Force overwrite without prompts
-npx cc-sdd --overwrite force --backup
-```
-
-### Advanced Options
-```bash
-# Custom Kiro directory
-npx cc-sdd --kiro-dir custom/specs
-
-# Specific OS and language
-npx cc-sdd --os linux --lang zh-TW
+# Skip overwrites (keep existing files)
+npx cc-sdd@beta --overwrite skip
 ```
 
 ## Output Structure
@@ -127,14 +141,14 @@ project/
 │           ├── spec-requirements.md  
 │           ├── spec-design.md
 │           ├── spec-tasks.md
+│           ├── spec-impl.md
 │           ├── spec-status.md
 │           ├── steering.md
 │           └── steering-custom.md
-├── .kiro/                    # Created by commands
+├── .kiro/                    # Created by commands (configurable via --kiro-dir)
 │   ├── specs/               # Specifications  
 │   └── steering/            # AI guidance rules
 ├── CLAUDE.md                # Project documentation
-└── .cc-sdd.json            # Tool configuration
 ```
 
 ## Workflow Overview
@@ -151,30 +165,16 @@ The generated commands support a 3-phase development workflow:
 3. `/kiro:spec-design [feature]` - Create design (requires requirements review)
 4. `/kiro:spec-tasks [feature]` - Break down into tasks (requires design review)
 
-### Phase 2: Progress Tracking
+### Phase 2: Implementation & Tracking
+- `/kiro:spec-impl [feature] <task_ids>` - Execute tasks with TDD after tasks approval
 - `/kiro:spec-status [feature]` - Check current progress and next steps
-
-## Configuration
-
-The `.cc-sdd.json` file stores your preferences:
-
-```json
-{
-  "agent": "claude-code",
-  "os": "auto", 
-  "lang": "ja",
-  "kiroDir": ".kiro"
-}
-```
 
 ## Platform Support
 
 | Platform | Auto-Detection | Manual Override |
 |----------|---------------|-----------------|
 | macOS | ✅ `darwin` | `--os mac` |
-| Windows | ✅ `win32` | `--os windows` |  
-| Linux | ✅ `linux` | `--os linux` |
-| WSL | ✅ Detected as Linux | `--os linux` |
+| Windows | ✅ `win32` | `--os windows` |
 
 ## Language Support
 
@@ -230,14 +230,9 @@ npx cc-sdd --dry-run
 
 ### Common Issues
 
-**Permission denied on Linux/macOS:**
+**Permission denied on macOS:**
 ```bash
 chmod +x ~/.npm/_npx/*/node_modules/.bin/cc-sdd
-```
-
-**WSL detection issues:**
-```bash
-npx cc-sdd --os linux  # Force Linux mode
 ```
 
 **Existing files conflict:**
@@ -261,4 +256,4 @@ This tool is part of the Claude Code Spec project. See the main repository for c
 
 ## License
 
-MIT License - See project repository for details.
+MIT License
