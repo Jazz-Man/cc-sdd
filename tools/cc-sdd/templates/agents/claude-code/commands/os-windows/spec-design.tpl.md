@@ -12,8 +12,8 @@ Create comprehensive technical design for feature: **$ARGUMENTS**
 
 **CRITICAL**: Design can only be generated after requirements are reviewed and approved.
 
-- Requirements document: @.kiro/specs/$ARGUMENTS/requirements.md
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
+- Requirements document: @{{KIRO_DIR}}/specs/$ARGUMENTS/requirements.md
+- Spec metadata: @{{KIRO_DIR}}/specs/$ARGUMENTS/spec.json
 
 **Note**: If this command was called with `-y` flag, requirements are auto-approved (spec.json updated to set requirements.approved=true). Otherwise, requirements must be approved first via `/kiro:spec-requirements $ARGUMENTS` followed by `/kiro:spec-design $ARGUMENTS -y`.
 
@@ -22,7 +22,7 @@ Create comprehensive technical design for feature: **$ARGUMENTS**
 ### Requirements Foundation
 **CRITICAL**: Design must be built upon approved requirements document.
 
-- **Requirements document**: @.kiro/specs/$ARGUMENTS/requirements.md
+- **Requirements document**: @{{KIRO_DIR}}/specs/$ARGUMENTS/requirements.md
 - **EARS format requirements**: Each requirement with acceptance criteria
 - **User stories mapping**: Design components must address specific user stories
 - **Constraints and acceptance criteria**: Must be reflected in technical decisions
@@ -30,14 +30,14 @@ Create comprehensive technical design for feature: **$ARGUMENTS**
 **Verification Required**: Ensure requirements.md exists and is approved before proceeding.
 
 ### Steering Context
-- Current architecture: @.kiro/steering/structure.md
-- Technology stack: @.kiro/steering/tech.md
-- Product constraints: @.kiro/steering/product.md
+- Current architecture: @{{KIRO_DIR}}/steering/structure.md
+- Technology stack: @{{KIRO_DIR}}/steering/tech.md
+- Product constraints: @{{KIRO_DIR}}/steering/product.md
 - Custom steering: Load "Always" mode and design-pattern matching "Conditional" mode files
 
 ### Current Spec Context
-- Current design: @.kiro/specs/$ARGUMENTS/design.md
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
+- Current design: @{{KIRO_DIR}}/specs/$ARGUMENTS/design.md
+- Spec metadata: @{{KIRO_DIR}}/specs/$ARGUMENTS/spec.json
 
 ## Task: Create Technical Design
 
@@ -70,7 +70,7 @@ Create comprehensive technical design for feature: **$ARGUMENTS**
 Generate comprehensive design document in the language specified in spec.json, incorporating research findings:
 
 ### 1. Design Document Structure
-Create design.md in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Create design.md in the language specified in spec.json (check `@{{KIRO_DIR}}/specs/$ARGUMENTS/spec.json` for "language" field):
 
 ```markdown
 # Technical Design
@@ -370,5 +370,5 @@ The `-y` flag auto-approves design and generates tasks directly, streamlining th
 10. **Define concrete performance targets** and testing strategies
 11. **Update tracking metadata** upon completion
 
-Generate design that provides clear blueprint for implementation phase with proper consideration for scalability, security, and maintainability, all grounded in thorough research and explicit requirements traceability.
+Generate design that provides clear blueprint for implementation phase with proper consideration for scalability, security, and maintainability, all grounded in thorough requirements traceability.
 think deeply

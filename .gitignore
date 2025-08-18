@@ -70,6 +70,7 @@ coverage/
 
 # Project specific
 BLOG.md
+docs/cc-sdd/
 
 # Claude Code
 .claude/agents/

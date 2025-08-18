@@ -1,0 +1,34 @@
+{
+  "name": "cc-sdd",
+  "version": "0.1.0-beta.1",
+  "description": "Introduce Claude Code to Kiro-style AI-DLC Spec-Driven Development: scaffolds slash commands, CLAUDE.md, and steering/specs (cross-platform).",
+  "keywords": ["claude-code", "spec-driven-development", "kiro", "steering", "ai-development", "tdd", "ai-dlc", "ai-driven-development-life-cycle"],
+  "author": "Gota",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gotalab/claude-code-spec.git",
+    "directory": "tools/cc-sdd"
+  },
+  
+  "type": "module",
+  "bin": {
+    "cc-sdd": "./dist/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest -w",
+    "build": "tsc -p .",
+    "postbuild": "node ./scripts/add-shebang.mjs",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

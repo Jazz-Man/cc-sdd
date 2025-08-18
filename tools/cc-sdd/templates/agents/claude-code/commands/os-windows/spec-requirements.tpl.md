@@ -11,15 +11,15 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 ## Context Validation
 
 ### Steering Context
-- Architecture context: @.kiro/steering/structure.md
-- Technical constraints: @.kiro/steering/tech.md
-- Product context: @.kiro/steering/product.md
-- Custom steering: Load all "Always" mode custom steering files from .kiro/steering/
+- Architecture context: @{{KIRO_DIR}}/steering/structure.md
+- Technical constraints: @{{KIRO_DIR}}/steering/tech.md
+- Product context: @{{KIRO_DIR}}/steering/product.md
+- Custom steering: Load all "Always" mode custom steering files from {{KIRO_DIR}}/steering/
 
 ### Existing Spec Context
-- Current spec directory: !`ls -la .kiro/specs/$ARGUMENTS/`
-- Current requirements: @.kiro/specs/$ARGUMENTS/requirements.md
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
+- Current spec directory: !`bash -c 'ls -la {{KIRO_DIR}}/specs/$ARGUMENTS/'`
+- Current requirements: @{{KIRO_DIR}}/specs/$ARGUMENTS/requirements.md
+- Spec metadata: @{{KIRO_DIR}}/specs/$ARGUMENTS/spec.json
 
 ## Task: Generate Initial Requirements
 
@@ -48,7 +48,7 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 - IF [condition] AND [additional condition] THEN [system] SHALL [response]
 
 ### 2. Requirements Document Structure
-Generate requirements.md in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Generate requirements.md in the language specified in spec.json (check `@{{KIRO_DIR}}/specs/$ARGUMENTS/spec.json` for "language" field):
 
 ```markdown
 # Requirements Document
