@@ -13,10 +13,11 @@ export type ParsedArgs = {
   backup?: boolean | string;
   kiroDir?: string;
   manifest?: string;
+  profile?: 'full' | 'minimal';
 };
 
 const booleanFlags = new Set(['yes', 'y', 'dry-run', 'claude-code', 'gemini-cli', 'qwen-code', 'backup']);
-const valueFlags = new Set(['agent', 'lang', 'os', 'overwrite', 'kiro-dir', 'backup', 'manifest']);
+const valueFlags = new Set(['agent', 'lang', 'os', 'overwrite', 'kiro-dir', 'backup', 'manifest', 'profile']);
 
 const isKnownFlag = (name: string): boolean => booleanFlags.has(name) || valueFlags.has(name);
 
@@ -117,6 +118,12 @@ export const parseArgs = (argv: string[]): ParsedArgs => {
         }
         case 'manifest': {
           out.manifest = String(value);
+          break;
+        }
+        case 'profile': {
+          const v = String(value);
+          if (!isEnum(v, ['full', 'minimal'] as const)) throw new Error('profile value invalid');
+          out.profile = v as 'full' | 'minimal';
           break;
         }
         case 'agent': {

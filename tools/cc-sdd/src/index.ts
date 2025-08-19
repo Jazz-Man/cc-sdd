@@ -5,6 +5,8 @@ import { formatProcessedArtifacts } from './plan/printer.js';
 import { executeProcessedArtifacts } from './plan/executor.js';
 import { createRequire } from 'node:module';
 import * as readline from 'node:readline/promises';
+import path from 'node:path';
+import { stat } from 'node:fs/promises';
 
 export type CliIO = {
   log: (msg: string) => void;
@@ -18,7 +20,7 @@ const defaultIO: CliIO = {
   exit: (c) => process.exit(c),
 };
 
-const helpText = `Usage: cc-sdd [options]\n\nOptions:\n  --agent <claude-code|gemini-cli|qwen-code>  Select agent\n  --claude-code | --gemini-cli | --qwen-code  Agent alias flags\n  --lang <ja|en|zh-TW>                        Language\n  --os <auto|mac|windows|linux>               Target OS (auto uses runtime)\n  --kiro-dir <path>                           Kiro root dir (default .kiro)\n  --overwrite <prompt|skip|force>             Overwrite policy (default: prompt)\n                                              prompt: ask for each file\n                                              skip: never overwrite\n                                              force: always overwrite\n  --backup[=<dir>]                            Enable backup, optional dir\n  --manifest <path>                           Manifest JSON path for planning\n  --dry-run                                   Print plan only\n  --yes, -y                                   Skip prompts (prompt -> force)\n  -h, --help                                  Show help\n  -v, --version                               Show version\n\nNote: In non-TTY environments, prompt mode falls back to skip.\n`;
+const helpText = `Usage: cc-sdd [options]\n\nOptions:\n  --agent <claude-code|gemini-cli|qwen-code>  Select agent\n  --claude-code | --gemini-cli | --qwen-code  Agent alias flags\n  --lang <ja|en|zh-TW>                        Language\n  --os <auto|mac|windows|linux>               Target OS (auto uses runtime)\n  --kiro-dir <path>                           Kiro root dir (default .kiro)\n  --overwrite <prompt|skip|force>             Overwrite policy (default: prompt)\n                                              prompt: ask for each file\n                                              skip: never overwrite\n                                              force: always overwrite\n  --backup[=<dir>]                            Enable backup, optional dir\n  --profile <full|minimal>                    Select template profile (default: full)\n  --manifest <path>                           Manifest JSON path for planning\n  --dry-run                                   Print plan only\n  --yes, -y                                   Skip prompts (prompt -> force)\n  -h, --help                                  Show help\n  -v, --version                               Show version\n\nNote: In non-TTY environments, prompt mode falls back to skip.\n`;
 
 const isTTY = (): boolean => {
   return !!(process.stdin.isTTY && process.stdout.isTTY);
@@ -102,28 +104,43 @@ export const runCli = async (
   }
 
   const resolved = mergeConfigAndArgs(args, loadedConfig, runtime);
-
-  if (args.dryRun) {
-    if (args.manifest) {
+  // Auto-resolve manifest based on selected agent/profile when not explicitly provided
+  const templatesBase = execOpts?.templatesRoot
+    ? path.join(execOpts.templatesRoot, 'templates')
+    : 'templates';
+  let manifestPath = args.manifest;
+  if (!manifestPath) {
+    const baseDir = path.join(templatesBase, 'manifests');
+    const defaultPath = path.join(baseDir, `${resolved.agent}.json`);
+    if (args.profile === 'minimal') {
+      const minPath = path.join(baseDir, `${resolved.agent}-min.json`);
       try {
-        const plan = await planFromFile(args.manifest, resolved);
-        const text = formatProcessedArtifacts(plan);
-        io.log(text);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        io.error(`Error: ${msg}`);
-        return 1;
+        await stat(minPath);
+        manifestPath = minPath;
+      } catch {
+        manifestPath = defaultPath;
       }
     } else {
-      io.log('Resolved Configuration:');
-      io.log(JSON.stringify(resolved, null, 2));
+      manifestPath = defaultPath;
     }
   }
 
-  // Apply path: manifest provided without --dry-run
-  if (!args.dryRun && args.manifest) {
+  if (args.dryRun) {
     try {
-      const plan = await planFromFile(args.manifest, resolved);
+      const plan = await planFromFile(manifestPath, resolved);
+      const text = formatProcessedArtifacts(plan);
+      io.log(text);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      io.error(`Error: ${msg}`);
+      return 1;
+    }
+  }
+
+  // Apply path: always execute with resolved manifest when not in --dry-run
+  if (!args.dryRun) {
+    try {
+      const plan = await planFromFile(manifestPath, resolved);
       
       // Handle prompt mode: check TTY and set up onConflict if needed
       let onConflict: ((relPath: string) => Promise<'overwrite' | 'skip'>) | undefined;
