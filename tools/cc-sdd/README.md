@@ -16,14 +16,16 @@ npx cc-sdd@latest
 # With OS: --os mac or --os windows (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 
-# That's it! Then use /kiro:spec-init in Claude Code
-```
+# With different agents: gemini-cli
+npx cc-sdd@latest --gemini-cli
+
+# Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
 
 ## ✨ What You Get
 
 After running cc-sdd, you'll have:
 
-- **7 powerful slash commands** (`/kiro:spec-init`, `/kiro:spec-requirements`, etc.)
+- **8 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, etc.)
 - **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
 - **Structured AI-DLC workflow** with quality gates and approvals
 - **Spec-Driven Development** methodology built-in
@@ -50,7 +52,7 @@ After running cc-sdd, you'll have:
 **SDD Development Flow:**
 ```bash
 # 1. Start a new feature spec
-/kiro:spec-init "User authentication with OAuth and 2FA"
+/kiro:spec-init User authentication with OAuth and 2FA
 
 # 2. Generate detailed requirements  
 /kiro:spec-requirements user-auth
@@ -80,7 +82,7 @@ npx cc-sdd@latest --dry-run
 npx cc-sdd@latest --backup --overwrite force
 
 # Custom specs directory
-npx cc-sdd@latest --kiro-dir custom/specs
+npx cc-sdd@latest --kiro-dir docs/specs
 ```
 
 ## Features
