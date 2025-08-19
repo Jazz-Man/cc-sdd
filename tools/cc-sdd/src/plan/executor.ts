@@ -124,6 +124,10 @@ const transformTplOut = (relPath: string): { outName: string; mode: 'json' | 'te
     const replaced = base.slice(0, -('.tpl.md'.length)) + '.md';
     return { outName: dir === '.' ? replaced : path.join(dir, replaced), mode: 'text' };
   }
+  if (base.endsWith('.tpl.toml')) {
+    const replaced = base.slice(0, -('.tpl.toml'.length)) + '.toml';
+    return { outName: dir === '.' ? replaced : path.join(dir, replaced), mode: 'text' };
+  }
   return { outName: relPath, mode: 'text' };
 };
 

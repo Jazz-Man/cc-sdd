@@ -18,7 +18,7 @@ export const resolveAgentLayout = (agent: AgentType, config?: CCSddConfig): Agen
       docFile: 'CLAUDE.md',
     },
     'gemini-cli': {
-      commandsDir: '.gemini/commands',
+      commandsDir: '.gemini/commands/kiro',
       agentDir: '.gemini',
       docFile: 'GEMINI.md',
     },
