@@ -12,7 +12,7 @@ One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** 
 # Basic installation
 npx cc-sdd@latest
 
-# With language: --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
+# With language: --lang en (English) or --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
 # With OS: --os mac or --os windows (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 
