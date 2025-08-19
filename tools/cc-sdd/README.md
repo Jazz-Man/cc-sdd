@@ -80,7 +80,7 @@ npx cc-sdd@latest --dry-run
 npx cc-sdd@latest --backup --overwrite force
 
 # Custom specs directory
-npx cc-sdd@latest --kiro-dir docs/kiro
+npx cc-sdd@latest --kiro-dir custom/specs
 ```
 
 ## Features
