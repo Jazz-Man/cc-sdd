@@ -12,7 +12,7 @@
 English | <a href="https://github.com/gotalab/claude-code-spec/blob/main/tools/cc-sdd/README_ja.md">日本語</a> | <a href="https://github.com/gotalab/claude-code-spec/blob/main/tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
-Brings **AI-DLC (AI Driven Development Lifecycle)** to Claude Code and Gemini CLI. **AI-native processes** with **human approval gates**: AI drives execution while humans validate critical decisions at each phase.
+Brings **AI-DLC (AI Driven Development Lifecycle)** to Claude Code and Gemini CLI. **AI-native processes** with **minimal human approval gates**: AI drives execution while humans validate critical decisions at each phase.
 
 🎯 **Perfect for**: Escaping the 70% overhead trap of traditional development (meetings, documentation, ceremonies) to achieve **weeks-to-hours delivery** with AI-native execution and human quality gates.
 
