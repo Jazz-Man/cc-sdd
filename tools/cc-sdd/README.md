@@ -1,268 +1,118 @@
 # cc-sdd
 
-**For Claude Code and Gemini CLI: Transform your coding workflow with Spec-Driven Development**
+✨ **Transform Claude Code/Gemini CLI from prototype to production-ready development**
 
 <!-- npm badges -->
 [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
-[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
+[![npm downloads](https://img.shields.io/npm/dm/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd)
+[![install size](https://packagephobia.com/badge?p=cc-sdd)](https://packagephobia.com/result?p=cc-sdd)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> **Beta Release** - Ready to use, actively improving. [Report issues →](https://github.com/gotalab/claude-code-spec/issues)
+<div align="center"><sub>
+English | <a href="https://github.com/gotalab/claude-code-spec/blob/main/tools/cc-sdd/README_ja.md">日本語</a> | <a href="https://github.com/gotalab/claude-code-spec/blob/main/tools/cc-sdd/README_zh-TW.md">繁體中文</a>
+</sub></div>
 
-One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows. Includes **Project Memory** (steering) that teaches Claude Code your project context and development patterns: **requirements → design → tasks → implementation**.
+Brings **AI-DLC (AI Driven Development Lifecycle)** to Claude Code and Gemini CLI. **AI-native processes** with **human approval gates**: AI drives execution while humans validate critical decisions at each phase.
 
-**Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
+🎯 **Perfect for**: Escaping the 70% overhead trap of traditional development (meetings, documentation, ceremonies) to achieve **weeks-to-hours delivery** with AI-native execution and human quality gates.
 
-## 🚀 Quick Start
+> **Kiro compatible** — Same proven workflow used in professional environments.
+
+## 🚀 Installation
 
 ```bash
-# Basic installation (default: Claude Code)
+# Basic installation (defaults: English docs, Claude Code agent)
 npx cc-sdd@latest
 
-# With language: --lang en (English) or --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
-# With OS: --os mac or --os windows (if auto-detection fails)
-npx cc-sdd@latest --lang ja --os mac
+# With language options (default: --lang en)
+npx cc-sdd@latest --lang ja    # Japanese
+npx cc-sdd@latest --lang zh-TW # Traditional Chinese
 
-# With different agents: gemini-cli
-npx cc-sdd@latest --gemini-cli
-
-# Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
+# With agent options (default: claude-code)
+npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
 ```
 
-## ✨ What You Get
+## ✨ Quick Demo
 
-After running cc-sdd, you'll have:
+```bash
+# Launch AI agent: 'claude' or 'gemini'
 
-- **8 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, etc.)
-- **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
-- **Structured AI-DLC workflow** with quality gates and approvals
-- **Spec-Driven Development** methodology built-in
-- **Kiro IDE compatibility** for seamless spec management
+# AI-DLC Core Pattern in Action:
+/kiro:spec-init Build a user authentication system with OAuth  # AI creates plan
+/kiro:spec-requirements auth-system                            # AI asks clarifying questions  
+/kiro:spec-design auth-system                                  # Human validates, AI implements
+/kiro:spec-tasks auth-system                                   # Repeat: Plan → Ask → Validate → Implement
+```
 
-**Perfect for**: Feature development, code reviews, technical planning, and maintaining development standards across your team.
+**30-second setup** → **AI-driven "bolts" (not sprints)** → **Hours-to-delivery results**
 
-## 🤖 Supported Coding Agents
+## ✨ Key Features
 
-- **✅ Claude Code** - Fully supported with all 8 custom slash commands and CLAUDE.md
-- **✅ Gemini CLI** - Fully supported with all 8 custom commands and GEMINI.md
-- **📅 More agents** - Additional AI coding assistants planned
+- **🚀 AI-DLC Methodology** - AI-native processes with human approval. Core pattern: AI executes, human validates
+- **📋 Spec-First Development** - Comprehensive specifications as single source of truth driving entire lifecycle
+- **⚡ "Bolts" not Sprints** - Hours/days cycles instead of weeks. Escape the 70% administrative overhead
+- **🧠 Project Memory** - AI maintains persistent context across sessions, learns your patterns  
+- **🔄 AI-Native + Human Gates** - AI Plans → AI Asks → Human Validates → AI Implements (rapid cycles with quality control)
+- **🌍 Team-Ready** - Multi-language, cross-platform, standardized workflows with quality gates
 
-*Currently optimized for Claude Code. Use `--agent claude-code` (default) for full functionality.*
+## 🤖 Supported AI Agents
+
+| Agent | Status | Commands | Config |
+|-------|--------|----------|--------|
+| **Claude Code** | ✅ Full | 8 slash commands | `CLAUDE.md` |
+| **Gemini CLI** | ✅ Full | 8 commands | `GEMINI.md` |
+| Others | 📅 Planned | - | - |
  
-## 📋 AI-DLC Workflow
+## 📋 Core Commands
 
-**Step 0: Setup Project Memory (Recommended)**
+### Development Workflow
 ```bash
-# Teach Claude Code about your project
-/kiro:steering
+/kiro:spec-init <description>             # Initialize feature spec
+/kiro:spec-requirements <feature_name>    # Generate requirements
+/kiro:spec-design <feature_name>          # Create technical design  
+/kiro:spec-tasks <feature_name>           # Break into implementation tasks
+/kiro:spec-impl <feature_name> <tasks>    # Execute with TDD
+/kiro:spec-status <feature_name>          # Check progress
 ```
 
-**SDD Development Flow:**
+### Project Setup
 ```bash
-# 1. Start a new feature spec
-/kiro:spec-init User authentication with OAuth and 2FA
-
-# 2. Generate detailed requirements  
-/kiro:spec-requirements user-auth
-
-# 3. Create technical design (after requirements review)
-/kiro:spec-design user-auth -y
-
-# 4. Break down into tasks (after design review)  
-/kiro:spec-tasks user-auth -y
-
-# 5. Implement with TDD (after task review)
-/kiro:spec-impl user-auth 1.1,1.2,1.3
+/kiro:steering                            # Create/update project memory
+/kiro:steering-custom                     # Custom guidance rules
 ```
 
-**Quality Gates**: Each phase requires human approval before proceeding (use `-y` to auto-approve).
-
-## 🎯 Advanced Options
+## ⚙️ Configuration
 
 ```bash
-# Choose language and OS
+# Language and platform
 npx cc-sdd@latest --lang ja --os mac
 
-# Preview changes before applying
-npx cc-sdd@latest --dry-run
+# Safe operations  
+npx cc-sdd@latest --dry-run --backup
 
-# Safe update with backup
-npx cc-sdd@latest --backup --overwrite force
-
-# Custom specs directory
+# Custom directory
 npx cc-sdd@latest --kiro-dir docs/specs
 ```
 
-## Features
+## 📁 Project Structure
 
-✅ **AI-DLC Integration** - Complete AI-Driven Development Life Cycle  
-✅ **Project Memory** - Steering that learns your codebase and patterns  
-✅ **Spec-Driven Development** - Structured requirements → design → tasks → implementation  
-✅ **Cross-Platform** - macOS and Windows support with auto-detection  
-✅ **Multi-Language** - Japanese, English, Traditional Chinese  
-✅ **Safe Updates** - Interactive prompts with backup options  
-
----
-
-## 📚 Additional Information
-
-### Kiro IDE Compatibility
-
-The specs and steering generated by cc-sdd are fully compatible with Kiro IDE:
-- Kiro-native structure: `<kiro-dir>/specs/`, `<kiro-dir>/steering/` (default `.kiro/`; changeable via `--kiro-dir`)
-- Open/edit in Kiro IDE and use the same files with Claude Code slash commands
-
-### Command Options
-
-| Option | What it does | Default |
-|--------|-------------|---------|
-| `--os <auto\|mac\|windows>` | Choose your operating system (auto-detects if not specified) | `auto` |
-| `--lang <ja\|en\|zh-TW>` | Language for generated documentation (CLAUDE.md). Commands are English. | `en` |
-| `--dry-run` | Preview what files will be created/changed without actually doing it | - |
-| `--backup[=<dir>]` | Save copies of existing files before overwriting them | - |
-| `--overwrite <prompt\|skip\|force>` | What to do when files already exist:<br>• `prompt`: Ask for each file (default)<br>• `skip`: Never overwrite<br>• `force`: Always overwrite | `prompt` |
-| `--yes, -y` | Skip all prompts (makes `prompt` behave like `force`) | - |
-| `--agent <claude-code>` | Which coding agent to set up commands for (currently Claude Code only) | `claude-code` |
-| `--kiro-dir <path>` | Where to create the specs directory (relative to project root) | `.kiro` |
-
-### More Usage Examples
-
-```bash
-# Japanese docs for macOS
-npx cc-sdd@latest --lang ja --os mac
-
-# Safe update with backup
-npx cc-sdd@latest --backup
-
-# Skip overwrites (keep existing files)
-npx cc-sdd@latest --overwrite skip
-```
-
-## Output Structure
-
-After running cc-sdd, your project will have:
+After installation, your project gets:
 
 ```
 project/
-├── .claude/
-│   └── commands/
-│       └── kiro/
-│           ├── spec-init.md
-│           ├── spec-requirements.md  
-│           ├── spec-design.md
-│           ├── spec-tasks.md
-│           ├── spec-impl.md
-│           ├── spec-status.md
-│           ├── steering.md
-│           └── steering-custom.md
-├── .kiro/                    # Created by commands (configurable via --kiro-dir)
-│   ├── specs/               # Specifications  
-│   └── steering/            # AI guidance rules
-├── CLAUDE.md                # Project documentation
+├── .claude/commands/kiro/    # 8 slash commands
+├── .kiro/specs/             # Feature specifications
+├── .kiro/steering/          # AI guidance rules
+└── CLAUDE.md                # Project configuration
 ```
 
-## Workflow Overview
+## 📚 Documentation & Support
 
-The generated commands support a 3-phase development workflow:
+- **[Full Documentation](https://github.com/gotalab/claude-code-spec/blob/main/README.md)** - Complete setup guide
+- **[Command Reference](https://github.com/gotalab/claude-code-spec/docs)** - All options and examples  
+- **[Issues & Support](https://github.com/gotalab/claude-code-spec/issues)** - Bug reports and questions
+- **[Kiro IDE Integration](https://kiro.dev)** - Enhanced spec management
 
-### Phase 0: Steering (Optional)
-- `/kiro:steering` - Create/update AI guidance rules
-- `/kiro:steering-custom` - Custom context for specialized scenarios
+---
 
-### Phase 1: Specification 
-1. `/kiro:spec-init [description]` - Initialize feature specification
-2. `/kiro:spec-requirements [feature]` - Generate requirements 
-3. `/kiro:spec-design [feature]` - Create design (requires requirements review)
-4. `/kiro:spec-tasks [feature]` - Break down into tasks (requires design review)
-
-### Phase 2: Implementation & Tracking
-- `/kiro:spec-impl [feature] <task_ids>` - Execute tasks with TDD after tasks approval
-- `/kiro:spec-status [feature]` - Check current progress and next steps
-
-## Platform Support
-
-| Platform | Auto-Detection | Manual Override |
-|----------|---------------|-----------------|
-| macOS | ✅ `darwin` | `--os mac` |
-| Windows | ✅ `win32` | `--os windows` |
-
-## Language Support
-
-- **Japanese (`ja`)** - 日本語ドキュメント
-- **English (`en`)** - English documentation  
-- **Traditional Chinese (`zh-TW`)** - 繁體中文文件
-
-## Safety Features
-
-- **Interactive Prompts** - Confirms before overwriting existing files
-- **Backup Creation** - Preserves original files with `--backup`
-- **Dry Run Mode** - Preview all changes with `--dry-run`
-- **Skip Mode** - Avoid overwriting with `--overwrite skip`
-
-### File Overwrite Behavior
-
-When files already exist, cc-sdd offers three modes:
-
-#### Prompt Mode (Default)
-Interactive prompts for each conflicting file:
-```
-Overwrite existing/file.md? [y]es/[n]o/[a]ll/[s]kip all: 
-```
-- `y` - Overwrite this file only
-- `n` - Skip this file only  
-- `a` - Overwrite all remaining files
-- `s` - Skip all remaining files
-
-#### Skip Mode
-Never overwrites existing files:
-```bash
-npx cc-sdd --overwrite skip
-```
-
-#### Force Mode
-Always overwrites without prompting:
-```bash
-npx cc-sdd --overwrite force
-```
-
-#### CI/CD Usage
-In non-interactive environments, prompt mode automatically falls back to skip mode with a warning. Use `--yes` or `--overwrite force` to enable overwriting in CI/CD:
-
-```bash
-# Safe CI/CD update (overwrites with backup)
-npx cc-sdd --yes --backup
-
-# Preview-only mode for CI validation
-npx cc-sdd --dry-run
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Permission denied on macOS:**
-```bash
-chmod +x ~/.npm/_npx/*/node_modules/.bin/cc-sdd
-```
-
-**Existing files conflict:**
-```bash
-npx cc-sdd --backup --overwrite force  # Safe overwrite
-```
-
-### Beta Release Known Issues
-
-- Windows template escaping has been recently fixed - please report any remaining issues
-- Cross-platform testing is limited - feedback welcome
-- Template customization not yet supported
-
-### Reporting Issues
-
-Please report bugs and issues at: https://github.com/gotalab/claude-code-spec/issues
-
-## Contributing
-
-This tool is part of the Claude Code Spec project. See the main repository for contribution guidelines.
-
-## License
-
-MIT License
+**Beta Release** - Ready to use, actively improving. [Report issues](https://github.com/gotalab/claude-code-spec/issues) | MIT License

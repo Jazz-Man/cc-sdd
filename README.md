@@ -1,34 +1,18 @@
+<div align="center"><sub>
+<a href="./tools/cc-sdd/README.md">English</a> | <a href="./tools/cc-sdd/README_ja.md">日本語</a> | <a href="./tools/cc-sdd/README_zh-TW.md">繁體中文</a>
+</sub></div>
+
 # cc-sdd / Claude Code Spec
+
+
 > 📦 **Beta Release** - Ready to use, actively improving. [Report issues →](https://github.com/gotalab/claude-code-spec/issues)
 
-<!-- npm badges -->
-[![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
-[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
+  <!-- npm badges -->
+  [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
+  [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
 
-For Claude Code and Gemini CLI: One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows. Includes Claude Code your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**.
 
-**Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
-
----
-
-【Claude Code/Gemini CLI】ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **Slash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Gemini CLI用の **GEMINI.md**）を配置し、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含みます。
-
-📝 **関連記事**  
-**[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
-
----
-## Languages
-> 🌐 cc-sdd Tool Documentation
-> • 日本語: [README_ja.md](tools/cc-sdd/README_ja.md)
-> • English: [README.md](tools/cc-sdd/README.md)
-> • 繁體中文: [README_zh-TW.md](tools/cc-sdd/README_zh-TW.md)
-
-> 📖 Project Overview (Spec-Driven Development workflow)
-> • 日本語: [README_ja.md](README_ja.md)
-> • English: [README_en.md](README_en.md)
-> • 繁體中文: [README_zh-TW.md](README_zh-TW.md)
-
-**Transform your agentic development workflow with Spec-Driven Development**
+One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code and Gemini CLI.
 
 ## 🚀 Quick Start
 
@@ -57,6 +41,27 @@ After running cc-sdd, you'll have:
 - **Kiro IDE compatibility** for seamless spec management
 
 **Perfect for**: Feature development, code reviews, technical planning, and maintaining development standards across your team.
+
+---
+
+## About
+
+Includes Claude Code your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
+
+【Claude Code/Gemini CLI】ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **Slash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Gemini CLI用の **GEMINI.md**）を配置し、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含みます。
+
+📝 **関連記事**  
+**[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
+
+## Languages
+> 📖 **Project Overview** (Spec-Driven Development workflow)
+> • 日本語: [README_ja.md](README_ja.md)
+> • English: [README_en.md](README_en.md)
+> • 繁體中文: [README_zh-TW.md](README_zh-TW.md)
+
+**Transform your agentic development workflow with Spec-Driven Development**
+
+---
 
 ## 🤖 Supported Coding Agents
 
@@ -120,9 +125,6 @@ npx cc-sdd@latest --kiro-dir docs/specs
 ✅ **Safe Updates** - Interactive prompts with backup options  
 
 ## 📚 Related Resources
-
-> 🌐 **Language**  
-> 📖 **English Version (this page)** | 📖 **[日本語版 README](README_ja.md)** | 📖 **[繁體中文說明](README_zh-TW.md)**
 
 📝 **Related Articles**  
 **[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn Article (Japanese)
