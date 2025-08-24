@@ -21,7 +21,7 @@ One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** 
 npx cc-sdd@latest
 
 # With language: --lang en (English) or --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
-# With OS: --os mac or --os windows (if auto-detection fails)
+# With OS: --os mac | --os windows | --os linux (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 
 # With different agents: gemini-cli
@@ -120,7 +120,7 @@ npx cc-sdd@latest --kiro-dir docs/specs
 ✅ **AI-DLC Integration** - Complete AI-Driven Development Life Cycle  
 ✅ **Project Memory** - Steering that learns your codebase and patterns  
 ✅ **Spec-Driven Development** - Structured requirements → design → tasks → implementation  
-✅ **Cross-Platform** - macOS and Windows support with auto-detection  
+✅ **Cross-Platform** - macOS, Linux, and Windows support with auto-detection (Linux reuses mac templates)  
 ✅ **Multi-Language** - Japanese, English, Traditional Chinese  
 ✅ **Safe Updates** - Interactive prompts with backup options  
 
