@@ -44,7 +44,7 @@ Validate required files exist:
 - Product: @.kiro/steering/product.md
 
 **Custom Steering:**
-Additional files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
+!`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "- @$file"; done`
 
 **Spec Documents:**
 Feature directory: !`echo "$ARGUMENTS" | awk '{print $1}'`
@@ -68,7 +68,7 @@ Execute using TDD methodology directly:
    - Structure: .kiro/steering/structure.md  
    - Tech Stack: .kiro/steering/tech.md
    - Product: .kiro/steering/product.md
-   - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
+   - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "   - @$file"; done`
    - Spec Metadata: .kiro/specs/[FEATURE]/spec.json
    - Requirements: .kiro/specs/[FEATURE]/requirements.md
    - Design: .kiro/specs/[FEATURE]/design.md
