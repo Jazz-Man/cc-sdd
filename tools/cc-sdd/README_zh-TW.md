@@ -85,7 +85,9 @@ npx cc-sdd@latest --gemini-cli --lang zh-TW # Gemini CLI 用
 
 ```bash
 # 語言與平台
-npx cc-sdd@latest --lang zh-TW --os mac
+npx cc-sdd@latest --lang zh-TW --os mac    # macOS
+npx cc-sdd@latest --lang zh-TW --os linux  # Linux（與 mac 共用模板）
+npx cc-sdd@latest --lang zh-TW --os windows # Windows（專用模板）
 
 # 安全操作
 npx cc-sdd@latest --dry-run --backup
@@ -116,3 +118,7 @@ project/
 ---
 
 **Beta 版本** - 可用且持續改進中。[回報問題](https://github.com/gotalab/claude-code-spec/issues) | MIT License
+
+### 平台支援
+- 支援 OS：macOS / Linux / Windows（預設自動偵測）。
+- Linux 與 macOS 使用相同的指令模板；Windows 使用專用模板。

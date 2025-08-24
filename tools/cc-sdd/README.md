@@ -85,7 +85,8 @@ npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
 
 ```bash
 # Language and platform
-npx cc-sdd@latest --lang ja --os mac
+npx cc-sdd@latest --lang ja --os mac   # macOS
+npx cc-sdd@latest --lang ja --os linux # Linux (shares mac templates)
 
 # Safe operations  
 npx cc-sdd@latest --dry-run --backup
@@ -116,3 +117,7 @@ project/
 ---
 
 **Beta Release** - Ready to use, actively improving. [Report issues](https://github.com/gotalab/claude-code-spec/issues) | MIT License
+
+### Platform Support
+- Supported OS: macOS, Linux, Windows (auto-detected by default).
+- Linux uses the same command templates as macOS. Windows has dedicated templates.

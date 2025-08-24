@@ -85,7 +85,9 @@ npx cc-sdd@latest --gemini-cli --lang ja # Gemini CLI用
 
 ```bash
 # 言語とプラットフォーム
-npx cc-sdd@latest --lang ja --os mac
+npx cc-sdd@latest --lang ja --os mac   # macOS
+npx cc-sdd@latest --lang ja --os linux # Linux（macテンプレートを共有）
+npx cc-sdd@latest --lang ja --os windows # Windows（専用テンプレート）
 
 # 安全な操作  
 npx cc-sdd@latest --dry-run --backup
@@ -116,3 +118,7 @@ project/
 ---
 
 **ベータリリース** - 使用可能、改善中。[問題を報告](https://github.com/gotalab/claude-code-spec/issues) | MIT License
+
+### プラットフォーム対応
+- 対応OS: macOS / Linux / Windows（通常は自動検出）。
+- Linux は macOS と同じコマンドテンプレートを使用します。Windows は専用テンプレートを使用します。

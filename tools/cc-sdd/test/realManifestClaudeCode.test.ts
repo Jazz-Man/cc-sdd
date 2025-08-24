@@ -60,3 +60,35 @@ describe('real claude-code manifest', () => {
     expect(ctx.logs.join('\n')).toMatch(/Applied plan:/);
   });
 });
+
+describe('real claude-code manifest (linux)', () => {
+  const runtimeLinux = { platform: 'linux' } as const;
+
+  it('dry-run prints plan including commands for linux via mac template', async () => {
+    const ctx = makeIO();
+    const code = await runCli(['--dry-run', '--lang', 'en', '--manifest', manifestPath], runtimeLinux, ctx.io, {});
+    expect(code).toBe(0);
+    const out = ctx.logs.join('\n');
+    expect(out).toMatch(/Plan \(dry-run\)/);
+    expect(out).toContain('[templateDir] commands_os_mac: templates/agents/claude-code/commands/os-mac -> .claude/commands/kiro');
+    expect(out).toContain('[templateFile] doc_main: templates/agents/claude-code/docs/CLAUDE/CLAUDE.en.tpl.md -> ./CLAUDE.md');
+  });
+
+  it('apply writes CLAUDE.md and command files to cwd on linux', async () => {
+    const cwd = await mkTmp();
+    const ctx = makeIO();
+    const code = await runCli(['--lang', 'en', '--manifest', manifestPath, '--overwrite=force'], runtimeLinux, ctx.io, {}, { cwd, templatesRoot: process.cwd() });
+    expect(code).toBe(0);
+
+    const doc = join(cwd, 'CLAUDE.md');
+    expect(await exists(doc)).toBe(true);
+    const text = await readFile(doc, 'utf8');
+    expect(text).toMatch(/Claude Code Spec-Driven Development/);
+    expect(text).toContain('Steering: `.kiro/steering/`');
+
+    const cmd = join(cwd, '.claude/commands/kiro/spec-init.md');
+    expect(await exists(cmd)).toBe(true);
+
+    expect(ctx.logs.join('\n')).toMatch(/Applied plan:/);
+  });
+});

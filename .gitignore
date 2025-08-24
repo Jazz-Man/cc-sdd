@@ -71,9 +71,10 @@ coverage/
 # Project specific
 BLOG.md
 docs/cc-sdd/
+docs/kiro/prompt/
 
-# Claude Code
+# Agent configurations
 .claude/agents/
 .claude/hooks/
-
-docs/kiro/prompt/
+GEMINI.md
+AGENTS.md
