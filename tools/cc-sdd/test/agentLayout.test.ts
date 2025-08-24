@@ -27,7 +27,7 @@ describe('resolveAgentLayout', () => {
   it('returns provisional defaults for gemini-cli', () => {
     const res = resolveAgentLayout('gemini-cli');
     expect(res).toEqual({
-      commandsDir: '.gemini/commands',
+      commandsDir: '.gemini/commands/kiro',
       agentDir: '.gemini',
       docFile: 'GEMINI.md',
     });

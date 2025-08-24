@@ -42,14 +42,14 @@ describe('CLI entry', () => {
     expect(ctx.logs.join('\n')).toMatch(/cc-sdd v/);
   });
 
-  it('prints resolved config on --dry-run', async () => {
+  it('prints plan on --dry-run', async () => {
     const ctx = makeIO();
     const code = await runCli(['--dry-run', '--agent', 'gemini-cli', '--os', 'mac'], runtime, ctx.io, {});
     expect(code).toBe(0);
     const out = ctx.logs.join('\n');
-    expect(out).toMatch(/Resolved Configuration:/);
-    expect(out).toMatch(/"agent": "gemini-cli"/);
-    expect(out).toMatch(/"resolvedOs": "mac"/);
+    expect(out).toMatch(/Plan \(dry-run\)/);
+    expect(out).toMatch(/Total: \d+/);
+    expect(out).toMatch(/templateDir.*templates\/agents\/gemini-cli/);
   });
 
   it('shows error on invalid flag', async () => {
