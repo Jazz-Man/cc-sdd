@@ -11,10 +11,10 @@ Show current status and progress for feature: **$ARGUMENTS**
 
 ### Spec Files
 - Spec directory: !`ls -la .kiro/specs/$ARGUMENTS/`
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
-- Requirements: @.kiro/specs/$ARGUMENTS/requirements.md
-- Design: @.kiro/specs/$ARGUMENTS/design.md
-- Tasks: @.kiro/specs/$ARGUMENTS/tasks.md
+- Spec metadata: `.kiro/specs/$ARGUMENTS/spec.json`
+- Requirements: `.kiro/specs/$ARGUMENTS/requirements.md`
+- Design: `.kiro/specs/$ARGUMENTS/design.md`
+- Tasks: `.kiro/specs/$ARGUMENTS/tasks.md`
 
 ### All Specs Overview
 - Available specs: !`ls -la .kiro/specs/`
@@ -22,7 +22,7 @@ Show current status and progress for feature: **$ARGUMENTS**
 
 ## Task: Generate Status Report
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
 
 ### 1. Specification Overview
 Display:

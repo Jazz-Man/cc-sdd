@@ -1,4 +1,5 @@
 description = "Show specification status and progress"
+argument-hint = "<feature-name>"
 
 prompt = """
 # Specification Status
@@ -9,10 +10,10 @@ Show current status and progress for feature: **{{args}}**
 
 ### Spec Files
 - Spec directory: !{ls -la .kiro/specs/{{args}}/}
-- Spec metadata: @.kiro/specs/{{args}}/spec.json
-- Requirements: @.kiro/specs/{{args}}/requirements.md
-- Design: @.kiro/specs/{{args}}/design.md
-- Tasks: @.kiro/specs/{{args}}/tasks.md
+- Spec metadata: `.kiro/specs/{{args}}/spec.json`
+- Requirements: `.kiro/specs/{{args}}/requirements.md`
+- Design: `.kiro/specs/{{args}}/design.md`
+- Tasks: `.kiro/specs/{{args}}/tasks.md`
 
 ### All Specs Overview
 - Available specs: !{ls -la .kiro/specs/}
@@ -20,7 +21,7 @@ Show current status and progress for feature: **{{args}}**
 
 ## Task: Generate Status Report
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `@.kiro/specs/{{args}}/spec.json` for "language" field):
+Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/{{args}}/spec.json` for "language" field):
 
 ### 1. Specification Overview
 Display:

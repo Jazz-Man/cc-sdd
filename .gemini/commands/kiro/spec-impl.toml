@@ -32,9 +32,7 @@ Validate required files exist:
 - Tasks: Check if .kiro/specs/[FEATURE]/tasks.md exists
 - Metadata: Check if .kiro/specs/[FEATURE]/spec.json exists
 
-**Note**: Replace [FEATURE] with the first argument from {{args}}
-
-### Context Loading
+### Project Context Loading
 **Load all required content before execution:**
 
 **Core Steering:**
@@ -47,11 +45,10 @@ Additional files: !{find .kiro/steering -name "*.md" ! -name "structure.md" ! -n
 
 **Spec Documents:**
 Feature directory: **{{args}}** (first argument)
-- Requirements: @.kiro/specs/[FEATURE]/requirements.md
-- Design: @.kiro/specs/[FEATURE]/design.md
-- Tasks: @.kiro/specs/[FEATURE]/tasks.md
+- Requirements: `.kiro/specs/[FEATURE]/requirements.md`
+- Design: `.kiro/specs/[FEATURE]/design.md`
+- Tasks: `.kiro/specs/[FEATURE]/tasks.md`
 
-**Note**: [FEATURE] will be replaced with actual feature name during execution
 
 ### Task Execution
 1. **Parse feature name and task numbers** from arguments

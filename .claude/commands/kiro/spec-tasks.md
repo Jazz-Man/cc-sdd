@@ -8,31 +8,21 @@ argument-hint: <feature-name> [-y]
 
 Generate detailed implementation tasks for feature: **$ARGUMENTS**
 
-## Requirements & Design Approval Required
+## Task: Generate Implementation Tasks
 
-**CRITICAL**: Tasks can only be generated after both requirements and design are reviewed and approved.
+### Prerequisites & File Handling
+- **Requirements & Design Approval Check**:
+  - If invoked with `-y`, set `requirements.approved=true` and `design.approved=true` in `spec.json`
+  - Otherwise, **stop** with an actionable message if requirements or design are missing or unapproved
+- **Tasks File Handling**:
+  - If tasks.md does not exist: Create new tasks.md file
+  - If tasks.md exists: Interactive prompt with options:
+    - **[o] Overwrite**: Generate completely new tasks document
+    - **[m] Merge**: Generate new tasks document using existing content as reference context
+    - **[c] Cancel**: Stop execution for manual review
+- **Context Loading**: Read `.kiro/specs/$ARGUMENTS/requirements.md`, `.kiro/specs/$ARGUMENTS/design.md`, steering documents in `.kiro/steering/*.md`, and existing tasks.md (if merge mode)
 
-- Requirements document: @.kiro/specs/$ARGUMENTS/requirements.md
-- Design document: @.kiro/specs/$ARGUMENTS/design.md
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
-
-**Note**: If this command was called with `-y` flag, both requirements and design are auto-approved (spec.json updated to set requirements.approved=true and design.approved=true). Otherwise, both phases must be approved first via their respective commands followed by `/kiro:spec-tasks $ARGUMENTS -y`.
-
-## Context Analysis
-
-### Complete Spec Context (APPROVED)
-- Requirements: @.kiro/specs/$ARGUMENTS/requirements.md
-- Design: @.kiro/specs/$ARGUMENTS/design.md
-- Current tasks: @.kiro/specs/$ARGUMENTS/tasks.md
-- Spec metadata: @.kiro/specs/$ARGUMENTS/spec.json
-
-### Steering Context
-- Architecture patterns: @.kiro/steering/structure.md
-- Development practices: @.kiro/steering/tech.md
-- Product constraints: @.kiro/steering/product.md
-- Custom steering: Load "Always" mode and task-related "Conditional" mode files
-
-## Task: Generate Code-Generation Prompts
+### Task Analysis & Planning
 
 **Prerequisites Verified**: Both requirements and design are approved and ready for task breakdown.
 
@@ -40,8 +30,8 @@ Generate detailed implementation tasks for feature: **$ARGUMENTS**
 
 Create implementation plan in the language specified in spec.json:
 
-### 1. Code-Generation Tasks Structure
-Create tasks.md in the language specified in spec.json (check `@.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+### Code-Generation Tasks Structure
+Create tasks.md in the language specified in spec.json (check `.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
 
 **Note**: The example below is for format reference only. Actual content should be based on the specific requirements and design documents for your project.
 
@@ -85,11 +75,11 @@ Create tasks.md in the language specified in spec.json (check `@.kiro/specs/$ARG
 - **MUST end with exact format**: _Requirements: X.X, Y.Y_ or _Requirements: [description]_ (underscores mandatory)
 - Rely on design document for implementation details
 
-### 2. Focus on Coding Activities Only
+### Focus on Coding Activities Only
 **INCLUDE:** Any task that involves writing, modifying, or testing code
 **EXCLUDE:** User testing, deployment, metrics gathering, CI/CD setup, documentation creation
 
-### 3. Granular Requirements Mapping
+### Granular Requirements Mapping
 **MANDATORY FORMAT**: Each task must end with _Requirements: [mapping]_
 - **Primary format**: _Requirements: 2.1, 3.3, 1.2_ for specific EARS requirements (most common)
 - **Generalized mapping**: _Requirements: All requirements need foundational setup_ for cross-cutting tasks
@@ -98,12 +88,12 @@ Create tasks.md in the language specified in spec.json (check `@.kiro/specs/$ARG
 - Ensure every EARS requirement is covered by implementation tasks
 
 
-### 4. Document Generation Only
+### Document Generation Only
 Generate the tasks document content ONLY. Do not include any review or approval instructions in the actual document file.
 
-### 5. Update Metadata
-
-Update spec.json with:
+###Tasks Document Generation & Metadata Update
+- Generate the tasks document content following all task structure requirements
+- Update `.kiro/specs/$ARGUMENTS/spec.json`:
 ```json
 {
   "phase": "tasks-generated",
@@ -125,8 +115,10 @@ Update spec.json with:
 }
 ```
 
-### 8. Metadata Update
-Update the tracking metadata to reflect task generation completion.
+### Actionable Messages
+If requirements or design are not approved and no `-y` flag:
+- **Error Message**: "Both requirements and design must be approved before generating tasks. Run `/kiro:spec-requirements $ARGUMENTS` and `/kiro:spec-design $ARGUMENTS` to review, then run `/kiro:spec-tasks $ARGUMENTS -y` to proceed."
+- **Alternative**: "Or run `/kiro:spec-tasks $ARGUMENTS -y` to auto-approve both phases and generate tasks."
 
 ---
 

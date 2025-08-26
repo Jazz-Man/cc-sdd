@@ -44,13 +44,13 @@ Validate required files exist:
 - Product: @.kiro/steering/product.md
 
 **Custom Steering:**
-!`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "- @$file"; done`
+Additional files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
 
 **Spec Documents:**
 Feature directory: !`echo "$ARGUMENTS" | awk '{print $1}'`
-- Requirements: @.kiro/specs/[FEATURE]/requirements.md
-- Design: @.kiro/specs/[FEATURE]/design.md
-- Tasks: @.kiro/specs/[FEATURE]/tasks.md
+- Requirements: `.kiro/specs/[FEATURE]/requirements.md`
+- Design: `.kiro/specs/[FEATURE]/design.md`
+- Tasks: `.kiro/specs/[FEATURE]/tasks.md`
 
 **Note**: [FEATURE] will be replaced with actual feature name during execution
 
@@ -65,10 +65,10 @@ Execute using TDD methodology directly:
 
 **Implementation Steps:**
 1. **Load Project Context** (read these files first):
-   - Structure: .kiro/steering/structure.md  
-   - Tech Stack: .kiro/steering/tech.md
-   - Product: .kiro/steering/product.md
-   - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "   - @$file"; done`
+   - Structure: @.kiro/steering/structure.md  
+   - Tech Stack: @.kiro/steering/tech.md
+   - Product: @.kiro/steering/product.md
+   - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
    - Spec Metadata: .kiro/specs/[FEATURE]/spec.json
    - Requirements: .kiro/specs/[FEATURE]/requirements.md
    - Design: .kiro/specs/[FEATURE]/design.md
