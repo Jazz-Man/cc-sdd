@@ -32,4 +32,13 @@ describe('resolveAgentLayout', () => {
       docFile: 'GEMINI.md',
     });
   });
+  it('returns defaults for cursor', () => {
+    const res = resolveAgentLayout('cursor');
+    expect(res).toEqual({
+      commandsDir: '.cursor/commands/kiro',
+      agentDir: '.cursor',
+      docFile: 'AGENTS.md',
+    });
+  });
+
 });
