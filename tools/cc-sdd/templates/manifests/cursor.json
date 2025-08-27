@@ -2,22 +2,13 @@
   "version": 1,
   "artifacts": [
     {
-      "id": "commands_os_mac",
+      "id": "commands_all_os",
       "source": {
         "type": "templateDir",
         "fromDir": "templates/agents/{{AGENT}}/commands/os-mac",
         "toDir": "{{AGENT_COMMANDS_DIR}}"
       },
-      "when": { "agent": "cursor", "os": "mac" }
-    },
-    {
-      "id": "commands_os_windows",
-      "source": {
-        "type": "templateDir",
-        "fromDir": "templates/agents/{{AGENT}}/commands/os-mac",
-        "toDir": "{{AGENT_COMMANDS_DIR}}"
-      },
-      "when": { "agent": "cursor", "os": "windows" }
+      "when": { "agent": "cursor", "os": ["mac", "windows", "linux"] }
     },
     {
       "id": "doc_main",

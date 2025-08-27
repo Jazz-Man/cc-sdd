@@ -23,7 +23,7 @@ const makeIO = () => {
 };
 
 describe('real cursor manifest', () => {
-  it('dry-run prints plan for cursor.json with placeholders applied', async () => {
+  it('dry-run prints plan for cursor.json with placeholders applied (mac)', async () => {
     const repoRoot = join(process.cwd(), '..', '..');
     const manifestPath = join(repoRoot, 'tools/cc-sdd/templates/manifests/cursor.json');
     const ctx = makeIO();
@@ -31,7 +31,19 @@ describe('real cursor manifest', () => {
     expect(code).toBe(0);
     const out = ctx.logs.join('\n');
     expect(out).toMatch(/Plan \(dry-run\)/);
-    expect(out).toContain('[templateDir] commands_os_mac: templates/agents/cursor/commands/os-mac -> .cursor/commands/kiro');
+    expect(out).toContain('[templateDir] commands_all_os: templates/agents/cursor/commands/os-mac -> .cursor/commands/kiro');
+    expect(out).toContain('[templateFile] doc_main: templates/agents/cursor/docs/AGENTS/AGENTS.en.tpl.md -> ./AGENTS.md');
+  });
+  it('dry-run prints plan including commands for linux via mac template', async () => {
+    const repoRoot = join(process.cwd(), '..', '..');
+    const manifestPath = join(repoRoot, 'tools/cc-sdd/templates/manifests/cursor.json');
+    const ctx = makeIO();
+    const runtimeLinux = { platform: 'linux' } as const;
+    const code = await runCli(['--dry-run', '--lang', 'en', '--agent', 'cursor', '--manifest', manifestPath], runtimeLinux, ctx.io, {});
+    expect(code).toBe(0);
+    const out = ctx.logs.join('\n');
+    expect(out).toMatch(/Plan \(dry-run\)/);
+    expect(out).toContain('[templateDir] commands_all_os: templates/agents/cursor/commands/os-mac -> .cursor/commands/kiro');
     expect(out).toContain('[templateFile] doc_main: templates/agents/cursor/docs/AGENTS/AGENTS.en.tpl.md -> ./AGENTS.md');
   });
 });
