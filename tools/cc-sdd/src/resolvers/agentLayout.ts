@@ -1,4 +1,4 @@
-export type AgentType = 'claude-code' | 'gemini-cli' | 'qwen-code';
+export type AgentType = 'claude-code' | 'gemini-cli' | 'qwen-code' | 'cursor';
 
 export interface AgentLayout {
   commandsDir: string;
@@ -26,6 +26,11 @@ export const resolveAgentLayout = (agent: AgentType, config?: CCSddConfig): Agen
       commandsDir: '.qwen/commands',
       agentDir: '.qwen',
       docFile: 'QWEN.md',
+    },
+    'cursor': {
+      commandsDir: '.cursor/commands/kiro',
+      agentDir: '.cursor',
+      docFile: 'AGENTS.md',
     },
   };
 
