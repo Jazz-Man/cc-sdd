@@ -1,5 +1,5 @@
 ---
-description: Create technical design for a specification  
+description: Create conprehensive technical design for a specification  
 allowed-tools: Bash, Glob, Grep, LS, Read, Write, Edit, MultiEdit, Update, WebSearch, WebFetch
 argument-hint: <feature-name> [-y]
 ---
@@ -22,22 +22,33 @@ Generate a **technical design document** for feature **$ARGUMENTS**.
     - **[c] Cancel**: Stop execution for manual review
 - **Context Loading**: Read `.kiro/specs/$ARGUMENTS/requirements.md`, core steering documents, and existing design.md (if merge mode)
 
-### 2. Research & Analysis Phase
+### 2. Discovery & Analysis Phase
 
 **CRITICAL**: Before generating the design, conduct thorough research and analysis:
+
+#### Feature Classification & Process Adaptation
+**Classify feature type to adapt process scope**:
+- **New Feature** (greenfield): Full process including technology selection and architecture decisions
+- **Extension** (existing system): Focus on integration analysis, minimal architectural changes
+- **Simple Addition** (CRUD, UI): Streamlined process, follow established patterns
+- **Complex Integration** (external systems, new domains): Comprehensive analysis and risk assessment
+
+**Process Adaptation**: Skip or streamline analysis steps based on classification above
 
 #### A. Requirements to Technical Components Mapping
 - Map requirements (EARS format) to technical components
 - Extract non-functional requirements (performance, security, scalability)
 - Identify core technical challenges and constraints
 
-#### B. Existing Implementation Analysis (if applicable)
-**MANDATORY** when modifying existing features:
+#### B. Existing Implementation Analysis 
+**MANDATORY when modifying or extending existing features**:
 - Analyze codebase structure, dependencies, patterns
 - Map reusable modules, services, utilities
 - Understand domain boundaries, layers, data flow
 - Determine extension vs. refactor vs. wrap approach
 - Prioritize minimal changes and file reuse
+
+**Optional for completely new features**: Review existing patterns for consistency and reuse opportunities
 
 #### C. Steering Alignment Check
 - Verify alignment with core steering documents (`structure.md`, `tech.md`, `product.md`) and any custom steering files
@@ -46,17 +57,22 @@ Generate a **technical design document** for feature **$ARGUMENTS**.
 - Document deviations with rationale for steering updates
 
 #### D. Technology & Alternative Analysis
-- Research current(today's year) best practices using WebSearch/WebFetch in parallel. (Task)
-- Compare architecture patterns (MVC, Clean, Hexagonal)
-- Assess technology stack alternatives with trade-offs
-- Document key findings for design decisions
+**For New Features or Unknown Technology Areas**:
+- Research latest best practices using WebSearch/WebFetch when needed in parallel
+- Compare relevant architecture patterns (MVC, Clean, Hexagonal) if pattern selection is required
+- Assess technology stack alternatives only when technology choices are being made
+- Document key findings that impact design decisions
 
-#### E. Selected Technology Stack Investigation
-**MANDATORY** after technology selection:
-- Research official API documentation and version compatibility
-- Investigate integration patterns and authentication mechanisms
-- Verify capability boundaries and performance characteristics
-- Document version constraints and upgrade considerations
+**Skip this step if**: Using established team technology stack and patterns for straightforward feature additions
+
+#### E. Implementation-Specific Investigation
+**When new technology or complex integration is involved**:
+- Verify specific API capabilities needed for requirements
+- Check version compatibility with existing dependencies
+- Identify configuration and setup requirements
+- Document any migration or integration challenges
+
+**Skip if**: Using familiar technology stack in standard patterns
 
 #### F. Technical Risk Assessment
 - Performance/scalability risks: bottlenecks, capacity, growth
@@ -78,8 +94,10 @@ Generate a **technical design document** for feature **$ARGUMENTS**.
 
 ### Document Sections
 
-**CORE SECTIONS** (Always include - essential for technical review):
-- Overview, Architecture, Components and Interfaces, Data Models, Error Handling, Testing Strategy, Security Considerations
+**CORE SECTIONS** (Include when relevant):
+- Overview, Architecture, Components and Interfaces (always)
+- Data Models, Error Handling, Testing Strategy (when applicable)
+- Security Considerations (when security implications exist)
 
 **CONDITIONAL SECTIONS** (Include only when specifically relevant):
 - Performance & Scalability (for performance-critical features)
@@ -113,7 +131,7 @@ When modifying existing systems:
 - Technical debt addressed or worked around
 
 ### High-Level Architecture
-**REQUIRED**: Include **essential** Mermaid diagram showing system architecture
+**RECOMMENDED**: Include Mermaid diagram showing system architecture (required for complex features, optional for simple additions)
 
 **Architecture Integration**:
 - Existing patterns preserved: [list key patterns]
@@ -122,7 +140,7 @@ When modifying existing systems:
 - Steering compliance: [principles maintained]
 
 ### Data Flow
-**REQUIRED**: Include sequence diagram or flowchart showing data flow, highlighting changes to existing flows
+**RECOMMENDED**: Include sequence diagram or flowchart showing data flow when data interactions are complex or span multiple systems
 
 ### Technology Stack and Design Decisions
 
@@ -272,22 +290,22 @@ Error tracking, logging, and health monitoring implementation.
 
 ## Testing Strategy
 
-### Testing Approach
-- **Unit Testing**: Component isolation and business logic validation
-- **Integration Testing**: API contract verification and data flow testing  
-- **End-to-End Testing**: Critical user journey validation
-
-### Coverage Strategy
-- Focus on high-risk components and user-critical paths
-- Automated testing integrated into CI/CD pipeline
-- Test data management and environment consistency
+### Default sections (adapt names/sections to fit the domain)
+- Unit Tests: 3–5 items from core functions/modules (e.g., auth methods, subscription logic)
+- Integration Tests: 3–5 cross-component flows (e.g., webhook handling, notifications)
+- E2E/UI Tests (if applicable): 3–5 critical user paths (e.g., forms, dashboards)
+- Performance/Load (if applicable): 3–4 items (e.g., concurrency, high-volume ops)
 
 ## Optional Sections (include when relevant)
 
 ### Security Considerations
-Threat modeling, security controls, compliance requirements.
+**Include when**: Features handle authentication, sensitive data, external integrations, or user permissions
+- Threat modeling, security controls, compliance requirements
+- Authentication and authorization patterns
+- Data protection and privacy considerations
 
 ### Performance & Scalability
+**Include when**: Features have specific performance requirements, high load expectations, or scaling concerns
 - Target metrics and measurement strategies
 - Scaling approaches (horizontal/vertical)
 - Caching strategies and optimization techniques
@@ -303,8 +321,10 @@ Threat modeling, security controls, compliance requirements.
 ## Process Instructions (NOT included in design.md)
 
 ### Visual Design Guidelines
-**Always include**: Architecture diagram, data flow diagram, ER diagram (if complex)
-**Include when helpful**: State machines, component interactions, decision trees, process flows, auth flows, approval workflows, data pipelines
+**Include based on complexity**: 
+- **Simple features**: Basic component diagram or none if trivial
+- **Complex features**: Architecture diagram, data flow diagram, ER diagram (if complex)
+- **When helpful**: State machines, component interactions, decision trees, process flows, auth flows, approval workflows, data pipelines
 
 **Mermaid Diagram Rules**:
 - Use only basic graph syntax with nodes and relationships
