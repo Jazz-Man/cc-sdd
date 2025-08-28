@@ -70,11 +70,11 @@ Execute using TDD methodology directly:
    - Structure: @.kiro/steering/structure.md  
    - Tech Stack: @.kiro/steering/tech.md
    - Product: @.kiro/steering/product.md
-   - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
-   - Spec Metadata: .kiro/specs/<feature-name>/spec.json
-   - Requirements: .kiro/specs/<feature-name>/requirements.md
-   - Design: .kiro/specs/<feature-name>/design.md
-   - All Tasks: .kiro/specs/<feature-name>/tasks.md
+   - Custom steering files: `*.md` files in `.kiro/steering/` (excluding structure.md, tech.md, product.md)
+   - Spec Metadata: `.kiro/specs/<feature-name>/spec.json`
+   - Requirements: `.kiro/specs/<feature-name>/requirements.md`
+   - Design: `.kiro/specs/<feature-name>/design.md`
+   - All Tasks: `.kiro/specs/<feature-name>/tasks.md`
 
 2. **TDD Implementation** for each specific task:
    - **RED**: Write failing tests first
