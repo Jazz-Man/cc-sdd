@@ -1,11 +1,18 @@
-description = "Create technical design for a specification"
+<meta>
+description: Create comprehensive technical design for a specification  
+argument-hint: <feature-name> [-y]
+</meta>
 
-prompt = """
 # Technical Design
 
-Create comprehensive technical design for feature: **{{args}}**
+Generate a **technical design document** for feature **<feature-name>**.
 
 ## Task: Create Technical Design Document
+
+Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+
+Prime: Always perform Discovery & Analysis first, then construct the design document.
+Process Reminder: Reference discovery findings throughout Overview/Architecture/Components/Testing; if unknowns remain, note "Pending discovery: ..." and avoid assumptions.
 
 ### 1. Prerequisites & File Handling
 - **Requirements Approval Check**: 
@@ -17,7 +24,7 @@ Create comprehensive technical design for feature: **{{args}}**
     - **[o] Overwrite**: Generate completely new design document
     - **[m] Merge**: Generate new design document using existing content as reference context  
     - **[c] Cancel**: Stop execution for manual review
-- **Context Loading**: Read `.kiro/specs/{{args}}/requirements.md`, core steering documents, and existing design.md (if merge mode)
+- **Context Loading**: Read `.kiro/specs/<feature-name>/requirements.md`, core steering documents, and existing design.md (if merge mode)
 
 ### 2. Discovery & Analysis Phase
 
@@ -48,9 +55,9 @@ Create comprehensive technical design for feature: **{{args}}**
 **Optional for completely new features**: Review existing patterns for consistency and reuse opportunities
 
 #### C. Steering Alignment Check
-- Verify alignment with core steering documents (`structure.md`, `tech.md`, `product.md`) and any custom steering files
-  - **Core steering**: `.kiro/steering/structure.md`, `.kiro/steering/tech.md`, `.kiro/steering/product.md`
-  - **Custom steering**: All additional `.md` files in `.kiro/steering/` !{`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "- @$file"; done`}
+- Verify alignment with core steering documents (`structure.md`, `tech.md`, `product.md`) and any custom steering files (`*.md`) in `.kiro/steering/`
+  - **Core steering**: @.kiro/steering/structure.md, @.kiro/steering/tech.md, @.kiro/steering/product.md
+  - **Custom steering**: All additional `.md` files in `.kiro/steering/` discovered via list_dir or glob_file_search (excluding `structure.md`, `tech.md`, `product.md`). Do not run shell commands.
 - Document deviations with rationale for steering updates
 
 #### D. Technology & Alternative Analysis
@@ -100,11 +107,14 @@ Create comprehensive technical design for feature: **{{args}}**
 - Performance & Scalability (for performance-critical features)
 - Migration Strategy (for existing system modifications)
 
+<document-structure>
+# Technical Design
 ## Overview (2-3 paragraphs max)
 
 **Purpose**: This feature delivers [specific value] to [target users].
 **Users**: [Target user groups] will utilize this for [specific workflows].
 **Impact** (if applicable): Changes the current [system state] by [specific modifications].
+
 
 ### Goals
 - Primary objective 1
@@ -291,6 +301,14 @@ Error tracking, logging, and health monitoring implementation.
 - E2E/UI Tests (if applicable): 3–5 critical user paths (e.g., forms, dashboards)
 - Performance/Load (if applicable): 3–4 items (e.g., concurrency, high-volume ops)
 
+### Optional sections (include only when relevant)
+- Contract/API, Security, Accessibility, Chaos/Resilience
+
+### Generation rules
+- Use domain-specific phrasing; avoid generic bullets; map to requirement IDs when available
+- Include 3–6 bullets per section; omit non-relevant sections with one-line rationale
+- Plan-only list; no code
+
 ## Optional Sections (include when relevant)
 
 ### Security Considerations
@@ -306,9 +324,10 @@ Error tracking, logging, and health monitoring implementation.
 - Caching strategies and optimization techniques
 
 ### Migration Strategy
-**REQUIRED**: Include Mermaid flowchart showing migration phases
+**Recommended**: Include Mermaid flowchart showing migration phases
 
 **Process**: Phase breakdown, rollback triggers, validation checkpoints
+</document-structure>
 
 ---
 
@@ -331,13 +350,13 @@ Error tracking, logging, and health monitoring implementation.
 - [ ] Existing implementation respected
 - [ ] Steering compliant, deviations documented
 - [ ] Architecture visualized with clear diagrams
-- [ ] Components have Purpose, Key Features, Interface Design
+- [ ] Components and Interfaces have Purpose, Key Features, Interface Design
 - [ ] Data models individually documented
 - [ ] Integration with existing system explained
 
 ### 3. Design Document Generation & Metadata Update
 - Generate complete design document following structure guidelines
-- Update `@.kiro/specs/{{args}}/spec.json`:
+- Update `.kiro/specs/<feature-name>/spec.json`:
 ```json
 {
   "phase": "design-generated", 
@@ -348,17 +367,19 @@ Error tracking, logging, and health monitoring implementation.
   "updated_at": "current_timestamp"
 }
 ```
+JSON update: update via file tools, set ISO `updated_at`, merge only needed keys; avoid duplicates.
+
+Final Reminder: Do not skip discovery.
 
 ### Actionable Messages
 If requirements are not approved and no `-y` flag:
-- **Error Message**: "Requirements must be approved before generating design. Run `/kiro:spec-requirements {{args}}` to review requirements, then run `/kiro:spec-design {{args}} -y` to proceed."
-- **Alternative**: "Or run `/kiro:spec-design {{args}} -y` to auto-approve requirements and generate design."
+- **Error Message**: "Requirements must be approved before generating design. Run `/kiro/spec-requirements <feature-name>` to review requirements, then run `/kiro/spec-design <feature-name> -y` to proceed."
+- **Alternative**: "Or run `/kiro/spec-design <feature-name> -y` to auto-approve requirements and generate design."
 
 ### Conversation Guidance
 After generation:
 - Guide user to review design narrative and visualizations
 - Suggest specific diagram additions if needed
-- Direct to run `/kiro:spec-tasks {{args}} -y` when approved
+- Direct to run `/kiro/spec-tasks <feature-name> -y` when approved
 
 Create design document that tells complete story through clear narrative, structured components, and effective visualizations. think deeply
-"""

@@ -1,27 +1,27 @@
-description = "Show specification status and progress"
-argument-hint = "<feature-name>"
+<meta>
+description: Show specification status and progress
+</meta>
 
-prompt = """
 # Specification Status
 
-Show current status and progress for feature: **{{args}}**
+Show current status and progress for feature: **<feature-name>**
 
 ## Spec Context
 
 ### Spec Files
-- Spec directory: !{ls -la .kiro/specs/{{args}}/}
-- Spec metadata: `.kiro/specs/{{args}}/spec.json`
-- Requirements: `.kiro/specs/{{args}}/requirements.md`
-- Design: `.kiro/specs/{{args}}/design.md`
-- Tasks: `.kiro/specs/{{args}}/tasks.md`
+- Spec directory: Inspect via list_dir/glob_file_search for `.kiro/specs/<feature-name>/`
+- Spec metadata: `.kiro/specs/<feature-name>/spec.json`
+- Requirements: `.kiro/specs/<feature-name>/requirements.md`
+- Design: `.kiro/specs/<feature-name>/design.md`
+- Tasks: `.kiro/specs/<feature-name>/tasks.md`
 
 ### All Specs Overview
-- Available specs: !{ls -la .kiro/specs/}
-- Active specs: !{find .kiro/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} +}
+- Available specs: Discover via list_dir/glob_file_search under `.kiro/specs/`
+- Active specs: Filter `spec.json` files with `implementation_ready=true` by reading and parsing JSON (no shell)
 
 ## Task: Generate Status Report
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/{{args}}/spec.json` for "language" field):
+Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/<feature-name>/spec.json` for "language" field):
 
 ### 1. Specification Overview
 Display:
@@ -93,4 +93,3 @@ Check alignment with steering documents:
 7. **Check steering alignment** to ensure consistency
 
 Generate status report that provides clear visibility into spec progress and next steps.
-"""

@@ -1,12 +1,13 @@
----
+<meta>
 description: Generate comprehensive requirements for a specification
-allowed-tools: Bash, Glob, Grep, LS, Read, Write, Edit, MultiEdit, Update, WebSearch, WebFetch
 argument-hint: <feature-name>
----
+</meta>
 
 # Requirements Generation
 
-Generate comprehensive requirements for feature: **$ARGUMENTS**
+Generate comprehensive requirements for feature: **<feature-name>**
+
+Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ## Context Validation
 
@@ -17,9 +18,9 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 - Custom steering: Load all "Always" mode custom steering files from .kiro/steering/
 
 ### Existing Spec Context
-- Current spec directory: !`ls -la .kiro/specs/$ARGUMENTS/`
-- Current requirements: `.kiro/specs/$ARGUMENTS/requirements.md`
-- Spec metadata: `.kiro/specs/$ARGUMENTS/spec.json`
+- Current spec directory: Inspect using list_dir or glob_file_search (no shell) for `.kiro/specs/<feature-name>/`
+- Current requirements: `.kiro/specs/<feature-name>/requirements.md`
+- Spec metadata: `.kiro/specs/<feature-name>/spec.json`
 
 ## Task: Generate Initial Requirements
 
@@ -52,7 +53,7 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 - IF [condition] AND [additional condition] THEN [system] SHALL [response]
 
 ### 4. Requirements Document Structure
-Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/<feature-name>/spec.json` for "language" field):
 
 ```markdown
 # Requirements Document
@@ -82,6 +83,7 @@ This section should have EARS requirements
 ### Requirement 3: [Additional Major Areas]
 [Continue pattern for all major functional areas]
 ```
+#
 
 ### 5. Update Metadata
 Update spec.json with:
@@ -97,6 +99,7 @@ Update spec.json with:
   "updated_at": "current_timestamp"
 }
 ```
+JSON update: update via file tools, set ISO `updated_at`, merge only needed keys; avoid duplicates.
 
 ### 6. Document Generation Only
 Generate the requirements document content ONLY. Do not include any review or approval instructions in the actual document file.
@@ -108,7 +111,7 @@ Generate the requirements document content ONLY. Do not include any review or ap
 After generating requirements.md, review the requirements and choose:
 
 **If requirements look good:**
-Run `/kiro:spec-design $ARGUMENTS -y` to proceed to design phase
+Run `/kiro/spec-design <feature-name> -y` to proceed to design phase
 
 **If requirements need modification:**
 Request changes, then re-run this command after modifications

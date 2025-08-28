@@ -1,14 +1,15 @@
----
+<meta>
 description: Generate implementation tasks for a specification
-allowed-tools: Bash, Read, Write, Edit, Update, MultiEdit
 argument-hint: <feature-name> [-y]
----
+</meta>
 
 # Implementation Tasks
 
-Generate detailed implementation tasks for feature: **$ARGUMENTS**
+Generate detailed implementation tasks for feature: **<feature-name>**
 
 ## Task: Generate Implementation Tasks
+
+Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ### Prerequisites & File Handling
 - **Requirements & Design Approval Check**:
@@ -20,7 +21,8 @@ Generate detailed implementation tasks for feature: **$ARGUMENTS**
     - **[o] Overwrite**: Generate completely new tasks document
     - **[m] Merge**: Generate new tasks document using existing content as reference context
     - **[c] Cancel**: Stop execution for manual review
-- **Context Loading**: Read `.kiro/specs/$ARGUMENTS/requirements.md`, `.kiro/specs/$ARGUMENTS/design.md`, steering documents in `.kiro/steering/*.md`, and existing tasks.md (if merge mode)
+- **Context Loading**: Read `.kiro/specs/<feature-name>/requirements.md`, `.kiro/specs/<feature-name>/design.md`, steering documents in `.kiro/steering/*.md`, and existing tasks.md (if merge mode)
+
 
 ### Task Analysis & Planning
 
@@ -31,7 +33,7 @@ Generate detailed implementation tasks for feature: **$ARGUMENTS**
 Create implementation plan in the language specified in spec.json:
 
 ### Code-Generation Tasks Structure
-Create tasks.md in the language specified in spec.json (check `.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Create tasks.md in the language specified in spec.json (check `.kiro/specs/<feature-name>/spec.json` for "language" field):
 
 **Note**: The example below is for format reference only. Actual content should be based on the specific requirements and design documents for your project.
 
@@ -90,10 +92,11 @@ Create tasks.md in the language specified in spec.json (check `.kiro/specs/$ARGU
 
 ### Document Generation Only
 Generate the tasks document content ONLY. Do not include any review or approval instructions in the actual document file.
+Write `tasks.md` using apply_patch or edit_file. Do not use shell utilities.
 
 ###Tasks Document Generation & Metadata Update
 - Generate the tasks document content following all task structure requirements
-- Update `.kiro/specs/$ARGUMENTS/spec.json`:
+- Update `.kiro/specs/<feature-name>/spec.json`:
 ```json
 {
   "phase": "tasks-generated",
@@ -114,11 +117,12 @@ Generate the tasks document content ONLY. Do not include any review or approval 
   "updated_at": "current_timestamp"
 }
 ```
+JSON update: update via file tools, set ISO `updated_at`, merge only needed keys; avoid duplicates.
 
 ### Actionable Messages
 If requirements or design are not approved and no `-y` flag:
-- **Error Message**: "Both requirements and design must be approved before generating tasks. Run `/kiro:spec-requirements $ARGUMENTS` and `/kiro:spec-design $ARGUMENTS` to review, then run `/kiro:spec-tasks $ARGUMENTS -y` to proceed."
-- **Alternative**: "Or run `/kiro:spec-tasks $ARGUMENTS -y` to auto-approve both phases and generate tasks."
+- **Error Message**: "Both requirements and design must be approved before generating tasks. Run `/kiro/spec-requirements <feature-name>` and `/kiro/spec-design <feature-name>` to review, then run `/kiro/spec-tasks <feature-name> -y` to proceed."
+- **Alternative**: "Or run `/kiro/spec-tasks <feature-name> -y` to auto-approve both phases and generate tasks."
 
 ---
 

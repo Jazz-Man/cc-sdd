@@ -1,21 +1,22 @@
----
+<meta>
 description: Create custom Kiro steering documents for specialized project contexts
-allowed-tools: Bash, Read, Write, Edit, MultiEdit, Glob, Grep, LS
----
+</meta>
 
 # Kiro Custom Steering Creation
 
-Create custom steering documents in `.kiro/steering/` for specialized contexts beyond the three foundational files (product.md, tech.md, structure.md).
+Create custom steering documents in `.kiro/steering/` for specialized contexts beyond the three foundational files (`product.md`, `tech.md`, `structure.md`).
+
+Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ## Current Steering Status
 
 ### Existing Steering Documents
-- Core steering files: !`ls -la .kiro/steering/*.md 2>/dev/null || echo "No steering directory found"`
-- Custom steering count: !`if [ -d ".kiro/steering" ]; then count=0; for f in .kiro/steering/*.md; do if [ -f "$f" ] && [ "$f" != ".kiro/steering/product.md" ] && [ "$f" != ".kiro/steering/tech.md" ] && [ "$f" != ".kiro/steering/structure.md" ]; then count=$((count + 1)); fi; done; echo "$count"; else echo "0"; fi`
+- Foundational steering files: Discover via list_dir/glob_file_search under `.kiro/steering/`
+- Custom steering count: Count non-core `.md` files in `.kiro/steering` via list_dir/glob_file_search
 
 ### Project Analysis
-- Specialized areas: !`find . -path ./node_modules -prune -o -path ./.git -prune -o -type d \( -name "test*" -o -name "spec*" -o -name "api" -o -name "auth" -o -name "security" \) -print 2>/dev/null || echo "No specialized directories found"`
-- Config patterns: !`find . -path ./node_modules -prune -o \( -name "*.config.*" -o -name "*rc.*" -o -name ".*rc" \) -print 2>/dev/null || echo "No config files found"`
+- Specialized areas: Discover notable directories via glob_file_search (e.g., `**/api/**`, `**/auth/**`, `**/security/**`, `**/test*/**`, `**/spec*/**`)
+- Config patterns: Discover common config files via glob_file_search (e.g., `*.config.*`, `*rc.*`, `.*rc`)
 
 ## Task: Create Custom Steering Document
 
