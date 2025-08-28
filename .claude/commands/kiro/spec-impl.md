@@ -30,10 +30,10 @@ Examples:
 Feature name: !`echo "$ARGUMENTS" | awk '{print $1}'`
 
 Validate required files exist:
-- Requirements: !`FEATURE=$(echo "$ARGUMENTS" | awk '{print $1}'); [ -n "$FEATURE" ] && [ -f ".kiro/specs/$FEATURE/requirements.md" ] && echo "Found" || echo "Missing"`
-- Design: !`FEATURE=$(echo "$ARGUMENTS" | awk '{print $1}'); [ -n "$FEATURE" ] && [ -f ".kiro/specs/$FEATURE/design.md" ] && echo "Found" || echo "Missing"`
-- Tasks: !`FEATURE=$(echo "$ARGUMENTS" | awk '{print $1}'); [ -n "$FEATURE" ] && [ -f ".kiro/specs/$FEATURE/tasks.md" ] && echo "Found" || echo "Missing"`
-- Metadata: !`FEATURE=$(echo "$ARGUMENTS" | awk '{print $1}'); [ -n "$FEATURE" ] && [ -f ".kiro/specs/$FEATURE/spec.json" ] && echo "Found" || echo "Missing"`
+- Requirements: Check if `.kiro/specs/<feature-name>/requirements.md` exists
+- Design: Check if `.kiro/specs/<feature-name>/design.md` exists  
+- Tasks: Check if `.kiro/specs/<feature-name>/tasks.md` exists
+- Metadata: Check if `.kiro/specs/<feature-name>/spec.json` exists
 
 ### Context Loading
 **Load all required content before execution:**
@@ -46,13 +46,15 @@ Validate required files exist:
 **Custom Steering:**
 Additional files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
 
-**Spec Documents:**
-Feature directory: !`echo "$ARGUMENTS" | awk '{print $1}'`
-- Requirements: `.kiro/specs/[FEATURE]/requirements.md`
-- Design: `.kiro/specs/[FEATURE]/design.md`
-- Tasks: `.kiro/specs/[FEATURE]/tasks.md`
+Core Steering and Custom Steering files will provide overall project context.
 
-**Note**: [FEATURE] will be replaced with actual feature name during execution
+**Spec Documents:**
+Feature name directory: !`echo "$ARGUMENTS" | awk '{print $1}'`
+- Requirements: `.kiro/specs/<feature-name>/requirements.md`
+- Design: `.kiro/specs/<feature-name>/design.md`
+- Tasks: `.kiro/specs/<feature-name>/tasks.md`
+
+**Note**: <feature-name> will be replaced with actual feature name during execution
 
 ### Task Execution
 1. **Parse feature name and task numbers** from arguments
@@ -69,10 +71,10 @@ Execute using TDD methodology directly:
    - Tech Stack: @.kiro/steering/tech.md
    - Product: @.kiro/steering/product.md
    - Custom steering files: !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null || echo "None"`
-   - Spec Metadata: .kiro/specs/[FEATURE]/spec.json
-   - Requirements: .kiro/specs/[FEATURE]/requirements.md
-   - Design: .kiro/specs/[FEATURE]/design.md
-   - All Tasks: .kiro/specs/[FEATURE]/tasks.md
+   - Spec Metadata: .kiro/specs/<feature-name>/spec.json
+   - Requirements: .kiro/specs/<feature-name>/requirements.md
+   - Design: .kiro/specs/<feature-name>/design.md
+   - All Tasks: .kiro/specs/<feature-name>/tasks.md
 
 2. **TDD Implementation** for each specific task:
    - **RED**: Write failing tests first
@@ -81,7 +83,7 @@ Execute using TDD methodology directly:
 
 3. **Task Completion**:
    - Verify all tests pass
-   - Update checkbox from `- [ ]` to `- [x]` in .kiro/specs/[FEATURE]/tasks.md
+   - Update checkbox from `- [ ]` to `- [x]` in .kiro/specs/<feature-name>/tasks.md
    - Ensure no regressions in existing tests
 
 **For each task:**
