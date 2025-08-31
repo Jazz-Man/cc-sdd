@@ -117,7 +117,8 @@ Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_pa
 - Update `.kiro/specs/[feature-name]/spec.json`:
   - Set `phase: "tasks-generated"`
   - Set `tasks.generated: true`
-  - Preserve existing metadata (language, approvals, etc.)
+  - If `-y` flag used: Set `requirements.approved: true` and `design.approved: true`
+  - Preserve existing metadata (language, creation date, etc.)
 - Use file tools only (no shell commands)
 
 ---
