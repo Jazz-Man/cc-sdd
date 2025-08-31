@@ -113,11 +113,14 @@ Generate detailed implementation tasks for feature: **$1**
 ### Document Generation
 - Generate `.kiro/specs/$1/tasks.md` using the exact numbering format above
 - **Task descriptions**: Use natural language for "what to do" (implementation details in design.md)
-- Update `.kiro/specs/$1/spec.json`:
+ - Update `.kiro/specs/$1/spec.json`:
   - Set `phase: "tasks-generated"`
-  - Set `tasks.generated: true`
-  - Preserve existing metadata (language, approvals, etc.)
-- Use file tools only (no shell commands)
+  - Set approvals map exactly as:
+    - `approvals.tasks = { "generated": true, "approved": false }`
+  - Preserve existing metadata (e.g., `language`), do not remove unrelated fields
+  - If invoked with `-y` flag: ensure the above approval booleans are applied even if previously unset/false
+  - Set `updated_at` to current ISO8601 timestamp
+  - Use file tools only (no shell commands)
 
 ---
 
