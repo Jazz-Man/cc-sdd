@@ -1,33 +1,43 @@
-# Claude Code Spec-Driven Development
+# Multi-Platform Spec-Driven Development
 
 > 🌐 **Language**  
 > 📖 **English Version** (This page) | 📖 **[日本語版 README](README.md)** | 📖 **[繁體中文說明](README_zh-TW.md)**
 
+> 🚀 **Supported Platforms**  
+> 🤖 **Claude Code** | 🔮 **Cursor** | ⚡ **Gemini CLI** | 🧠 **Codex CLI**
+
 > [!Warning]
 > This is an initial version and will be improved as we use it
 
-A project to practice Spec-Driven Development using Claude Code's Slash Commands and CLAUDE.md, incorporating the same directory structure as Kiro IDE. This project closely replicates the actual specification-driven development workflow from Kiro, including directory structure.
+A comprehensive Spec-Driven Development toolset supporting Claude Code, Cursor, Gemini CLI, and Codex CLI platforms. This project replicates Kiro IDE's specification-driven development workflow across multiple AI development platforms.
+
+**High Kiro IDE Compatibility** — Leverage existing Kiro SDD specifications, workflows, and directory structures seamlessly.
 
 ## Overview
 
-This project provides a toolset for efficient Spec-Driven Development using Claude Code's Slash Commands. By using appropriate commands for each development phase, you can achieve a systematic and high-quality development process.
+This project provides a toolset for efficient Spec-Driven Development using Slash Commands across multiple AI platforms (Claude Code, Cursor, Gemini CLI, Codex CLI). By using appropriate commands for each development phase, you can achieve a systematic and high-quality development process regardless of your preferred platform.
 
 ## Setup
 
 ### Integrating into Your Own Project
 
-To integrate Claude Code Spec-Driven Development into your project, simply copy these 2 files/directories:
+Copy the appropriate directory based on your AI development platform:
 
-1. **`.claude/commands/` directory** - Slash Commands definitions
-2. **`CLAUDE_en.md` file** - English version of Claude Code configuration and project instructions
+#### Platform-Specific Directories
+- **🤖 Claude Code**: `.claude/commands/` - Slash Commands definitions
+- **🔮 Cursor**: `.cursor/commands/` - Cursor command definitions  
+- **⚡ Gemini CLI**: `.gemini/commands/` - TOML configuration files
+- **🧠 Codex CLI**: `.codex/commands/` - OpenAI Codex prompt definitions
+
+#### Common Configuration Files
+- **Configuration files**: Copy platform-specific config files (`CLAUDE.md`, `AGENTS.md`, etc.) as needed
 
 
 ### Initial Setup Steps
 
-1. **Copy files** (see above)
-2. **Copy CLAUDE_en.md and rename it to CLAUDE.md**, then adjust it for your project
-3. **Configure language** (if needed): If generated content appears in Japanese, change `"language": "japanese"` to `"language": "english"` in `.claude/commands/kiro/spec-init.md`
-4. **Run initial commands**:
+1. **Platform Selection**: Copy the directory corresponding to your AI development environment
+2. **Configuration Adjustment**: Adjust platform-specific configuration files for your project
+3. **Run initial commands** (common across platforms):
    ```bash
    # Optional: Create steering documents
    /kiro:steering

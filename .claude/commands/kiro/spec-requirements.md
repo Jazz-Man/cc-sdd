@@ -6,7 +6,7 @@ argument-hint: <feature-name>
 
 # Requirements Generation
 
-Generate comprehensive requirements for feature: **$ARGUMENTS**
+Generate comprehensive requirements for feature: **$1**
 
 ## Context Validation
 
@@ -17,9 +17,9 @@ Generate comprehensive requirements for feature: **$ARGUMENTS**
 - Custom steering: Load all "Always" mode custom steering files from .kiro/steering/
 
 ### Existing Spec Context
-- Current spec directory: !`ls -la .kiro/specs/$ARGUMENTS/`
-- Current requirements: `.kiro/specs/$ARGUMENTS/requirements.md`
-- Spec metadata: `.kiro/specs/$ARGUMENTS/spec.json`
+- Current spec directory: !`ls -la .kiro/specs/$1/`
+- Current requirements: `.kiro/specs/$1/requirements.md`
+- Spec metadata: `.kiro/specs/$1/spec.json`
 
 ## Task: Generate Initial Requirements
 
@@ -52,7 +52,7 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 - IF [condition] AND [additional condition] THEN [system] SHALL [response]
 
 ### 4. Requirements Document Structure
-Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/$ARGUMENTS/spec.json` for "language" field):
+Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/$1/spec.json` for "language" field):
 
 ```markdown
 # Requirements Document
@@ -108,7 +108,7 @@ Generate the requirements document content ONLY. Do not include any review or ap
 After generating requirements.md, review the requirements and choose:
 
 **If requirements look good:**
-Run `/kiro:spec-design $ARGUMENTS -y` to proceed to design phase
+Run `/kiro:spec-design $1 -y` to proceed to design phase
 
 **If requirements need modification:**
 Request changes, then re-run this command after modifications

@@ -1,5 +1,5 @@
 description = "Show specification status and progress"
-argument-hint = "<feature-name>"
+argument-hint = "[feature-name]"
 
 prompt = """
 # Specification Status

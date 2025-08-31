@@ -1,8 +1,10 @@
-# Claude Code Spec-Driven Development
+# Multi-Platform Spec-Driven Development
 
 > 🌐 **Language**  
 > 📖 **[English Version](README_en.md)** | 📖 **日本語版 README** (このページ) | 📖 **[繁體中文說明](README_zh-TW.md)**
 
+> 🚀 **対応プラットフォーム**  
+> 🤖 **Claude Code** | 🔮 **Cursor** | ⚡ **Gemini CLI** | 🧠 **Codex CLI**
 
 > [!Warning]
 > 初期バージョンのため、使いながら適宜改善していく予定
@@ -10,29 +12,35 @@
 📝 **関連記事**  
 **[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
 
-  Claude CodeのSlash CommandsとCLAUDE.mdを使用して、Kiro IDEに組み込まれているSpec-Driven Developmentを実践するためのプロジェクト。Kiroでの実際の仕様書駆動開発の流れをディレクトリ構成も含めてほぼそのまま再現している。
+Claude Code、Cursor、Gemini CLI、Codex CLIの4つのプラットフォームに対応したSpec-Driven Developmentツールセット。Kiro IDEに組み込まれているSpec-Driven Developmentを各プラットフォームで実践するためのプロジェクト。
 
 **Kiro IDEと高い互換性** — 既存のKiro流SDDの仕様・ワークフロー・ディレクトリ構成をそのまま活用できます。
 
 ## 概要
 
-このプロジェクトは、Claude CodeのSlash Commandsを活用して、仕様駆動開発（Spec-Driven Development）を効率的に行うためのツールセットを提供する。各開発フェーズで適切なコマンドを使用することで、体系的かつ品質の高い開発プロセスを実現できる。
+このプロジェクトは、複数のAI開発プラットフォーム（Claude Code、Cursor、Gemini CLI、Codex CLI）に対応したSlash Commandsを活用して、仕様駆動開発（Spec-Driven Development）を効率的に行うためのツールセットを提供します。各開発フェーズで適切なコマンドを使用することで、プラットフォームを問わず体系的かつ品質の高い開発プロセスを実現できます。
 
 ## セットアップ
 
 ### 自分のプロジェクトに導入する
 
-Claude Code Spec-Driven Developmentを自分のプロジェクトに導入するには、以下の2つのファイル/ディレクトリをコピーするだけ
+お使いのプラットフォームに応じて、対応するディレクトリをコピーするだけで導入できます：
 
-1. **`.claude/commands/` ディレクトリ** - Slash Commandsの定義
-2. **`CLAUDE.md` ファイル** - Claude Codeの設定とプロジェクト指示
+#### プラットフォーム別ディレクトリ
+- **🤖 Claude Code**: `.claude/commands/` - Claude Code用のSlash Commands定義
+- **🔮 Cursor**: `.cursor/commands/` - Cursor用のコマンド定義  
+- **⚡ Gemini CLI**: `.gemini/commands/` - Gemini CLI用のTOMLファイル
+- **🧠 Codex CLI**: `.codex/commands/` - OpenAI Codex用のプロンプト定義
+
+#### 共通設定ファイル
+- **設定ファイル**: プラットフォームに応じた設定ファイル（`CLAUDE.md`、`AGENTS.md`等）をコピー
 
 
 ### 初回セットアップ手順
 
-1. **ファイルをコピー**（上記参照）
-2. **CLAUDE.mdをコピー**してプロジェクトに合わせて調整
-3. **最初のコマンドを実行**:
+1. **プラットフォーム選択**: お使いのAI開発環境に応じたディレクトリをコピー
+2. **設定ファイル調整**: プラットフォーム固有の設定ファイルをプロジェクトに合わせて調整
+3. **最初のコマンドを実行** (プラットフォーム共通):
    ```bash
    # オプション: ステアリング文書を作成
    /kiro:steering
@@ -41,23 +49,28 @@ Claude Code Spec-Driven Developmentを自分のプロジェクトに導入する
    /kiro:spec-init "あなたのプロジェクトの詳細な説明"
    ```
 
-### 必要なディレクトリ構造
+### マルチプラットフォーム対応ディレクトリ構造
 
-コマンドを実行すると、以下のディレクトリが自動的に作成される
+コマンドを実行すると、以下のディレクトリが自動的に作成されます：
 
 ```
 あなたのプロジェクト/
-├── .claude/
-│   └── commands/          # コピーしたコマンド定義
+├── プラットフォーム別ディレクトリ（使用するものをコピー）
+│   ├── .claude/commands/      # Claude Code用コマンド定義
+│   ├── .cursor/commands/      # Cursor用コマンド定義
+│   ├── .gemini/commands/      # Gemini CLI用TOML設定
+│   └── .codex/commands/       # Codex CLI用プロンプト定義
 ├── .kiro/
-│   ├── steering/          # 自動生成されるステアリング文書
-│   └── specs/             # 自動生成される機能仕様
-├── CLAUDE.md              # 言語別ファイル（例: CLAUDE_en.md, CLAUDE_zh-TW.md）からコピーしてリネーム
-├── CLAUDE_en.md           # 英語版 Claude Code 設定
-├── CLAUDE_zh-TW.md        # 繁体字中国語版 Claude Code 設定
-├── README.md              # 日本語版 README
-├── README_en.md           # 英語版 README
-├── README_zh-TW.md        # 繁体字中国語版 README
+│   ├── steering/              # 自動生成されるステアリング文書
+│   └── specs/                 # 自動生成される機能仕様
+├── プラットフォーム別設定ファイル
+│   ├── CLAUDE.md              # Claude Code設定
+│   ├── CLAUDE_en.md           # 英語版 Claude Code設定
+│   ├── CLAUDE_zh-TW.md        # 繁体字版 Claude Code設定
+│   └── AGENTS.md              # Cursor用設定
+├── README.md                  # 日本語版 README
+├── README_en.md               # 英語版 README
+├── README_zh-TW.md            # 繁体字版 README
 └── （あなたのプロジェクトファイル）
 ```
 
@@ -279,51 +292,90 @@ sequenceDiagram
 
 ```
 .
-├── .claude/
-│   └── commands/          # スラッシュコマンド定義
-│       └── kiro/
-│           ├── spec-init.md
-│           ├── spec-requirements.md
-│           ├── spec-design.md
-│           ├── spec-tasks.md
-│           ├── spec-status.md
-│           ├── steering.md          # 統合ステアリングコマンド
-│           └── steering-custom.md
-├── .kiro/
-│   ├── steering/          # ステアリング文書
+├── マルチプラットフォーム対応ディレクトリ
+│   ├── .claude/commands/kiro/     # Claude Code用コマンド
+│   │   ├── spec-init.md
+│   │   ├── spec-requirements.md
+│   │   ├── spec-design.md
+│   │   ├── spec-tasks.md
+│   │   ├── spec-status.md
+│   │   ├── spec-impl.md
+│   │   ├── steering.md
+│   │   └── steering-custom.md
+│   ├── .cursor/commands/kiro/     # Cursor用コマンド
+│   │   ├── spec-init.md
+│   │   ├── spec-requirements.md
+│   │   ├── spec-design.md
+│   │   ├── spec-tasks.md
+│   │   ├── spec-status.md
+│   │   └── spec-impl.md
+│   ├── .gemini/commands/kiro/     # Gemini CLI用TOML
+│   │   ├── spec-init.toml
+│   │   ├── spec-requirements.toml
+│   │   ├── spec-design.toml
+│   │   ├── spec-tasks.toml
+│   │   ├── spec-status.toml
+│   │   └── spec-impl.toml
+│   └── .codex/commands/           # Codex CLI用プロンプト
+│       ├── spec-init.md
+│       ├── spec-requirements.md
+│       ├── spec-design.md
+│       ├── spec-tasks.md
+│       └── spec-impl.md
+├── .kiro/                         # 共通仕様管理ディレクトリ
+│   ├── steering/                  # ステアリング文書
 │   │   ├── product.md
 │   │   ├── tech.md
 │   │   └── structure.md
-│   └── specs/             # 機能仕様
+│   └── specs/                     # 機能仕様
 │       └── [feature-name]/
-│           ├── spec.json      # フェーズ承認状態
-│           ├── requirements.md # 要件定義書
-│           ├── design.md      # 技術設計書
-│           └── tasks.md       # 実装タスク
-├── CLAUDE.md              # メイン設定（下記いずれかの言語ファイルからコピー）
-├── CLAUDE_en.md           # 英語版設定
-├── CLAUDE_zh-TW.md        # 繁体字版設定
-├── README.md              # 日本語版 README
-├── README_en.md           # 英語版 README
-├── README_zh-TW.md        # 繁体字版 README
+│           ├── spec.json          # フェーズ承認状態
+│           ├── requirements.md    # 要件定義書
+│           ├── design.md         # 技術設計書
+│           └── tasks.md          # 実装タスク
+├── プラットフォーム別設定ファイル
+│   ├── CLAUDE.md                  # Claude Code設定（メイン）
+│   ├── CLAUDE_en.md               # 英語版 Claude Code設定
+│   ├── CLAUDE_zh-TW.md            # 繁体字版 Claude Code設定
+│   └── AGENTS.md                  # Cursor用設定
+├── README.md                      # 日本語版 README
+├── README_en.md                   # 英語版 README
+├── README_zh-TW.md                # 繁体字版 README
 └── （あなたのプロジェクトファイル）
 ```
 
-## 自動化機能
+## プラットフォーム別特徴
 
-Claude Codeのフック機能により以下が自動化されている
+### 🤖 Claude Code
+- フック機能による自動化（タスク進捗追跡、仕様遵守チェック）
+- CLAUDE.mdによる永続的コンテキスト管理
+- 豊富なSlash Commands機能
 
-- タスク進捗の自動追跡
-- 仕様遵守のチェック
-- コンパクト時のコンテキスト保持
-- ステアリングドリフトの検出
+### 🔮 Cursor
+- AGENTS.mdによるエージェント設定
+- IDE統合による直接コード生成
+- ビジュアルなインターフェース
+
+### ⚡ Gemini CLI  
+- TOML設定ファイルによる構造化定義
+- Google AIとの直接統合
+- 高速レスポンス
+
+### 🧠 Codex CLI
+- GPT-5対応の高度なプロンプト設計
+- 省略防止機能による完全出力
+- OpenAI APIとの直接連携
 
 ## トラブルシューティング
 
 ### コマンドが動作しない場合
-1. `.claude/commands/` ディレクトリの存在を確認
-2. コマンドファイルの命名規則を確認（`command-name.md`）
-3. Claude Codeの最新バージョンを使用しているか確認
+1. プラットフォーム対応ディレクトリの存在を確認
+   - Claude Code: `.claude/commands/`
+   - Cursor: `.cursor/commands/`
+   - Gemini CLI: `.gemini/commands/`
+   - Codex CLI: `.codex/commands/`
+2. コマンドファイルの命名規則を確認
+3. 各プラットフォームの最新バージョンを使用しているか確認
 
 ### 承認フローで詰まった場合
 1. レビュー確認プロンプトに正しく応答しているか確認
@@ -333,12 +385,13 @@ Claude Codeのフック機能により以下が自動化されている
 
 ## まとめ
 
-Claude Codeのスラッシュコマンドを活用したSpec-Driven Developmentにより、以下が実現できる
+マルチプラットフォーム対応のSpec-Driven Developmentにより、以下が実現できます：
 
 - 📐 体系的な開発プロセス
 - ✅ 品質保証のための段階的承認
 - 📊 透明性の高い進捗管理
 - 🔄 継続的なドキュメント更新
 - 🤖 AIアシストによる効率化
+- 🚀 **複数プラットフォーム対応** - お好みの開発環境で同一ワークフロー
 
-このシステムを使用することで、開発の品質と効率を大幅に向上させることができる。
+Claude Code、Cursor、Gemini CLI、Codex CLIのいずれを使用していても、同じ高品質な開発プロセスを実現できます。プラットフォーム固有の特徴を活かしながら、統一された仕様駆動開発を体験してください。

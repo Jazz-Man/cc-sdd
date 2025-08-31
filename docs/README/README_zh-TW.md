@@ -1,32 +1,42 @@
-# Claude Code 規格驅動開發
+# 多平台規格驅動開發
 
 > 🌐 **語言**  
 > 📖 **[英文版](README_en.md)** | 📖 **[日本語版 README](README.md)** | 📖 **繁體中文說明**（本頁）
 
+> 🚀 **支援平台**  
+> 🤖 **Claude Code** | 🔮 **Cursor** | ⚡ **Gemini CLI** | 🧠 **Codex CLI**
+
 > [!警告]
 > 這是初始版本，將隨著使用逐步改進
 
-本專案旨在透過 Claude Code 的 Slash Commands 及 CLAUDE.md，實踐規格驅動開發（Spec-Driven Development），並採用與 Kiro IDE 相同的目錄結構。此專案高度還原 Kiro 的實際規格驅動開發流程與目錄設計。
+支援 Claude Code、Cursor、Gemini CLI 及 Codex CLI 四大平台的規格驅動開發工具組。本專案在多個 AI 開發平台上重現了 Kiro IDE 的規格驅動開發流程。
+
+**與 Kiro IDE 高度相容** — 無縫運用現有 Kiro SDD 規格、工作流程及目錄結構。
 
 ## 專案簡介
 
-本專案提供一套高效規格驅動開發的工具組，利用 Claude Code 的 Slash Commands，讓每個開發階段都能系統化、高品質地推進。
+本專案提供一套跨多個 AI 平台（Claude Code、Cursor、Gemini CLI、Codex CLI）的規格驅動開發工具組，利用 Slash Commands 讓每個開發階段都能系統化、高品質地推進，不論您偏好哪個平台。
 
 ## 安裝與設定
 
 ### 整合到你的專案
 
-要將 Claude Code 規格驅動開發整合進你的專案，只需複製以下兩個檔案/目錄：
+根據您使用的 AI 開發平台複製對應的目錄：
 
-1. **`.claude/commands/` 目錄** - Slash Commands 定義
-2. **`CLAUDE_zh-TW.md` 檔案** - 中文版 Claude Code 設定與專案說明
+#### 平台專用目錄
+- **🤖 Claude Code**：`.claude/commands/` - Slash Commands 定義
+- **🔮 Cursor**：`.cursor/commands/` - Cursor 指令定義  
+- **⚡ Gemini CLI**：`.gemini/commands/` - TOML 配置檔案
+- **🧠 Codex CLI**：`.codex/commands/` - OpenAI Codex 提示定義
+
+#### 通用配置檔案
+- **配置檔案**：根據平台複製相應的配置檔案（`CLAUDE.md`、`AGENTS.md` 等）
 
 ### 初始設定步驟
 
-1. **複製檔案**（如上）
-2. **將 CLAUDE_zh-TW.md 複製並重新命名為 CLAUDE.md**，再根據你的專案調整內容
-3. **語言設定**（如有需要）：若產生內容為日文，請將 `.claude/commands/kiro/spec-init.md` 中的 `"language": "japanese"` 改為 `"language": "traditional chinese"`
-4. **執行初始指令**：
+1. **平台選擇**：根據您的 AI 開發環境複製對應目錄
+2. **配置調整**：調整平台專用配置檔案以符合您的專案需求
+3. **執行初始指令**（各平台通用）：
    ```bash
    # 選用：建立 steering 文件
    /kiro:steering

@@ -1,34 +1,35 @@
----
+<meta>
 description: Generate implementation tasks for a specification
-allowed-tools: Read, Write, Edit, MultiEdit, Glob, Grep
-argument-hint: <feature-name> [-y]
----
+argument-hint: [feature-name] [-y]
+</meta>
 
 # Implementation Tasks
 
-Generate detailed implementation tasks for feature: **$1**
+Generate detailed implementation tasks for feature: **[feature-name]**
 
 ## Task: Generate Implementation Tasks
 
+Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+
 ### Prerequisites & Context Loading
-- If invoked with `-y` flag ($2 == "-y"): Auto-approve requirements and design in `spec.json`
+- If invoked with `-y`: Auto-approve requirements and design in `spec.json`
 - Otherwise: Stop if requirements/design missing or unapproved with message:
-  "Run `/kiro:spec-requirements` and `/kiro:spec-design` first, or use `-y` flag to auto-approve"
+  "Run `/kiro/spec-requirements` and `/kiro/spec-design` first, or use `-y` flag to auto-approve"
 - If tasks.md exists: Prompt [o]verwrite/[m]erge/[c]ancel
 
 **Context Loading (Full Paths)**:
-1. `.kiro/specs/$1/requirements.md` - Feature requirements (EARS format)
-2. `.kiro/specs/$1/design.md` - Technical design document
+1. `.kiro/specs/[feature-name]/requirements.md` - Feature requirements (EARS format)
+2. `.kiro/specs/[feature-name]/design.md` - Technical design document
 3. `.kiro/steering/` - Project-wide guidelines and constraints:
    - **Core files (always load)**:
-     - @.kiro/steering/product.md - Business context, product vision, user needs
-     - @.kiro/steering/tech.md - Technology stack, frameworks, libraries
-     - @.kiro/steering/structure.md - File organization, naming conventions, code patterns
+     - `.kiro/steering/product.md` - Business context, product vision, user needs
+     - `.kiro/steering/tech.md` - Technology stack, frameworks, libraries
+     - `.kiro/steering/structure.md` - File organization, naming conventions, code patterns
    - **Custom steering files** (load all EXCEPT "Manual" mode in `AGENTS.md`):
      - Any additional `*.md` files in `.kiro/steering/` directory
      - Examples: `api.md`, `testing.md`, `security.md`, etc.
    - (Task planning benefits from comprehensive context)
-4. `.kiro/specs/$1/tasks.md` - Existing tasks (only if merge mode)
+4. `.kiro/specs/[feature-name]/tasks.md` - Existing tasks (only if merge mode)
 
 ### CRITICAL Task Numbering Rules (MUST FOLLOW)
 
@@ -111,22 +112,20 @@ Generate detailed implementation tasks for feature: **$1**
 - No requirement should be left without corresponding tasks
 
 ### Document Generation
-- Generate `.kiro/specs/$1/tasks.md` using the exact numbering format above
+- Generate `.kiro/specs/[feature-name]/tasks.md` using the exact numbering format above
 - **Task descriptions**: Use natural language for "what to do" (implementation details in design.md)
- - Update `.kiro/specs/$1/spec.json`:
+- Update `.kiro/specs/[feature-name]/spec.json`:
   - Set `phase: "tasks-generated"`
-  - Set approvals map exactly as:
-    - `approvals.tasks = { "generated": true, "approved": false }`
-  - Preserve existing metadata (e.g., `language`), do not remove unrelated fields
-  - If invoked with `-y` flag: ensure the above approval booleans are applied even if previously unset/false
-  - Set `updated_at` to current ISO8601 timestamp
-  - Use file tools only (no shell commands)
+  - Set `tasks.generated: true`
+  - If `-y` flag used: Set `requirements.approved: true` and `design.approved: true`
+  - Preserve existing metadata (language, creation date, etc.)
+- Use file tools only (no shell commands)
 
 ---
 
 ## INTERACTIVE APPROVAL IMPLEMENTED (Not included in document)
 
-The following is for Claude Code conversation only - NOT for the generated document:
+The following is for Coding Agent conversation only - NOT for the generated document:
 
 ## Next Phase: Implementation Ready
 
@@ -143,21 +142,9 @@ Tasks represent the final planning phase - implementation can begin once tasks a
 **Final approval process for implementation**:
 ```
 📋 Tasks review completed. Ready for implementation.
-📄 Generated: .kiro/specs/$1/tasks.md
+📄 Generated: .kiro/specs/[feature-name]/tasks.md
 ✅ All phases approved. Implementation can now begin.
 ```
-
-### Next Steps: Implementation
-Once tasks are approved, start implementation:
-```bash
-/kiro:spec-impl $1          # Execute all pending tasks
-/kiro:spec-impl $1 1.1      # Execute specific task
-/kiro:spec-impl $1 1,2,3    # Execute multiple tasks
-```
-
-**Implementation Tips**:
-- Use `/clear` if conversation becomes too long, then continue with spec commands
-- All spec files (.kiro/specs/) are preserved and will be reloaded as needed
 
 ### Review Checklist (for user reference):
 - [ ] Tasks are properly sized (1-3 hours each)

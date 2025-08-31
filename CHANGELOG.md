@@ -1,6 +1,27 @@
 # アップデート情報
 
-Claude Code Spec-Driven Developmentの更新内容をお知らせします。
+Multi-Platform Spec-Driven Developmentの更新内容をお知らせします。
+
+---
+
+## Ver 1.0.0 (2025年8月31日 メジャーアップデート) 🚀
+
+### 🚀 マルチプラットフォーム対応完成
+4つのプラットフォームで統一された仕様書駆動開発を実現
+- 🤖 **Claude Code** - 元祖プラットフォーム
+- 🔮 **Cursor** - IDE統合対応
+- ⚡ **Gemini CLI** - TOML構造化設定
+- 🧠 **Codex CLI** - GPT-5対応プロンプト設計
+
+### 📦 cc-sddパッケージ配布開始
+[cc-sdd](https://www.npmjs.com/package/cc-sdd) - AI-DLC + Spec Driven Development
+- Claude Code & Gemini CLI対応
+- `npx cc-sdd@latest` でインストール可能
+
+### 🔄 開発ワークフロー全面刷新
+スペック駆動開発の開発ワークフロー全体を根本から見直し
+- **ほぼ作り直しレベル**の全面刷新を実施
+- よりアウトプットを同じように使えるよう統一化
 
 ---
 
@@ -171,15 +192,24 @@ requirements、design、tasksの各文書生成品質を大幅改善、過剰な
 
 ## 使用方法
 
-1. **`.claude/commands/`ディレクトリ**と**`CLAUDE.md`ファイル**を自分のプロジェクトにコピー
-2. Claude Codeで`/kiro:steering`を実行してプロジェクト情報を設定
-3. `/kiro:spec-init [機能名]`で新しい仕様書を作成
-4. 要件→設計→タスクの順で段階的に開発を進める
+### マルチプラットフォーム対応
+お好みのプラットフォームのディレクトリをコピー：
+- 🤖 Claude Code: `.claude/commands/` + `CLAUDE.md`
+- 🔮 Cursor: `.cursor/commands/` + `AGENTS.md`  
+- ⚡ Gemini CLI: `.gemini/commands/` + 対応TOML設定
+- 🧠 Codex CLI: `.codex/commands/` + GPT-5最適化プロンプト
 
-詳細な使用方法は[README.md](README.md)をご覧ください。
+### 基本フロー（全プラットフォーム共通）
+1. 選択したプラットフォームのファイルをプロジェクトにコピー
+2. `/kiro:steering`でプロジェクト情報を設定
+3. `/kiro:spec-init [機能説明]`で新しい仕様書を作成
+4. 要件→設計→タスク→実装の順で段階的に開発を進める
+
+詳細な使用方法は[README_ja.md](docs/README/README_ja.md)をご覧ください。
 
 ## 関連リンク
 
 - **[Zenn記事](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Kiroの仕様書駆動開発プロセスの詳細解説
-- **[English Documentation](README_en.md)**
-- **[繁體中文說明](README_zh-TW.md)**
+- **[日本語ドキュメント](docs/README/README_ja.md)**
+- **[English Documentation](docs/README/README_en.md)**
+- **[繁體中文說明](docs/README/README_zh-TW.md)**

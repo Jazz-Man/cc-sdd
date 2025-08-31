@@ -6,13 +6,13 @@ argument-hint: <feature-name> [-y]
 
 # Technical Design
 
-Generate a **technical design document** for feature **$ARGUMENTS**.
+Generate a **technical design document** for feature **$1**.
 
 ## Task: Create Technical Design Document
 
 ### 1. Prerequisites & File Handling
 - **Requirements Approval Check**: 
-  - If invoked with `-y`, set `requirements.approved=true` in `spec.json`
+  - If invoked with `-y` ($2 == "-y"), set `requirements.approved=true` in `spec.json`
   - Otherwise, **stop** with an actionable message if requirements are missing or unapproved
 - **Design File Handling**:
   - If design.md does not exist: Create new design.md file
@@ -20,7 +20,7 @@ Generate a **technical design document** for feature **$ARGUMENTS**.
     - **[o] Overwrite**: Generate completely new design document
     - **[m] Merge**: Generate new design document using existing content as reference context  
     - **[c] Cancel**: Stop execution for manual review
-- **Context Loading**: Read `.kiro/specs/$ARGUMENTS/requirements.md`, core steering documents, and existing design.md (if merge mode)
+- **Context Loading**: Read `.kiro/specs/$1/requirements.md`, core steering documents, and existing design.md (if merge mode)
 
 ### 2. Discovery & Analysis Phase
 
@@ -53,7 +53,7 @@ Generate a **technical design document** for feature **$ARGUMENTS**.
 #### C. Steering Alignment Check
 - Verify alignment with core steering documents (`structure.md`, `tech.md`, `product.md`) and any custom steering files
   - **Core steering**: @.kiro/steering/structure.md, @.kiro/steering/tech.md, @.kiro/steering/product.md
-  - **Custom steering**: All additional `.md` files in `.kiro/steering/` !`find .kiro/steering -name "*.md" ! -name "structure.md" ! -name "tech.md" ! -name "product.md" 2>/dev/null | while read file; do echo "- @$file"; done`
+  - **Custom steering**: All additional `.md` files in `.kiro/steering/` directory (e.g., `api.md`, `testing.md`, `security.md`)
 - Document deviations with rationale for steering updates
 
 #### D. Technology & Alternative Analysis
@@ -343,7 +343,7 @@ Error tracking, logging, and health monitoring implementation.
 
 ### 3. Design Document Generation & Metadata Update
 - Generate complete design document following structure guidelines
-- Update `.kiro/specs/$ARGUMENTS/spec.json`:
+- Update `.kiro/specs/$1/spec.json`:
 ```json
 {
   "phase": "design-generated", 
@@ -356,14 +356,14 @@ Error tracking, logging, and health monitoring implementation.
 ```
 
 ### Actionable Messages
-If requirements are not approved and no `-y` flag:
-- **Error Message**: "Requirements must be approved before generating design. Run `/kiro:spec-requirements $ARGUMENTS` to review requirements, then run `/kiro:spec-design $ARGUMENTS -y` to proceed."
-- **Alternative**: "Or run `/kiro:spec-design $ARGUMENTS -y` to auto-approve requirements and generate design."
+If requirements are not approved and no `-y` flag ($2 != "-y"):
+- **Error Message**: "Requirements must be approved before generating design. Run `/kiro:spec-requirements $1` to review requirements, then run `/kiro:spec-design $1 -y` to proceed."
+- **Alternative**: "Or run `/kiro:spec-design $1 -y` to auto-approve requirements and generate design."
 
 ### Conversation Guidance
 After generation:
 - Guide user to review design narrative and visualizations
 - Suggest specific diagram additions if needed
-- Direct to run `/kiro:spec-tasks $ARGUMENTS -y` when approved
+- Direct to run `/kiro:spec-tasks $1 -y` when approved
 
 Create design document that tells complete story through clear narrative, structured components, and effective visualizations. think deeply
