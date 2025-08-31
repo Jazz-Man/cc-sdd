@@ -1,11 +1,11 @@
 <meta>
 description: Generate comprehensive requirements for a specification
-argument-hint: <feature-name>
+argument-hint: [feature-name]
 </meta>
 
 # Requirements Generation
 
-Generate comprehensive requirements for feature: **<feature-name>**
+Generate comprehensive requirements for feature: **[feature-name]**
 
 Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
@@ -18,9 +18,9 @@ Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_pa
 - Custom steering: Load all "Always" mode custom steering files from .kiro/steering/
 
 ### Existing Spec Context
-- Current spec directory: Inspect using list_dir or glob_file_search (no shell) for `.kiro/specs/<feature-name>/`
-- Current requirements: `.kiro/specs/<feature-name>/requirements.md`
-- Spec metadata: `.kiro/specs/<feature-name>/spec.json`
+- Current spec directory: Inspect using list_dir or glob_file_search (no shell) for `.kiro/specs/[feature-name]/`
+- Current requirements: `.kiro/specs/[feature-name]/requirements.md`
+- Spec metadata: `.kiro/specs/[feature-name]/spec.json`
 
 ## Task: Generate Initial Requirements
 
@@ -53,7 +53,7 @@ Don't focus on code exploration in this phase. Instead, just focus on writing re
 - IF [condition] AND [additional condition] THEN [system] SHALL [response]
 
 ### 4. Requirements Document Structure
-Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/<feature-name>/spec.json` for "language" field):
+Update requirements.md with complete content in the language specified in spec.json (check `.kiro/specs/[feature-name]/spec.json` for "language" field):
 
 ```markdown
 # Requirements Document
@@ -111,7 +111,7 @@ Generate the requirements document content ONLY. Do not include any review or ap
 After generating requirements.md, review the requirements and choose:
 
 **If requirements look good:**
-Run `/kiro/spec-design <feature-name> -y` to proceed to design phase
+Run `/kiro/spec-design [feature-name] -y` to proceed to design phase
 
 **If requirements need modification:**
 Request changes, then re-run this command after modifications

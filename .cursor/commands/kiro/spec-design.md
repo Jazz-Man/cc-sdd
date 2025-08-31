@@ -1,11 +1,11 @@
 <meta>
 description: Create comprehensive technical design for a specification  
-argument-hint: <feature-name> [-y]
+argument-hint: [feature-name] [-y]
 </meta>
 
 # Technical Design
 
-Generate a **technical design document** for feature **<feature-name>**.
+Generate a **technical design document** for feature **[feature-name]**.
 
 ## Task: Create Technical Design Document
 
@@ -24,7 +24,7 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
     - **[o] Overwrite**: Generate completely new design document
     - **[m] Merge**: Generate new design document using existing content as reference context  
     - **[c] Cancel**: Stop execution for manual review
-- **Context Loading**: Read `.kiro/specs/<feature-name>/requirements.md`, core steering documents, and existing design.md (if merge mode)
+- **Context Loading**: Read `.kiro/specs/[feature-name]/requirements.md`, core steering documents, and existing design.md (if merge mode)
 
 ### 2. Discovery & Analysis Phase
 
@@ -344,6 +344,8 @@ Error tracking, logging, and health monitoring implementation.
 - Exclude all styling elements (no style definitions, classDef, fill colors)
 - Avoid visual customization (backgrounds, custom CSS)
 - Example: `graph TB` → `A[Login] --> B[Dashboard]` → `B --> C[Settings]`
+- Use simple alphanumeric labels for nodes/participants; avoid parentheses, commas, slashes, quotes, and other special characters in labels.
+- Prefer short labels without punctuation, e.g., write "Nextjs React TS" instead of "Next.js (React, TypeScript)".
 
 ### Quality Checklist
 - [ ] Requirements covered with traceability
@@ -356,7 +358,7 @@ Error tracking, logging, and health monitoring implementation.
 
 ### 3. Design Document Generation & Metadata Update
 - Generate complete design document following structure guidelines
-- Update `.kiro/specs/<feature-name>/spec.json`:
+- Update `.kiro/specs/[feature-name]/spec.json`:
 ```json
 {
   "phase": "design-generated", 
@@ -373,13 +375,13 @@ Final Reminder: Do not skip discovery.
 
 ### Actionable Messages
 If requirements are not approved and no `-y` flag:
-- **Error Message**: "Requirements must be approved before generating design. Run `/kiro/spec-requirements <feature-name>` to review requirements, then run `/kiro/spec-design <feature-name> -y` to proceed."
-- **Alternative**: "Or run `/kiro/spec-design <feature-name> -y` to auto-approve requirements and generate design."
+- **Error Message**: "Requirements must be approved before generating design. Run `/kiro/spec-requirements [feature-name]` to review requirements, then run `/kiro/spec-design [feature-name] -y` to proceed."
+- **Alternative**: "Or run `/kiro/spec-design [feature-name] -y` to auto-approve requirements and generate design."
 
 ### Conversation Guidance
 After generation:
 - Guide user to review design narrative and visualizations
 - Suggest specific diagram additions if needed
-- Direct to run `/kiro/spec-tasks <feature-name> -y` when approved
+- Direct to run `/kiro/spec-tasks [feature-name] -y` when approved
 
 Create design document that tells complete story through clear narrative, structured components, and effective visualizations. think deeply

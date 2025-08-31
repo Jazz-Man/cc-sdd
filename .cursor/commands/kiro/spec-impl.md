@@ -1,13 +1,13 @@
 <meta>
 description: Execute spec tasks using TDD methodology
-argument-hint: <feature-name> <task-numbers>
+argument-hint: [feature-name] <task-numbers>
 </meta>
 
 # Execute Spec Tasks with TDD
 
 Execute implementation tasks from spec using Kent Beck's Test-Driven Development methodology.
 
-## Arguments: <feature-name>
+## Arguments: [feature-name]
 Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ## Current Specs
@@ -18,7 +18,7 @@ Available specs: Discover via list_dir/glob_file_search under `.kiro/specs/`
 ### Help Mode (--help)
 If arguments contain "--help", show usage:
 ```
-/kiro/spec-impl <feature-name> <task-numbers>
+/kiro/spec-impl [feature-name] <task-numbers>
 
 Examples:
   /kiro/spec-impl auth-system 1.1            # Execute task 1.1
@@ -27,13 +27,13 @@ Examples:
 ```
 
 ### Pre-Execution Validation
-Feature name: Parse first token of `<feature-name>` argument
+Feature name: Parse first token of `[feature-name]` argument
 
 Validate required files exist:
-- Requirements: Check `.kiro/specs/<feature>/requirements.md` via read_file
-- Design: Check `.kiro/specs/<feature>/design.md` via read_file
-- Tasks: Check `.kiro/specs/<feature>/tasks.md` via read_file
-- Metadata: Check `.kiro/specs/<feature>/spec.json` via read_file
+- Requirements: Check `.kiro/specs/[feature-name]/requirements.md` via read_file
+- Design: Check `.kiro/specs/[feature-name]/design.md` via read_file
+- Tasks: Check `.kiro/specs/[feature-name]/tasks.md` via read_file
+- Metadata: Check `.kiro/specs/[feature-name]/spec.json` via read_file
 
 ### Context Loading
 **Load all required content before execution:**
@@ -47,12 +47,12 @@ Validate required files exist:
 Additional files: Discover via list_dir/glob_file_search in `.kiro/steering` excluding `structure.md`, `tech.md`, `product.md`
 
 **Spec Documents:**
-Feature directory: Parse from `<feature-name>` argument
-- Requirements: `.kiro/specs/<feature-name>/requirements.md`
-- Design: `.kiro/specs/<feature-name>/design.md`
-- Tasks: `.kiro/specs/<feature-name>/tasks.md`
+Feature directory: Parse from `[feature-name]` argument
+- Requirements: `.kiro/specs/[feature-name]/requirements.md`
+- Design: `.kiro/specs/[feature-name]/design.md`
+- Tasks: `.kiro/specs/[feature-name]/tasks.md`
 
-**Note**: <feature-name> will be replaced with actual feature name during execution
+**Note**: [feature-name] will be replaced with actual feature name during execution
 
 ### Task Execution
 1. **Parse feature name and task numbers** from arguments
@@ -69,10 +69,10 @@ Execute using TDD methodology directly:
    - Tech Stack: `.kiro/steering/tech.md`
    - Product: `.kiro/steering/product.md`
    - Custom steering files: Discover via list_dir/glob_file_search in `.kiro/steering` excluding `structure.md`, `tech.md`, `product.md`
-   - Spec Metadata: `.kiro/specs/<feature-name>/spec.json`
-   - Requirements: `.kiro/specs/<feature-name>/requirements.md`
-   - Design: `.kiro/specs/<feature-name>/design.md`
-   - All Tasks: `.kiro/specs/<feature-name>/tasks.md`
+   - Spec Metadata: `.kiro/specs/[feature-name]/spec.json`
+   - Requirements: `.kiro/specs/[feature-name]/requirements.md`
+   - Design: `.kiro/specs/[feature-name]/design.md`
+   - All Tasks: `.kiro/specs/[feature-name]/tasks.md`
 
 2. **TDD Implementation** for each specific task:
    - **RED**: Write failing tests first
@@ -81,7 +81,7 @@ Execute using TDD methodology directly:
 
 3. **Task Completion**:
    - Verify all tests pass
-   - Update checkbox from `- [ ]` to `- [x]` in `.kiro/specs/<feature-name>/tasks.md`
+   - Update checkbox from `- [ ]` to `- [x]` in `.kiro/specs/[feature-name]/tasks.md`
    - Ensure no regressions in existing tests
 
 **For each task:**

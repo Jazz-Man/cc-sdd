@@ -4,16 +4,16 @@ description: Show specification status and progress
 
 # Specification Status
 
-Show current status and progress for feature: **<feature-name>**
+Show current status and progress for feature: **[feature-name]**
 
 ## Spec Context
 
 ### Spec Files
-- Spec directory: Inspect via list_dir/glob_file_search for `.kiro/specs/<feature-name>/`
-- Spec metadata: `.kiro/specs/<feature-name>/spec.json`
-- Requirements: `.kiro/specs/<feature-name>/requirements.md`
-- Design: `.kiro/specs/<feature-name>/design.md`
-- Tasks: `.kiro/specs/<feature-name>/tasks.md`
+- Spec directory: Inspect via list_dir/glob_file_search for `.kiro/specs/[feature-name]/`
+- Spec metadata: `.kiro/specs/[feature-name]/spec.json`
+- Requirements: `.kiro/specs/[feature-name]/requirements.md`
+- Design: `.kiro/specs/[feature-name]/design.md`
+- Tasks: `.kiro/specs/[feature-name]/tasks.md`
 
 ### All Specs Overview
 - Available specs: Discover via list_dir/glob_file_search under `.kiro/specs/`
@@ -21,7 +21,7 @@ Show current status and progress for feature: **<feature-name>**
 
 ## Task: Generate Status Report
 
-Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/<feature-name>/spec.json` for "language" field):
+Create comprehensive status report for the specification in the language specified in spec.json (check `.kiro/specs/[feature-name]/spec.json` for "language" field):
 
 ### 1. Specification Overview
 Display:

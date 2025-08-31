@@ -57,20 +57,20 @@ Create tasks.md in the language specified in spec.json (check `.kiro/specs/{{arg
   - _Requirements: All requirements need foundational setup_
 
 - [ ] 2. Implement authentication and user management
-- [ ] 2.1 Create user authentication system
-  - Implement User model with validation
-  - Create JWT token generation and validation utilities
-  - Build user registration and login endpoints
-  - Write unit tests for authentication logic
-  - _Requirements: 7.1, 7.2_
+  - [ ] 2.1 Create user authentication system
+    - Implement User model with validation
+    - Create JWT token generation and validation utilities
+    - Build user registration and login endpoints
+    - Write unit tests for authentication logic
+    - _Requirements: 7.1, 7.2_
 
-- [ ] 2.2 Implement email account connection system
-  - Create EmailAccount model with encrypted credential storage
-  - Implement OAuth 2.0 flow for Gmail and Outlook
-  - Build IMAP/SMTP credential validation
-  - Create email account management endpoints
-  - Write tests for account connection flows
-  - _Requirements: 5.1, 5.2, 5.4_
+  - [ ] 2.2 Implement email account connection system
+    - Create EmailAccount model with encrypted credential storage
+    - Implement OAuth 2.0 flow for Gmail and Outlook
+    - Build IMAP/SMTP credential validation
+    - Create email account management endpoints
+    - Write tests for account connection flows
+    - _Requirements: 5.1, 5.2, 5.4_
 
 ... (Continue with additional phases: API layer, frontend, integration testing, etc.)
 ```

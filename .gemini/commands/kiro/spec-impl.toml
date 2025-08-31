@@ -15,7 +15,7 @@ Available specs: !{ls .kiro/specs/ 2>/dev/null || echo "No specs found"}
 ### Help Mode (--help)
 If arguments contain "--help", show usage:
 ```
-/kiro:spec-impl <feature-name> <task-numbers>
+/kiro:spec-impl [feature-name] <task-numbers>
 
 Examples:
   /kiro:spec-impl auth-system 1.1            # Execute task 1.1
@@ -27,10 +27,10 @@ Examples:
 Feature name: **{{args}}** (first argument will be parsed as feature name)
 
 Validate required files exist:
-- Requirements: Check if `.kiro/specs/<feature-name>/requirements.md` exists
-- Design: Check if `.kiro/specs/<feature-name>/design.md` exists  
-- Tasks: Check if `.kiro/specs/<feature-name>/tasks.md` exists
-- Metadata: Check if `.kiro/specs/<feature-name>/spec.json` exists
+- Requirements: Check if `.kiro/specs/[feature-name]/requirements.md` exists
+- Design: Check if `.kiro/specs/[feature-name]/design.md` exists  
+- Tasks: Check if `.kiro/specs/[feature-name]/tasks.md` exists
+- Metadata: Check if `.kiro/specs/[feature-name]/spec.json` exists
 
 ### Project Context Loading
 **Load all required content before execution:**
@@ -47,9 +47,9 @@ Core Steering and Custom Steering files will provide overall project context.
 
 **Spec Documents:**
 Feature name directory: **{{args}}** (first argument)
-- Requirements: `.kiro/specs/<feature-name>/requirements.md`
-- Design: `.kiro/specs/<feature-name>/design.md`
-- Tasks: `.kiro/specs/<feature-name>/tasks.md`
+- Requirements: `.kiro/specs/[feature-name]/requirements.md`
+- Design: `.kiro/specs/[feature-name]/design.md`
+- Tasks: `.kiro/specs/[feature-name]/tasks.md`
 
 
 ### Task Execution
@@ -67,10 +67,10 @@ Execute using TDD methodology directly:
    - Tech Stack: .kiro/steering/tech.md
    - Product: .kiro/steering/product.md
    - Custom steering files: `*.md` files in `.kiro/steering/` (excluding structure.md, tech.md, product.md)
-   - Spec Metadata: .kiro/specs/<feature-name>/spec.json
-   - Requirements: .kiro/specs/<feature-name>/requirements.md
-   - Design: .kiro/specs/<feature-name>/design.md
-   - All Tasks: .kiro/specs/<feature-name>/tasks.md
+   - Spec Metadata: .kiro/specs/[feature-name]/spec.json
+   - Requirements: .kiro/specs/[feature-name]/requirements.md
+   - Design: .kiro/specs/[feature-name]/design.md
+   - All Tasks: .kiro/specs/[feature-name]/tasks.md
 
 2. **TDD Implementation** for each specific task:
    - **RED**: Write failing tests first
@@ -79,7 +79,7 @@ Execute using TDD methodology directly:
 
 3. **Task Completion**:
    - Verify all tests pass
-   - Update checkbox from `- [ ]` to `- [x]` in .kiro/specs/<feature-name>/tasks.md
+   - Update checkbox from `- [ ]` to `- [x]` in .kiro/specs/[feature-name]/tasks.md
    - Ensure no regressions in existing tests
 
 **For each task:**
