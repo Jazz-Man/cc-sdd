@@ -144,6 +144,18 @@ Tasks represent the final planning phase - implementation can begin once tasks a
 ✅ All phases approved. Implementation can now begin.
 ```
 
+### Next Steps: Implementation
+Once tasks are approved, start implementation:
+```bash
+/kiro:spec-impl $1          # Execute all pending tasks
+/kiro:spec-impl $1 1.1      # Execute specific task
+/kiro:spec-impl $1 1,2,3    # Execute multiple tasks
+```
+
+**Implementation Tips**:
+- Use `/clear` if conversation becomes too long, then continue with spec commands
+- All spec files (.kiro/specs/) are preserved and will be reloaded as needed
+
 ### Review Checklist (for user reference):
 - [ ] Tasks are properly sized (1-3 hours each)
 - [ ] All requirements are covered by tasks
