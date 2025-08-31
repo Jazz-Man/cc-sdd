@@ -7,6 +7,8 @@ argument-hint: [feature-name] [-y]
 
 Generate a **technical design document** for feature **[feature-name]**.
 
+**CRITICAL**: Generate COMPLETE content without abbreviations, placeholders ("...", "[details]"), or omissions. Continue until all sections are fully written.
+
 ## Task: Create Technical Design Document
 
 Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
@@ -88,6 +90,7 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 ## Design Document Structure & Guidelines
 
 ### Core Principles
+- **Complete output**: Write all sections fully - never abbreviate or use ellipsis
 - **Review-optimized structure**: Critical technical decisions prominently placed to prevent oversight
 - **Contextual relevance**: Include sections only when applicable to project type and scope
 - **Visual-first design**: Essential Mermaid diagrams for architecture and data flow
@@ -357,7 +360,7 @@ Error tracking, logging, and health monitoring implementation.
 - [ ] Integration with existing system explained
 
 ### 3. Design Document Generation & Metadata Update
-- Generate complete design document following structure guidelines
+- Generate complete design document following structure guidelines (no omissions or placeholders)
 - Update `.kiro/specs/[feature-name]/spec.json`:
 ```json
 {
@@ -384,4 +387,7 @@ After generation:
 - Suggest specific diagram additions if needed
 - Direct to run `/kiro/spec-tasks [feature-name] -y` when approved
 
-Create design document that tells complete story through clear narrative, structured components, and effective visualizations. think deeply
+Create design document that tells complete story through clear narrative, structured components, and effective visualizations.
+
+**BEFORE FINISHING**: Verify all sections are complete, no placeholders used, and spec.json is updated. 
+think deeply
