@@ -7,11 +7,9 @@ argument-hint: [feature-name] [-y]
 
 Generate a **technical design document** for feature **[feature-name]**.
 
-**CRITICAL**: Generate COMPLETE content without abbreviations, placeholders ("...", "[details]"), or omissions. Continue until all sections are fully written.
+**CRITICAL**: Complete Output Definition — For sections judged applicable, write them fully without abbreviations, ellipses, or placeholders ("...", "[details]"). Do not generate sections that are not applicable.
 
 ## Task: Create Technical Design Document
-
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 Prime: Always perform Discovery & Analysis first, then construct the design document.
 Process Reminder: Reference discovery findings throughout Overview/Architecture/Components/Testing; if unknowns remain, note "Pending discovery: ..." and avoid assumptions.
@@ -39,7 +37,12 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 - **Simple Addition** (CRUD, UI): Streamlined process, follow established patterns
 - **Complex Integration** (external systems, new domains): Comprehensive analysis and risk assessment
 
-**Process Adaptation**: Skip or streamline analysis steps based on classification above
+**Effort & Scope Guidelines (by classification)**:
+- New Feature / Complex Integration: Perform thorough discovery and comparison of alternatives; include architecture and data flow diagrams (2–3 as needed); document 2–3 key decisions with trade-offs.
+- Extension: Center on integration points and domain boundaries; include at most 1 essential diagram; avoid broad tech selection unless required by changes.
+- Simple Addition: Keep discovery minimal; reuse existing patterns; omit technology comparisons and flow diagrams unless non-trivial branching exists; keep contracts concise.
+
+**Process Adaptation**: Apply the above effort guidelines to decide which sections to include, and the depth of each. Non-applicable sections are omitted entirely.
 
 #### A. Requirements to Technical Components Mapping
 - Map requirements (EARS format) to technical components
@@ -78,7 +81,13 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 - Identify configuration and setup requirements
 - Document any migration or integration challenges
 
-**Skip if**: Using familiar technology stack in standard patterns
+**For ANY external dependencies (libraries, APIs, services)**:
+- Use WebSearch to find official documentation and community resources
+- Use WebFetch to analyze specific documentation pages
+- Document authentication flows, rate limits, and usage constraints
+- Note any gaps in understanding for implementation phase
+
+**Skip only if**: Using well-established internal libraries with no external dependencies
 
 #### F. Technical Risk Assessment
 - Performance/scalability risks: bottlenecks, capacity, growth
@@ -90,7 +99,7 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 ## Design Document Structure & Guidelines
 
 ### Core Principles
-- **Complete output**: Write all sections fully - never abbreviate or use ellipsis
+- **Complete output (scoped)**: For included sections only, write them fully — never abbreviate or use ellipsis. Do not include non-applicable sections.
 - **Review-optimized structure**: Critical technical decisions prominently placed to prevent oversight
 - **Contextual relevance**: Include sections only when applicable to project type and scope
 - **Visual-first design**: Essential Mermaid diagrams for architecture and data flow
@@ -110,10 +119,9 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 - Performance & Scalability (for performance-critical features)
 - Migration Strategy (for existing system modifications)
 
-<document-structure>
-# Technical Design
-## Overview (2-3 paragraphs max)
-
+<structured-document>
+## Overview 
+2-3 paragraphs max
 **Purpose**: This feature delivers [specific value] to [target users].
 **Users**: [Target user groups] will utilize this for [specific workflows].
 **Impact** (if applicable): Changes the current [system state] by [specific modifications].
@@ -147,138 +155,222 @@ When modifying existing systems:
 - Technology alignment: [how it fits current stack]
 - Steering compliance: [principles maintained]
 
-### Data Flow
-**RECOMMENDED**: Include sequence diagram or flowchart showing data flow when data interactions are complex or span multiple systems
-
 ### Technology Stack and Design Decisions
 
-**Technology Stack**:
-- **Frontend**: [Framework/Library] - rationale, alternatives considered
-- **Backend**: [Framework/Runtime] - rationale, alternatives considered
-- **Database**: [Type/Technology] - rationale, alternatives considered
-- **Infrastructure**: [Deployment/Hosting] - rationale, alternatives considered
+**Generation Instructions** (DO NOT include this section in design.md):
+Adapt content based on feature classification from Discovery & Analysis Phase:
 
-**Architecture Pattern Selection**:
-- **Chosen Pattern**: [e.g., Clean Architecture, Hexagonal, MVC]
-- **Rationale**: Why this pattern fits requirements and constraints
-- **Alternatives Considered**: Other patterns evaluated and rejection reasons
-- **Integration Approach**: How pattern integrates with existing systems
+**For New Features (greenfield)**:
+Generate Technology Stack section with ONLY relevant layers:
+- Include only applicable technology layers (e.g., skip Frontend for CLI tools, skip Infrastructure for libraries)
+- For each technology choice, provide: selection, rationale, and alternatives considered
+- Include Architecture Pattern Selection if making architectural decisions
+
+**For Extensions/Additions to Existing Systems**:
+Generate Technology Alignment section instead:
+- Document how feature aligns with existing technology stack
+- Note any new dependencies or libraries being introduced
+- Justify deviations from established patterns if necessary
 
 **Key Design Decisions**:
+Generate 1-3 critical technical decisions that significantly impact the implementation.
+Each decision should follow this format:
+- **Decision**: [Specific technical choice made]
+- **Context**: [Problem or requirement driving this decision]
+- **Alternatives**: [2-3 other approaches considered]
+- **Selected Approach**: [What was chosen and how it works]
+- **Rationale**: [Why this is optimal for the specific context]
+- **Trade-offs**: [What we gain vs. what we sacrifice]
 
-**Decision**: Brief decision description
-- **Context**: Problem that needed solving  
-- **Alternatives**: Other approaches considered
-- **Selected Approach**: Chosen solution
-- **Rationale**: Why optimal based on trade-off analysis
-- **Trade-offs**: Benefits gained vs. costs incurred
+Skip this entire section for simple CRUD operations or when following established patterns without deviation.
+
+## System Flows
+
+**Flow Design Generation Instructions** (DO NOT include this section in design.md):
+Generate appropriate flow diagrams ONLY when the feature requires flow visualization. Select from:
+- **Sequence Diagrams**: For user interactions across multiple components
+- **Process Flow Charts**: For complex algorithms, decision branches, or state machines  
+- **Data Flow Diagrams**: For data transformations, ETL processes, or data pipelines
+- **State Diagrams**: For complex state transitions
+- **Event Flow**: For async/event-driven architectures
+
+Skip this section entirely for simple CRUD operations or features without complex flows.
+When included, provide concise Mermaid diagrams specific to the actual feature requirements.
+
+## Requirements Traceability
+
+**Traceability Generation Instructions** (DO NOT include this section in design.md):
+Generate traceability mapping ONLY for complex features with multiple requirements or when explicitly needed for compliance/validation.
+
+When included, create a mapping table showing how each EARS requirement is realized:
+| Requirement | Requirement Summary | Components | Interfaces | Flows |
+|---------------|-------------------|------------|------------|-------|
+| 1.1 | Brief description | Component names | API/Methods | Relevant flow diagrams |
+
+Alternative format for simpler cases:
+- **1.1**: Realized by [Component X] through [Interface Y]
+- **1.2**: Implemented in [Component Z] with [Flow diagram reference]
+
+Skip this section for simple features with straightforward 1:1 requirement-to-component mappings.
 
 ## Components and Interfaces
 
-**Implementation Strategy** (when existing code exists):
-- Existing components to modify vs. create new
-- Integration with existing architecture
-- File mapping for updates
-- Dependency impact assessment
+**Component Design Generation Instructions** (DO NOT include this section in design.md):
+Structure components by domain boundaries or architectural layers. Generate only relevant subsections based on component type.
+Group related components under domain/layer headings for clarity.
 
-### Component Name
+### [Domain/Layer Name]
 
-**Implementation Approach**: 
-- If modifying: file path and changes description
-- If new: justification for not extending existing
-- DDD compliance: aggregate boundaries, domain services
+#### [Component Name]
 
-**Function**: Component's core responsibility.
+**Responsibility & Boundaries**
+- **Primary Responsibility**: Single, clear statement of what this component does
+- **Domain Boundary**: Which domain/subdomain this belongs to
+- **Data Ownership**: What data this component owns and manages
+- **Transaction Boundary**: Scope of transactional consistency (if applicable)
 
-**Key Features**:
-- Core capability 1 - brief description
-- Core capability 2 - brief description  
-- Unique differentiator - what makes it special
+**Dependencies**
+- **Inbound**: Components/services that depend on this component
+- **Outbound**: Components/services this component depends on
+- **External**: Third-party services, libraries, or external systems
 
-**API Endpoints** (if applicable):
+**External Dependencies Investigation** (when using external libraries/services):
+- Use WebSearch to locate official documentation, GitHub repos, and community resources
+- Use WebFetch to retrieve and analyze documentation pages, API references, and usage examples
+- Verify API signatures, authentication methods, and rate limits
+- Check version compatibility, breaking changes, and migration guides
+- Investigate common issues, best practices, and performance considerations
+- Document any assumptions, unknowns, or risks for implementation phase
+- If critical information is missing, clearly note "Requires investigation during implementation: [specific concern]"
 
-| Method | Route | Purpose | Auth | Status Codes |
-|--------|-------|---------|------|--------------|
-| GET | /api/users | Retrieve user list | Required | 200, 401, 403 |
-| POST | /api/users | Create new user | Required | 201, 400, 401 |
+**Contract Definition**
 
-**API Specification Details**:
+Select and generate ONLY the relevant contract types for each component:
 
-**GET /api/users**
-- **Query Parameters**: `limit` (number, max 100), `offset` (number), `filter` (string)
-- **Response Headers**: `X-Total-Count`, `Content-Type: application/json`
-- **Success Response** (200):
-```json
-{
-  "users": [{ "id": "uuid", "email": "string", "name": "string", "role": "enum" }],
-  "pagination": { "total": "number", "limit": "number", "offset": "number" }
-}
-```
-
-**POST /api/users**
-- **Request Headers**: `Content-Type: application/json`, `Authorization: Bearer {token}`
-- **Request Body**:
-```json
-{ "email": "string (required)", "name": "string (required)", "role": "admin|user|guest" }
-```
-- **Success Response** (201):
-```json
-{ "id": "uuid", "email": "string", "name": "string", "role": "enum", "createdAt": "ISO8601" }
-```
-
-**Interface Design** (core methods only, use technology stack language):
+**Service Interface** (for business logic components):
 ```typescript
-// Core methods only - NO implementation details
-// NEVER use 'any' type - define specific types instead
-interface UserService {
-  findAll(): Promise<User[]>;
-  create(userData: CreateUserRequest): Promise<User>;
+interface [ComponentName]Service {
+  // Method signatures with clear input/output types
+  // Include error types in return signatures
+  methodName(input: InputType): Result<OutputType, ErrorType>;
 }
 ```
+- **Preconditions**: What must be true before calling
+- **Postconditions**: What is guaranteed after successful execution
+- **Invariants**: What remains true throughout
 
-**Integration Points**: Interaction with existing modules, dependencies, interface changes
+**API Contract** (for REST/GraphQL endpoints):
+| Method | Endpoint | Request | Response | Errors |
+|--------|----------|---------|----------|--------|
+| POST | /api/resource | CreateRequest | Resource | 400, 409, 500 |
 
-**Rationale**: Design choices and trade-offs
+With detailed schemas only for complex payloads
+
+**Event Contract** (for event-driven components):
+- **Published Events**: Event name, schema, trigger conditions
+- **Subscribed Events**: Event name, handling strategy, idempotency
+- **Ordering**: Guaranteed order requirements
+- **Delivery**: At-least-once, at-most-once, or exactly-once
+
+**Batch/Job Contract** (for scheduled/triggered processes):
+- **Trigger**: Schedule, event, or manual trigger conditions
+- **Input**: Data source and validation rules
+- **Output**: Results destination and format
+- **Idempotency**: How repeat executions are handled
+- **Recovery**: Failure handling and retry strategy
+
+**State Management** (only if component maintains state):
+- **State Model**: States and valid transitions
+- **Persistence**: Storage strategy and consistency model
+- **Concurrency**: Locking, optimistic/pessimistic control
+
+**Integration Strategy** (when modifying existing systems):
+- **Modification Approach**: Extend, wrap, or refactor existing code
+- **Backward Compatibility**: What must be maintained
+- **Migration Path**: How to transition from current to target state
 
 ## Data Models
 
-**IMPORTANT**: Only include sections relevant to the project. Skip Database Schema for API-only or frontend-only features.
+**Data Model Generation Instructions** (DO NOT include this section in design.md):
+Generate only relevant data model sections based on the system's data requirements and chosen architecture.
+Progress from conceptual to physical as needed for implementation clarity.
 
 ### Domain Model
-Core entities and their relationships.
+**When to include**: Complex business domains with rich behavior and rules
 
-**RECOMMENDED**: Include ER diagram for complex relationships:
-```mermaid
-erDiagram
-    Customer ||--o{ Order : places
-    Order ||--|{ OrderItem : contains
-    Product ||--o{ OrderItem : "ordered in"
-```
+**Core Concepts**:
+- **Aggregates**: Define transactional consistency boundaries
+- **Entities**: Business objects with unique identity and lifecycle
+- **Value Objects**: Immutable descriptive aspects without identity
+- **Domain Events**: Significant state changes in the domain
 
-### User
-**Function**: User data storage and validation
-**Constraints**: Email uniqueness, role enumeration
+**Business Rules & Invariants**:
+- Constraints that must always be true
+- Validation rules and their enforcement points
+- Cross-aggregate consistency strategies
 
-```typescript
-// Use technology stack language
-interface User {
-  id: string;
-  email: string;
-  role: 'admin' | 'user' | 'guest';
-}
-```
+Include conceptual diagram (Mermaid) only when relationships are complex enough to benefit from visualization
 
-### Database Schema
-**Only include when database implementation is required.**
+### Logical Data Model
+**When to include**: When designing data structures independent of storage technology
 
-#### Users Table
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email VARCHAR UNIQUE NOT NULL,
-  role VARCHAR CHECK (role IN ('admin', 'user', 'guest'))
-);
-```
+**Structure Definition**:
+- Entity relationships and cardinality
+- Attributes and their types
+- Natural keys and identifiers
+- Referential integrity rules
+
+**Consistency & Integrity**:
+- Transaction boundaries
+- Cascading rules
+- Temporal aspects (versioning, audit)
+
+### Physical Data Model
+**When to include**: When implementation requires specific storage design decisions
+
+**For Relational Databases**:
+- Table definitions with data types
+- Primary/foreign keys and constraints
+- Indexes and performance optimizations
+- Partitioning strategy for scale
+
+**For Document Stores**:
+- Collection structures
+- Embedding vs referencing decisions
+- Sharding key design
+- Index definitions
+
+**For Event Stores**:
+- Event schema definitions
+- Stream aggregation strategies
+- Snapshot policies
+- Projection definitions
+
+**For Key-Value/Wide-Column Stores**:
+- Key design patterns
+- Column families or value structures
+- TTL and compaction strategies
+
+### Data Contracts & Integration
+**When to include**: Systems with service boundaries or external integrations
+
+**API Data Transfer**:
+- Request/response schemas
+- Validation rules
+- Serialization format (JSON, Protobuf, etc.)
+
+**Event Schemas**:
+- Published event structures
+- Schema versioning strategy
+- Backward/forward compatibility rules
+
+**Cross-Service Data Management**:
+- Distributed transaction patterns (Saga, 2PC)
+- Data synchronization strategies
+- Eventual consistency handling
+
+Skip any section not directly relevant to the feature being designed.
+Focus on aspects that influence implementation decisions.
 
 ## Error Handling
 
@@ -304,14 +396,6 @@ Error tracking, logging, and health monitoring implementation.
 - E2E/UI Tests (if applicable): 3–5 critical user paths (e.g., forms, dashboards)
 - Performance/Load (if applicable): 3–4 items (e.g., concurrency, high-volume ops)
 
-### Optional sections (include only when relevant)
-- Contract/API, Security, Accessibility, Chaos/Resilience
-
-### Generation rules
-- Use domain-specific phrasing; avoid generic bullets; map to requirement IDs when available
-- Include 3–6 bullets per section; omit non-relevant sections with one-line rationale
-- Plan-only list; no code
-
 ## Optional Sections (include when relevant)
 
 ### Security Considerations
@@ -327,10 +411,10 @@ Error tracking, logging, and health monitoring implementation.
 - Caching strategies and optimization techniques
 
 ### Migration Strategy
-**Recommended**: Include Mermaid flowchart showing migration phases
+**REQUIRED**: Include Mermaid flowchart showing migration phases
 
 **Process**: Phase breakdown, rollback triggers, validation checkpoints
-</document-structure>
+</structured-document>
 
 ---
 
@@ -358,6 +442,16 @@ Error tracking, logging, and health monitoring implementation.
 - [ ] Components and Interfaces have Purpose, Key Features, Interface Design
 - [ ] Data models individually documented
 - [ ] Integration with existing system explained
+
+### Self-Reflection (NOT included in design.md)
+Perform a brief internal check before generating the final design.md. Keep it concise (5–7 sentences max) and do not output this content:
+- Scope fit: Are included sections necessary and sufficient? Any non-applicable sections removed?
+- Steering alignment: Structure/Tech/Product principles respected; deviations justified?
+- Decisions clarity: 1–3 key decisions documented with context, alternatives, rationale, trade-offs?
+- Risks completeness: Performance, security, maintainability, integration risks captured at the right depth for the feature type?
+- Diagram necessity: Only essential diagrams included per classification guidance?
+- Interfaces quality: Contracts have explicit types, pre/postconditions; error handling defined?
+- Testing coverage: Unit/Integration/E2E items reflect critical paths without bloat?
 
 ### 3. Design Document Generation & Metadata Update
 - Generate complete design document following structure guidelines (no omissions or placeholders)
