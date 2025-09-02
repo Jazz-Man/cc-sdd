@@ -138,7 +138,7 @@ JSON update: update via file tools, set ISO `updated_at`, merge only needed keys
   </next_phase>
 
   <instructions>
-  1. Validate spec.json `language` — if valid, generate strictly in that language; if missing/invalid, fall back to `ja` and report the fallback.
+  1. Validate spec.json `language` — if valid, generate strictly in that language; if missing/invalid, fall back to `en` and report the fallback.
   2. Generate initial requirements based on the feature idea WITHOUT asking sequential questions first.
   3. Apply EARS format — use proper EARS syntax patterns for all acceptance criteria.
   4. Focus on core functionality — start with essential features and user workflows.

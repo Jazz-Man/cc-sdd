@@ -78,7 +78,13 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 - Identify configuration and setup requirements
 - Document any migration or integration challenges
 
-**Skip if**: Using familiar technology stack in standard patterns
+**For ANY external dependencies (libraries, APIs, services)**:
+- Use WebSearch to find official documentation and community resources
+- Use WebFetch to analyze specific documentation pages
+- Document authentication flows, rate limits, and usage constraints
+- Note any gaps in understanding for implementation phase
+
+**Skip only if**: Using well-established internal libraries with no external dependencies
 
 #### F. Technical Risk Assessment
 - Performance/scalability risks: bottlenecks, capacity, growth
@@ -224,6 +230,15 @@ Group related components under domain/layer headings for clarity.
 - **Inbound**: Components/services that depend on this component
 - **Outbound**: Components/services this component depends on
 - **External**: Third-party services, libraries, or external systems
+
+**External Dependencies Investigation** (when using external libraries/services):
+- Use WebSearch to locate official documentation, GitHub repos, and community resources
+- Use WebFetch to retrieve and analyze documentation pages, API references, and usage examples
+- Verify API signatures, authentication methods, and rate limits
+- Check version compatibility, breaking changes, and migration guides
+- Investigate common issues, best practices, and performance considerations
+- Document any assumptions, unknowns, or risks for implementation phase
+- If critical information is missing, clearly note "Requires investigation during implementation: [specific concern]"
 
 **Contract Definition**
 
