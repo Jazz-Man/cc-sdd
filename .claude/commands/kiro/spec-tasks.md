@@ -112,6 +112,7 @@ Generate detailed implementation tasks for feature: **$1**
 
 ### Document Generation
 - Generate `.kiro/specs/$1/tasks.md` using the exact numbering format above
+- **Language**: Use language from `spec.json.language` field, default to English
 - **Task descriptions**: Use natural language for "what to do" (implementation details in design.md)
  - Update `.kiro/specs/$1/spec.json`:
   - Set `phase: "tasks-generated"`

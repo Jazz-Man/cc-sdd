@@ -113,6 +113,7 @@ Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_pa
 
 ### Document Generation
 - Generate `.kiro/specs/[feature-name]/tasks.md` using the exact numbering format above
+- **Language**: Use language from `spec.json.language` field, default to English
 - **Task descriptions**: Use natural language for "what to do" (implementation details in design.md)
 - Update `.kiro/specs/[feature-name]/spec.json`:
   - Set `phase: "tasks-generated"`
