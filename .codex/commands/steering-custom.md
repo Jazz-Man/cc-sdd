@@ -6,7 +6,7 @@ description: Create custom Kiro steering documents for specialized project conte
 
 Create custom steering documents in `.kiro/steering/` for specialized contexts beyond the three foundational files (`product.md`, `tech.md`, `structure.md`).
 
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ## Current Steering Status
 

@@ -11,7 +11,7 @@ Generate a **technical design document** for feature **[feature-name]**.
 
 ## Task: Create Technical Design Document
 
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 Prime: Always perform Discovery & Analysis first, then construct the design document.
 Process Reminder: Reference discovery findings throughout Overview/Architecture/Components/Testing; if unknowns remain, note "Pending discovery: ..." and avoid assumptions.

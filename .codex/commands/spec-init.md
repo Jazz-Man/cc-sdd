@@ -13,7 +13,7 @@ Initialize a new specification based on the provided project description:
 
 **SCOPE**: This command initializes the directory structure and metadata based on the detailed project description provided.
 
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ### 1. Generate Feature Name
 Create a concise, descriptive feature name from the project description ($ARGUMENTS).

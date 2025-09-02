@@ -8,7 +8,7 @@ argument-hint: [feature-name] <task-numbers>
 Execute implementation tasks from spec using Kent Beck's Test-Driven Development methodology.
 
 ## Arguments: [feature-name]
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ## Current Specs
 Available specs: Discover via list_dir/glob_file_search under `.kiro/specs/`

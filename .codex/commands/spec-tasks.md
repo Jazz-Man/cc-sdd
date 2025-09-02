@@ -9,7 +9,7 @@ Generate detailed implementation tasks for feature: **[feature-name]**
 
 ## Task: Generate Implementation Tasks
 
-Tool policy: Use Cursor file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
+Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 ### Prerequisites & Context Loading
 - If invoked with `-y`: Auto-approve requirements and design in `spec.json`
