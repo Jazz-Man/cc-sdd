@@ -5,11 +5,6 @@ argument-hint: [feature-name]
 
 <requirements_command>
 
-  <tool_policy>
-  - Principle: Use Codex file tools only (read_file, list_dir, glob_file_search, apply_patch, edit_file).
-  - Shell: Do not use shell. If a capability gap is encountered, stop and report instead of attempting a workaround.
-  </tool_policy>
-
   <requirements_generation>
 
     <context_validation>

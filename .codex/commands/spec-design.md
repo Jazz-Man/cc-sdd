@@ -7,11 +7,9 @@ argument-hint: [feature-name] [-y]
 
 Generate a **technical design document** for feature **[feature-name]**.
 
-**CRITICAL**: Generate COMPLETE content without abbreviations, placeholders ("...", "[details]"), or omissions. Continue until all sections are fully written.
+**CRITICAL**: Complete Output Definition — For sections judged applicable, write them fully without abbreviations, ellipses, or placeholders ("...", "[details]"). Do not generate sections that are not applicable.
 
 ## Task: Create Technical Design Document
-
-Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
 
 Prime: Always perform Discovery & Analysis first, then construct the design document.
 Process Reminder: Reference discovery findings throughout Overview/Architecture/Components/Testing; if unknowns remain, note "Pending discovery: ..." and avoid assumptions.
@@ -39,7 +37,12 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 - **Simple Addition** (CRUD, UI): Streamlined process, follow established patterns
 - **Complex Integration** (external systems, new domains): Comprehensive analysis and risk assessment
 
-**Process Adaptation**: Skip or streamline analysis steps based on classification above
+**Effort & Scope Guidelines (by classification)**:
+- New Feature / Complex Integration: Perform thorough discovery and comparison of alternatives; include architecture and data flow diagrams (2–3 as needed); document 2–3 key decisions with trade-offs.
+- Extension: Center on integration points and domain boundaries; include at most 1 essential diagram; avoid broad tech selection unless required by changes.
+- Simple Addition: Keep discovery minimal; reuse existing patterns; omit technology comparisons and flow diagrams unless non-trivial branching exists; keep contracts concise.
+
+**Process Adaptation**: Apply the above effort guidelines to decide which sections to include, and the depth of each. Non-applicable sections are omitted entirely.
 
 #### A. Requirements to Technical Components Mapping
 - Map requirements (EARS format) to technical components
@@ -96,7 +99,7 @@ Process Reminder: Reference discovery findings throughout Overview/Architecture/
 ## Design Document Structure & Guidelines
 
 ### Core Principles
-- **Complete output**: Write all sections fully - never abbreviate or use ellipsis
+- **Complete output (scoped)**: For included sections only, write them fully — never abbreviate or use ellipsis. Do not include non-applicable sections.
 - **Review-optimized structure**: Critical technical decisions prominently placed to prevent oversight
 - **Contextual relevance**: Include sections only when applicable to project type and scope
 - **Visual-first design**: Essential Mermaid diagrams for architecture and data flow
@@ -439,6 +442,16 @@ Error tracking, logging, and health monitoring implementation.
 - [ ] Components and Interfaces have Purpose, Key Features, Interface Design
 - [ ] Data models individually documented
 - [ ] Integration with existing system explained
+
+### Self-Reflection (NOT included in design.md)
+Perform a brief internal check before generating the final design.md. Keep it concise (5–7 sentences max) and do not output this content:
+- Scope fit: Are included sections necessary and sufficient? Any non-applicable sections removed?
+- Steering alignment: Structure/Tech/Product principles respected; deviations justified?
+- Decisions clarity: 1–3 key decisions documented with context, alternatives, rationale, trade-offs?
+- Risks completeness: Performance, security, maintainability, integration risks captured at the right depth for the feature type?
+- Diagram necessity: Only essential diagrams included per classification guidance?
+- Interfaces quality: Contracts have explicit types, pre/postconditions; error handling defined?
+- Testing coverage: Unit/Integration/E2E items reflect critical paths without bloat?
 
 ### 3. Design Document Generation & Metadata Update
 - Generate complete design document following structure guidelines (no omissions or placeholders)

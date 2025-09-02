@@ -6,8 +6,6 @@ description: Create or update Kiro steering documents intelligently based on pro
 
 Intelligently create or update steering documents in `.kiro/steering/` to maintain accurate project knowledge for spec-driven development. This command detects existing documents and handles them appropriately.
 
-Tool policy: Use Codex file tools (read_file/list_dir/glob_file_search/apply_patch/edit_file); no shell.
-
 ## Existing Files Check
 
 ### Current steering documents status
