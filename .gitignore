@@ -76,7 +76,7 @@ BLOG.md
 docs/cc-sdd/
 docs/kiro/prompt/
 docs/kiro/
-.kiro/
+# .kiro/
 # Agent configurations
 .claude/agents/
 .claude/hooks/
