@@ -14,7 +14,7 @@ Analyze implementation requirements and existing codebase for feature: **{{args}
 - Custom steering: Load all "Always" mode custom steering files from {{KIRO_DIR}}/steering/
 
 ### Existing Spec Context
-- Current spec directory: !`bash -c 'ls -la {{KIRO_DIR}}/specs/{{args}}/'`
+- Current spec directory: !{ls -la {{KIRO_DIR}}/specs/{{args}}/}
 - Requirements document: @{{KIRO_DIR}}/specs/{{args}}/requirements.md
 - Spec metadata: @{{KIRO_DIR}}/specs/{{args}}/spec.json
 
@@ -151,3 +151,4 @@ Run `/kiro:spec-design {{args}}` to create technical design document
 
 **Auto-approve and proceed:**  
 Run `/kiro:spec-design {{args}} -y` to auto-approve requirements and generate design directly
+"""
