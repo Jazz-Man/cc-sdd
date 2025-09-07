@@ -75,6 +75,7 @@ coverage/
 BLOG.md
 docs/cc-sdd/
 docs/kiro/prompt/
+docs/kiro/
 .kiro/
 # Agent configurations
 .claude/agents/
