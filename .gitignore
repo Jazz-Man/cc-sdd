@@ -75,9 +75,11 @@ coverage/
 BLOG.md
 docs/cc-sdd/
 docs/kiro/prompt/
-.kiro/
+docs/kiro/
+# .kiro/
 # Agent configurations
 .claude/agents/
 .claude/hooks/
+.claude/commands/utils/
 GEMINI.md
 AGENTS.md
