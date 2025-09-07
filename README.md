@@ -1,4 +1,4 @@
-<div align="center"><sub>
+<div align="center" style="font-size: 15px; margin-bottom: 1em;"><sub>
 <a href="./tools/cc-sdd/README.md">English</a> | <a href="./tools/cc-sdd/README_ja.md">日本語</a> | <a href="./tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
@@ -24,8 +24,9 @@ npx cc-sdd@latest
 # With OS: --os mac | --os windows | --os linux (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 
-# With different agents: gemini-cli
+# With different agents: gemini-cli, cursor
 npx cc-sdd@latest --gemini-cli
+npx cc-sdd@latest --cursor
 
 # Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
 ```
@@ -34,7 +35,7 @@ npx cc-sdd@latest --gemini-cli
 
 After running cc-sdd, you'll have:
 
-- **8 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, etc.)
+- **10 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, etc.)
 - **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
 - **Structured AI-DLC workflow** with quality gates and approvals
 - **Spec-Driven Development** methodology built-in

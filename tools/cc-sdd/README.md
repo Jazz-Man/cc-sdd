@@ -75,6 +75,17 @@ npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
 /kiro:spec-status <feature_name>          # Check progress
 ```
 
+### Quality Validation (Optional)
+```bash
+# After spec-requirements:
+/kiro:validate-gap <feature_name>         # Check requirements-design gaps and system integration
+
+# After spec-design (recommended):
+/kiro:validate-design <feature_name>      # Validate design consistency with existing architecture
+```
+
+> **Optional but Recommended**: These validation commands help prevent design inconsistencies with existing codebase - the main pitfall when specs are developed in isolation from current system architecture. **Best Practice**: Run `validate-design` after each design phase before moving to tasks/implementation.
+
 ### Project Setup
 ```bash
 /kiro:steering                            # Create/update project memory
