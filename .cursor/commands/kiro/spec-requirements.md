@@ -39,7 +39,7 @@ argument-hint: [feature-name]
     <task>
       <step id="1">Read existing requirements.md created by spec-init to extract the project description.</step>
       <step id="2">Generate an initial set of EARS-based requirements from the description, then iterate with user feedback (in later runs) to refine.</step>
-      <note>Do not focus on code exploration in this phase; concentrate on writing requirements that will inform the design.</note>
+      <note>Do not focus on implementation details in this phase; concentrate on writing requirements that will inform the design.</note>
     </task>
 
     <guidelines>
@@ -47,18 +47,19 @@ argument-hint: [feature-name]
     2. Use EARS format for all acceptance criteria.
     3. Avoid sequential questions on first pass; propose an initial version.
     4. Keep scope manageable; enable expansion through review.
+    5. Choose an appropriate subject: For software projects, use the concrete system/service name (e.g., "Checkout Service"). For non-software, select a responsible subject (e.g., process/workflow, team/role, artifact/document, campaign, protocol).
     </guidelines>
 
     <ears_format>
       <primary_patterns>
-      - WHEN [event/condition] THEN [system] SHALL [response]
-      - IF [precondition/state] THEN [system] SHALL [response]
-      - WHILE [ongoing condition] THE [system] SHALL [continuous behavior]
-      - WHERE [location/context/trigger] THE [system] SHALL [contextual behavior]
+      - WHEN [event/condition] THEN [system/subject] SHALL [response]
+      - IF [precondition/state] THEN [system/subject] SHALL [response]
+      - WHILE [ongoing condition] THE [system/subject] SHALL [continuous behavior]
+      - WHERE [location/context/trigger] THE [system/subject] SHALL [contextual behavior]
       </primary_patterns>
       <combined_patterns>
-      - WHEN [event] AND [additional condition] THEN [system] SHALL [response]
-      - IF [condition] AND [additional condition] THEN [system] SHALL [response]
+      - WHEN [event] AND [additional condition] THEN [system/subject] SHALL [response]
+      - IF [condition] AND [additional condition] THEN [system/subject] SHALL [response]
       </combined_patterns>
     </ears_format>
 
@@ -73,22 +74,22 @@ Update requirements.md with complete content in the resolved output language (va
 
 ## Requirements
 
-### Requirement 1: [Major Feature Area]
-**User Story:** As a [role], I want [feature], so that [benefit]
+### Requirement 1: [Major Objective Area]
+**Objective:** As a [role/stakeholder], I want [feature/capability/outcome], so that [benefit]
 
 #### Acceptance Criteria
 This section should have EARS requirements
 
-1. WHEN [event] THEN [system] SHALL [response]
-2. IF [precondition] THEN [system] SHALL [response]
-3. WHILE [ongoing condition] THE [system] SHALL [continuous behavior]
-4. WHERE [location/context/trigger] THE [system] SHALL [contextual behavior]
+1. WHEN [event] THEN [system/subject] SHALL [response]
+2. IF [precondition] THEN [system/subject] SHALL [response]
+3. WHILE [ongoing condition] THE [system/subject] SHALL [continuous behavior]
+4. WHERE [location/context/trigger] THE [system/subject] SHALL [contextual behavior]
 
-### Requirement 2: [Next Major Feature Area]
-**User Story:** As a [role], I want [feature], so that [benefit]
+### Requirement 2: [Next Major Objective Area]
+**Objective:** As a [role/stakeholder], I want [feature/capability/outcome], so that [benefit]
 
-1. WHEN [event] THEN [system] SHALL [response]
-2. WHEN [event] AND [condition] THEN [system] SHALL [response]
+1. WHEN [event] THEN [system/subject] SHALL [response]
+2. WHEN [event] AND [condition] THEN [system/subject] SHALL [response]
 
 ### Requirement 3: [Additional Major Areas]
 [Continue pattern for all major functional areas]
