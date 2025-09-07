@@ -52,20 +52,20 @@ describe('real gemini-cli manifest (mac)', () => {
     const cmd = join(cwd, '.gemini/commands/kiro/spec-init.toml');
     expect(await exists(cmd)).toBe(true);
 
-    expect(ctx.logs.join('\n')).toMatch(/Setup completed ✅/);
+    expect(ctx.logs.join('\n')).toMatch(/Setup completed: written=\d+, skipped=\d+/);
   });
 });
 
 describe('real gemini-cli manifest (linux)', () => {
   const runtimeLinux = { platform: 'linux' } as const;
 
-  it('dry-run prints plan including commands for linux via mac template', async () => {
+  it('dry-run prints plan including commands for linux via windows template', async () => {
     const ctx = makeIO();
     const code = await runCli(['--dry-run', '--lang', 'en', '--agent', 'gemini-cli', '--manifest', manifestPath], runtimeLinux, ctx.io, {});
     expect(code).toBe(0);
     const out = ctx.logs.join('\n');
     expect(out).toMatch(/Plan \(dry-run\)/);
-    expect(out).toContain('[templateDir] commands_os_mac: templates/agents/gemini-cli/commands/os-mac -> .gemini/commands/kiro');
+    expect(out).toContain('[templateDir] commands_os_windows: templates/agents/gemini-cli/commands/os-windows -> .gemini/commands/kiro');
     expect(out).toContain('[templateFile] doc_main: templates/agents/gemini-cli/docs/GEMINI/GEMINI.en.tpl.md -> ./GEMINI.md');
   });
 
@@ -83,7 +83,6 @@ describe('real gemini-cli manifest (linux)', () => {
     const cmd = join(cwd, '.gemini/commands/kiro/spec-init.toml');
     expect(await exists(cmd)).toBe(true);
 
-    expect(ctx.logs.join('\n')).toMatch(/Setup completed ✅/);
+    expect(ctx.logs.join('\n')).toMatch(/Setup completed: written=\d+, skipped=\d+/);
   });
 });
-

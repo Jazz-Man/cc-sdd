@@ -57,20 +57,20 @@ describe('real claude-code manifest', () => {
     const cmd = join(cwd, '.claude/commands/kiro/spec-init.md');
     expect(await exists(cmd)).toBe(true);
 
-    expect(ctx.logs.join('\n')).toMatch(/Setup completed ✅/);
+    expect(ctx.logs.join('\n')).toMatch(/Setup completed: written=\d+, skipped=\d+/);
   });
 });
 
 describe('real claude-code manifest (linux)', () => {
   const runtimeLinux = { platform: 'linux' } as const;
 
-  it('dry-run prints plan including commands for linux via mac template', async () => {
+  it('dry-run prints plan including commands for linux via windows template', async () => {
     const ctx = makeIO();
     const code = await runCli(['--dry-run', '--lang', 'en', '--manifest', manifestPath], runtimeLinux, ctx.io, {});
     expect(code).toBe(0);
     const out = ctx.logs.join('\n');
     expect(out).toMatch(/Plan \(dry-run\)/);
-    expect(out).toContain('[templateDir] commands_os_mac: templates/agents/claude-code/commands/os-mac -> .claude/commands/kiro');
+    expect(out).toContain('[templateDir] commands_os_windows: templates/agents/claude-code/commands/os-windows -> .claude/commands/kiro');
     expect(out).toContain('[templateFile] doc_main: templates/agents/claude-code/docs/CLAUDE/CLAUDE.en.tpl.md -> ./CLAUDE.md');
   });
 
@@ -89,6 +89,6 @@ describe('real claude-code manifest (linux)', () => {
     const cmd = join(cwd, '.claude/commands/kiro/spec-init.md');
     expect(await exists(cmd)).toBe(true);
 
-    expect(ctx.logs.join('\n')).toMatch(/Setup completed ✅/);
+    expect(ctx.logs.join('\n')).toMatch(/Setup completed: written=\d+, skipped=\d+/);
   });
 });
