@@ -1,4 +1,4 @@
-<div align="center" style="font-size: 15px; margin-bottom: 1em;"><sub>
+<div align="center" style="font-size: 1rem; margin-bottom: 1rem;"><sub>
 <a href="./tools/cc-sdd/README.md">English</a> | <a href="./tools/cc-sdd/README_ja.md">日本語</a> | <a href="./tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
@@ -12,7 +12,7 @@
   [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
 
 
-One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code and Gemini CLI.
+One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code, Cursor IDE and Gemini CLI.
 
 ## 🚀 Quick Start
 
@@ -35,7 +35,7 @@ npx cc-sdd@latest --cursor
 
 After running cc-sdd, you'll have:
 
-- **10 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, etc.)
+- **10 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, `/kiro:validate-gap`, etc.)
 - **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
 - **Structured AI-DLC workflow** with quality gates and approvals
 - **Spec-Driven Development** methodology built-in
@@ -47,18 +47,18 @@ After running cc-sdd, you'll have:
 
 ## About
 
-Includes Claude Code your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
+Brings to Claude Code, Cursor IDE and Gemini CLI your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
 
-【Claude Code/Gemini CLI】ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **Slash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Gemini CLI用の **GEMINI.md**）を配置し、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含みます。
+【Claude Code/Cursor IDE/Gemini CLI】ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **10個のSlash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Cursor IDE用の **AGENTS.md** / Gemini CLI用の **GEMINI.md**）を配置し、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含みます。
 
 📝 **関連記事**  
 **[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
 
 ## Languages
 > 📖 **Project Overview** (Spec-Driven Development workflow)
-> • 日本語: [README_ja.md](README_ja.md)
-> • English: [README_en.md](README_en.md)
-> • 繁體中文: [README_zh-TW.md](README_zh-TW.md)
+- 日本語: [README_ja.md](tools/cc-sdd/README_ja.md)
+- English: [README.md](tools/cc-sdd/README.md)
+- 繁體中文: [README_zh-TW.md](tools/cc-sdd/README_zh-TW.md)
 
 **Transform your agentic development workflow with Spec-Driven Development**
 
@@ -66,39 +66,43 @@ Includes Claude Code your project context, Project Memory (steering) and develop
 
 ## 🤖 Supported Coding Agents
 
-- **✅ Claude Code** - Fully supported with all 8 custom slash commands and CLAUDE.md
-- **✅ Gemini CLI** - Fully supported with all 8 custom commands and GEMINI.md
+- **✅ Claude Code** - Fully supported with all 10 custom slash commands and CLAUDE.md
+- **✅ Gemini CLI** - Fully supported with all 10 custom commands and GEMINI.md
+- **✅ Cursor IDE** - Fully supported with all 10 custom commands and AGENTS.md
 - **📅 More agents** - Additional AI coding assistants planned
 
 *Currently optimized for Claude Code. Use `--agent claude-code` (default) for full functionality.*
  
 ## 📋 AI-DLC Workflow
 
-**Step 0: Setup Project Memory (Recommended)**
+### For New Projects
 ```bash
-# Teach Claude Code about your project
-/kiro:steering
-```
-
-**SDD Development Flow:**
-```bash
-# 1. Start a new feature spec
+# Start spec-driven development immediately
 /kiro:spec-init User authentication with OAuth and 2FA
-
-# 2. Generate detailed requirements  
 /kiro:spec-requirements user-auth
-
-# 3. Create technical design (after requirements review)
 /kiro:spec-design user-auth -y
-
-# 4. Break down into tasks (after design review)  
 /kiro:spec-tasks user-auth -y
-
-# 5. Implement with TDD (after task review)
 /kiro:spec-impl user-auth 1.1,1.2,1.3
 ```
 
+### For Existing Projects (Recommended)
+```bash
+# First establish project context
+/kiro:steering                                    # AI learns existing project context
+
+# Then proceed with development
+/kiro:spec-init Add OAuth to existing auth system
+/kiro:spec-requirements oauth-enhancement
+/kiro:validate-gap oauth-enhancement              # Optional: analyze existing vs requirements
+/kiro:spec-design oauth-enhancement -y
+/kiro:validate-design oauth-enhancement           # Optional: validate design integration
+/kiro:spec-tasks oauth-enhancement -y
+/kiro:spec-impl oauth-enhancement 1.1,1.2,1.3
+```
+
 **Quality Gates**: Each phase requires human approval before proceeding (use `-y` to auto-approve).
+
+**Specs as Foundation**: Based on [Kiro's proven methodology](https://kiro.dev/docs/specs/) - specs transform ad-hoc development into systematic workflows. Created specs are portable to [Kiro IDE](https://kiro.dev) for enhanced implementation guardrails and team collaboration.
 
 ## 🎯 Advanced Options
 
@@ -119,7 +123,7 @@ npx cc-sdd@latest --kiro-dir docs/specs
 ## Features
 
 ✅ **AI-DLC Integration** - Complete AI-Driven Development Life Cycle  
-✅ **Project Memory** - Steering that learns your codebase and patterns  
+✅ **Project Memory** - Steering documents that maintain comprehensive context (architecture, patterns, rules, domain knowledge) across all sessions  
 ✅ **Spec-Driven Development** - Structured requirements → design → tasks → implementation  
 ✅ **Cross-Platform** - macOS, Linux, and Windows support with auto-detection (Linux reuses mac templates)  
 ✅ **Multi-Language** - Japanese, English, Traditional Chinese  
@@ -129,6 +133,9 @@ npx cc-sdd@latest --kiro-dir docs/specs
 
 📝 **Related Articles**  
 **[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn Article (Japanese)
+
+🎯 **Presentations**  
+**[Claude Codeは仕様駆動の夢を見ない](https://speakerdeck.com/gotalab555/claude-codehashi-yang-qu-dong-nomeng-wojian-nai)** - Speaker Deck Presentation (Japanese)
 
 ## 📦 Package Information
 
@@ -144,7 +151,7 @@ For detailed documentation, installation instructions, and usage examples, see:
 claude-code-spec/
 ├── tools/cc-sdd/              # Main cc-sdd NPM package
 │   ├── src/                   # TypeScript source code
-│   ├── templates/             # Agent templates (Claude Code, Gemini CLI)
+│   ├── templates/             # Agent templates (Claude Code, Cursor IDE, Gemini CLI)
 │   ├── package.json           # Package configuration
 │   └── README.md              # Tool documentation
 ├── docs/                      # Documentation
