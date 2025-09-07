@@ -172,7 +172,7 @@ export const runCli = async (
           io.log('\n🚀 Try: \x1b[36mgemini /kiro:spec-init [your feature description or what to build]\x1b[0m to get started!');
           break;
         case 'cursor':
-          io.log('\x1b[93m\x1b[1mRecommended: Use claude-4-sonnet or later model with thinking mode enabled\x1b[0m');
+          io.log('\x1b[93m\x1b[1mRecommended: Use claude-4-sonnet or later model with thinking mode enabled in the spec workflow (spec-init, spec-requirements, spec-design, spec-tasks)\x1b[0m');
           io.log('\n🚀 Try: Open Cursor panel and use \x1b[36m /kiro/spec-init [your feature description or what to build]\x1b[0m commands to get started!');
           break;
         case 'qwen-code':
