@@ -1,4 +1,4 @@
-# Claude Code Spec-Driven Development
+# AI-DLC and Spec-Driven Development
 
 Kiro-style Spec Driven Development implementation using claude code slash commands, hooks and agents.
 

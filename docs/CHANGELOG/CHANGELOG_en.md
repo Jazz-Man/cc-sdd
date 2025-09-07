@@ -4,6 +4,79 @@ Updates for Claude Code Spec-Driven Development.
 
 ---
 
+## Ver 1.1.0 (September 8, 2025 Official Release) 🎯
+
+### ✨ Brownfield Development Features Added
+Enhanced spec-driven development for existing projects
+
+**New Quality Validation Commands**
+- 🔍 **`/kiro:validate-gap`** - Gap analysis between existing functionality and requirements
+  - Execute before spec-design to clarify differences between current implementation and new requirements
+  - Identify existing system understanding and integration points for new features
+- ✅ **`/kiro:validate-design`** - Design compatibility verification with existing architecture
+  - Execute after spec-design to confirm design integration feasibility
+  - Pre-detect conflicts and incompatibilities with existing systems
+
+### 🚀 Full Cursor IDE Support
+Official support as the third major platform
+- **10 commands** - Full functionality equivalent to Claude Code/Gemini CLI
+- **AGENTS.md configuration file** - Optimized settings specific to Cursor IDE
+- **Unified workflow** - Same development experience across all platforms
+
+### 📊 Command System Expansion
+Enhanced spec-driven development completeness
+- **Expanded from 8 to 10 commands** - Enriched with validate-type commands
+- **Optional workflows** - Quality gates can be added as needed
+- **Flexible development paths** - Optimal flows for new/existing projects
+
+### 📚 Major Documentation Improvements
+Refreshed for clarity and conciseness
+
+**Structural Improvements**
+- **Quick Start separation** - Distinct flows for new vs existing projects
+- **Clarified steering positioning** - Emphasized importance as project memory
+- **Simplified verbose explanations** - 30-50% reduction in each section for improved readability
+
+**Content Enhancements**
+- **AI-DLC "bolts" concept** - Clarified terminology with AWS article links
+- **Kiro IDE integration explanation** - Emphasized portability and implementation guardrails
+- **Added Speaker Deck presentation** - "Claude Code Doesn't Dream of Spec-Driven Development"
+
+### 🔧 Technical Improvements
+Enhanced development experience and maintainability
+- **GitHub URL updates** - Migration support to gotalab/cc-sdd
+- **Typo corrections** - "Clade Code" → "Claude Code"
+- **CHANGELOG organization** - Moved to docs directory
+
+### 📈 Key Metrics
+- **Supported platforms**: 3 (Claude Code, Cursor IDE, Gemini CLI)
+- **Command count**: 10 (8 spec + 2 validate)
+- **Documentation languages**: 3 (English, Japanese, Traditional Chinese)
+- **npm weekly downloads**: Stable growth
+
+---
+
+## Ver 1.0.0 (August 31, 2025 Major Update) 🚀
+
+### 🚀 Multi-Platform Support Complete
+Unified spec-driven development across four platforms
+- 🤖 **Claude Code** - Original platform
+- 🔮 **Cursor** - IDE integration support
+- ⚡ **Gemini CLI** - TOML structured configuration
+- 🧠 **Codex CLI** - GPT-5 optimized prompt design
+
+### 📦 cc-sdd Package Distribution Started
+[cc-sdd](https://www.npmjs.com/package/cc-sdd) - AI-DLC + Spec Driven Development
+- Claude Code & Gemini CLI support
+- Installable via `npx cc-sdd@latest`
+
+### 🔄 Development Workflow Complete Overhaul
+Fundamental review of entire spec-driven development workflow
+- **Near complete rebuild** level overhaul implemented
+- Unified for more consistent output across platforms
+
+---
+
 ## Ver 0.3.0 (August 12, 2025 Update)
 
 ### Major Kiro Spec-Driven Development Command Improvements
