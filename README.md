@@ -2,14 +2,14 @@
 <a href="./tools/cc-sdd/README.md">English</a> | <a href="./tools/cc-sdd/README_ja.md">日本語</a> | <a href="./tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
-# cc-sdd / Claude Code Spec
+# cc-sdd / prev. Claude Code Spec
 
+✨ **Transform Claude Code/ Cursor IDE / Gemini CLI from prototype to production-ready development**
 
-> 📦 **Beta Release** - Ready to use, actively improving. [Report issues →](https://github.com/gotalab/claude-code-spec/issues)
-
-  <!-- npm badges -->
-  [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
-  [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
+<!-- npm badges -->
+[![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
+[![install size](https://packagephobia.com/badge?p=cc-sdd)](https://packagephobia.com/result?p=cc-sdd)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
 
 
 One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code, Cursor IDE and Gemini CLI.

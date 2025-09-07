@@ -65,10 +65,10 @@ describe('real cursor manifest', () => {
     expect(code).toBe(0);
     const out = ctx.logs.join('\n');
     
-    // Check that the setup completion message is present
-    expect(out).toMatch(/Setup completed ✅/);
+    // Check that the setup completion message is present (new format)
+    expect(out).toMatch(/Setup completed: written=\d+, skipped=\d+/);
     
     // Check that the Cursor-specific recommendation message is present (with color codes)
-    expect(out).toContain('\x1b[93m\x1b[1mRecommended model: claude-4-sonnet or later with thinking mode\x1b[0m');
+    expect(out).toContain('\x1b[93m\x1b[1mRecommended: Use claude-4-sonnet or later model');
   });
 });

@@ -44,7 +44,7 @@ npx cc-sdd@latest --cursor --lang ja # For Cursor IDE instead
 /kiro:spec-impl auth-system                                    # Execute with TDD
 ```
 
-![design.md - System Flow Diagram](https://raw.githubusercontent.com/gotalab/cc-sdd/blob/main/assets/design-system_flow.png)
+![design.md - System Flow Diagram](https://raw.githubusercontent.com/gotalab/cc-sdd/refs/heads/main/assets/design-system_flow.png)
 *Example of system flow during the design phase `design.md`*
 
 ### For Existing Projects (Recommended)
