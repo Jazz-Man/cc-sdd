@@ -20,7 +20,7 @@ One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** 
 # Basic installation (default: Claude Code)
 npx cc-sdd@latest
 
-# With language: --lang en (English) or --lang ja (Japanese) or --lang zh-TW (Traditional Chinese)
+# With language: --lang en|ja|zh-TW|zh|es|pt|de|fr|ru|it|ko|ar
 # With OS: --os mac | --os windows | --os linux (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 

@@ -26,6 +26,15 @@ npx cc-sdd@latest
 # 語言選項（預設：--lang en）
 npx cc-sdd@latest --lang zh-TW # 繁體中文
 npx cc-sdd@latest --lang ja    # 日語
+npx cc-sdd@latest --lang zh    # 簡體中文
+npx cc-sdd@latest --lang es    # 西班牙語
+npx cc-sdd@latest --lang pt    # 葡萄牙語
+npx cc-sdd@latest --lang de    # 德語
+npx cc-sdd@latest --lang fr    # 法語
+npx cc-sdd@latest --lang ru    # 俄語
+npx cc-sdd@latest --lang it    # 義大利語
+npx cc-sdd@latest --lang ko    # 韓語
+npx cc-sdd@latest --lang ar    # 阿拉伯語
 
 # 代理選項（預設：claude-code）
 npx cc-sdd@latest --gemini-cli --lang zh-TW # Gemini CLI 用

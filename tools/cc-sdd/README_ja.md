@@ -26,6 +26,15 @@ npx cc-sdd@latest
 # 言語オプション（デフォルト: --lang en）
 npx cc-sdd@latest --lang ja    # 日本語
 npx cc-sdd@latest --lang zh-TW # 繁体字中国語
+npx cc-sdd@latest --lang zh    # 簡体字中国語
+npx cc-sdd@latest --lang es    # スペイン語
+npx cc-sdd@latest --lang pt    # ポルトガル語
+npx cc-sdd@latest --lang de    # ドイツ語
+npx cc-sdd@latest --lang fr    # フランス語
+npx cc-sdd@latest --lang ru    # ロシア語
+npx cc-sdd@latest --lang it    # イタリア語
+npx cc-sdd@latest --lang ko    # 韓国語
+npx cc-sdd@latest --lang ar    # アラビア語
 
 # エージェントオプション（デフォルト: claude-code）
 npx cc-sdd@latest --gemini-cli --lang ja # Gemini CLI用
