@@ -7,6 +7,7 @@ describe('buildTemplateContext', () => {
     const ctx = buildTemplateContext({ agent: 'claude-code', lang: 'ja' });
     expect(ctx.LANG_CODE).toBe('ja');
     expect(ctx.KIRO_DIR).toBe('.kiro');
+    expect(ctx.DEV_GUIDELINES).toBe('- Think in English, but generate responses in Japanese (思考は英語、回答の生成は日本語で行うように)');
   });
 
   it('uses kiro-dir flag when provided', () => {
