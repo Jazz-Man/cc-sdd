@@ -26,8 +26,15 @@ npx cc-sdd@latest
 # With language options (default: --lang en)
 npx cc-sdd@latest --lang ja    # Japanese
 npx cc-sdd@latest --lang zh-TW # Traditional Chinese
+# Supported languages: en, ja, zh-TW, zh, es, pt, de, fr, ru, it, ko, ar
 
-Supported languages:
+# With agent options (default: claude-code)
+npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
+npx cc-sdd@latest --cursor --lang ja # For Cursor IDE instead
+```
+
+## 🌐 Supported Languages
+
 - English (`en`)
 - Japanese (`ja`)
 - Traditional Chinese (`zh-TW`)
@@ -40,11 +47,6 @@ Supported languages:
 - Italian (`it`)
 - Korean (`ko`)
 - Arabic (`ar`)
-
-# With agent options (default: claude-code)
-npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
-npx cc-sdd@latest --cursor --lang ja # For Cursor IDE instead
-```
 
 ## ✨ Quick Start
 
