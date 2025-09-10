@@ -26,15 +26,20 @@ npx cc-sdd@latest
 # With language options (default: --lang en)
 npx cc-sdd@latest --lang ja    # Japanese
 npx cc-sdd@latest --lang zh-TW # Traditional Chinese
-npx cc-sdd@latest --lang zh    # Chinese
-npx cc-sdd@latest --lang es    # Spanish
-npx cc-sdd@latest --lang pt    # Portuguese
-npx cc-sdd@latest --lang de    # German
-npx cc-sdd@latest --lang fr    # French
-npx cc-sdd@latest --lang ru    # Russian
-npx cc-sdd@latest --lang it    # Italian
-npx cc-sdd@latest --lang ko    # Korean
-npx cc-sdd@latest --lang ar    # Arabic
+
+Supported languages:
+- English (`en`)
+- Japanese (`ja`)
+- Traditional Chinese (`zh-TW`)
+- Chinese (`zh`)
+- Spanish (`es`)
+- Portuguese (`pt`)
+- German (`de`)
+- French (`fr`)
+- Russian (`ru`)
+- Italian (`it`)
+- Korean (`ko`)
+- Arabic (`ar`)
 
 # With agent options (default: claude-code)
 npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead

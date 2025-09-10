@@ -31,6 +31,21 @@ npx cc-sdd@latest --cursor
 # Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
 ```
 
+## 🌐 Supported Languages
+
+- English (`en`)
+- Japanese (`ja`)
+- Traditional Chinese (`zh-TW`)
+- Chinese (`zh`)
+- Spanish (`es`)
+- Portuguese (`pt`)
+- German (`de`)
+- French (`fr`)
+- Russian (`ru`)
+- Italian (`it`)
+- Korean (`ko`)
+- Arabic (`ar`)
+
 ## ✨ What You Get
 
 After running cc-sdd, you'll have:
