@@ -31,6 +31,18 @@ npx cc-sdd@latest --cursor
 # Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
 ```
 
+## ✨ What You Get
+
+After running cc-sdd, you'll have:
+
+- **10 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, `/kiro:validate-gap`, etc.)
+- **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
+- **Structured AI-DLC workflow** with quality gates and approvals
+- **Spec-Driven Development** methodology built-in
+- **Kiro IDE compatibility** for seamless spec management
+
+**Perfect for**: Feature development, code reviews, technical planning, and maintaining development standards across your team.
+
 ## 🌐 Supported Languages
 
 - English (`en`)
@@ -46,17 +58,6 @@ npx cc-sdd@latest --cursor
 - Korean (`ko`)
 - Arabic (`ar`)
 
-## ✨ What You Get
-
-After running cc-sdd, you'll have:
-
-- **10 powerful slash commands** (`/kiro:steering`, `/kiro:spec-requirements`, `/kiro:validate-gap`, etc.)
-- **Project Memory (steering)** - AI learns your codebase, patterns, and preferences
-- **Structured AI-DLC workflow** with quality gates and approvals
-- **Spec-Driven Development** methodology built-in
-- **Kiro IDE compatibility** for seamless spec management
-
-**Perfect for**: Feature development, code reviews, technical planning, and maintaining development standards across your team.
 
 ---
 
@@ -64,7 +65,8 @@ After running cc-sdd, you'll have:
 
 Brings to Claude Code, Cursor IDE and Gemini CLI your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
 
-【Claude Code/Cursor IDE/Gemini CLI】ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **10個のSlash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Cursor IDE用の **AGENTS.md** / Gemini CLI用の **GEMINI.md**）を配置し、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含みます。
+**【Claude Code/Cursor IDE/Gemini CLI】**
+ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **10個のSlash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Cursor IDE用の **AGENTS.md** / Gemini CLI用の **GEMINI.md**）を配置、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含む。
 
 📝 **関連記事**  
 **[Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2)** - Zenn記事
