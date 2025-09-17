@@ -13,7 +13,7 @@ Intelligently create or update steering documents in `{{KIRO_DIR}}/steering/` to
 - Product overview: !`bash -c '[ -f "{{KIRO_DIR}}/steering/product.md" ] && echo "✅ EXISTS - Will be updated preserving custom content" || echo "📝 Not found - Will be created"'`
 - Technology stack: !`bash -c '[ -f "{{KIRO_DIR}}/steering/tech.md" ] && echo "✅ EXISTS - Will be updated preserving custom content" || echo "📝 Not found - Will be created"'`
 - Project structure: !`bash -c '[ -f "{{KIRO_DIR}}/steering/structure.md" ] && echo "✅ EXISTS - Will be updated preserving custom content" || echo "📝 Not found - Will be created"'`
-- Custom steering files: !`bash -c 'ls {{KIRO_DIR}}/steering/*.md 2>/dev/null | grep -v -E "(product|tech|structure)\.md$" | wc -l | awk "{if(\$1>0) print \"🔧 \" \$1 \" custom file(s) found - Will be preserved\"; else print \"📋 No custom files\"}"\'`
+- Custom steering files: !`bash -c 'ls {{KIRO_DIR}}/steering/*.md 2>/dev/null | grep -v -E "(product|tech|structure).md" | wc -l'`
 
 ## Project Analysis
 
