@@ -18,8 +18,8 @@ Show current status and progress for feature: **$1**
 - Tasks: `{{KIRO_DIR}}/specs/$1/tasks.md`
 
 ### All Specs Overview
-- Available specs: !`bash -c 'ls -la .kiro/specs/ 2>/dev/null || echo "No specs directory found"'`
-- Active specs: !`bash -c 'find .kiro/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} \; 2>/dev/null || echo "No active specs"'`
+- Available specs: !`bash -c 'ls -la {{KIRO_DIR}}/specs/ 2>/dev/null || echo "No specs directory found"'`
+- Active specs: !`bash -c 'find {{KIRO_DIR}}/specs/ -name "spec.json" -exec grep -l "implementation_ready.*true" {} \; 2>/dev/null || echo "No active specs"'`
 
 ## Task: Generate Status Report
 
