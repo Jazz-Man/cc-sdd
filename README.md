@@ -4,7 +4,7 @@
 
 # cc-sdd / prev. Claude Code Spec
 
-✨ **Transform Claude Code/ Cursor IDE / Gemini CLI from prototype to production-ready development**
+✨ **Transform Claude Code/ Cursor IDE / Gemini CLI / Qwen Code from prototype to production-ready development**
 
 <!-- npm badges -->
 [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
@@ -12,7 +12,7 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](tools/cc-sdd/LICENSE)
 
 
-One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code, Cursor IDE and Gemini CLI.
+One command installs **AI-DLC** (AI-Driven Development Life Cycle) with **SDD** (Spec-Driven Development) workflows for Claude Code, Cursor IDE, Gemini CLI and Qwen Code.
 
 ## 🚀 Quick Start
 
@@ -24,9 +24,10 @@ npx cc-sdd@latest
 # With OS: --os mac | --os windows | --os linux (if auto-detection fails)
 npx cc-sdd@latest --lang ja --os mac
 
-# With different agents: gemini-cli, cursor
+# With different agents: gemini-cli, cursor, qwen-code
 npx cc-sdd@latest --gemini-cli
 npx cc-sdd@latest --cursor
+npx cc-sdd@latest --qwen-code
 
 # Ready to go! Now Claude Code and Gemini CLI can leverage `/kiro:spec-init <what to build>` and the full SDD workflow
 ```
@@ -63,7 +64,7 @@ After running cc-sdd, you'll have:
 
 ## About
 
-Brings to Claude Code, Cursor IDE and Gemini CLI your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
+Brings to Claude Code, Cursor IDE, Gemini CLI and Qwen Code your project context, Project Memory (steering) and development patterns: **requirements → design → tasks → implementation**. **Kiro IDE compatible** — Reuse Kiro-style SDD specs and workflows seamlessly.
 
 **【Claude Code/Cursor IDE/Gemini CLI】**
 ワンライナーで **AI-DLC（AI-Driven Development Life Cycle）** と **Spec-Driven Development（仕様駆動開発）** のワークフローを導入。プロジェクト直下に **10個のSlash Commands** 一式と設定ファイル（Claude Code用の **CLAUDE.md** / Cursor IDE用の **AGENTS.md** / Gemini CLI用の **GEMINI.md**）を配置、プロジェクトの文脈と開発パターン（**要件 → 設計 → タスク → 実装**）、**プロジェクトメモリ（ステアリング）** を含む。
@@ -86,6 +87,7 @@ Brings to Claude Code, Cursor IDE and Gemini CLI your project context, Project M
 - **✅ Claude Code** - Fully supported with all 10 custom slash commands and CLAUDE.md
 - **✅ Gemini CLI** - Fully supported with all 10 custom commands and GEMINI.md
 - **✅ Cursor IDE** - Fully supported with all 10 custom commands and AGENTS.md
+- **✅ Qwen Code** - Fully supported with all 10 custom commands and QWEN.md
 - **📅 More agents** - Additional AI coding assistants planned
 
 *Currently optimized for Claude Code. Use `--agent claude-code` (default) for full functionality.*
@@ -173,7 +175,7 @@ For detailed documentation, installation instructions, and usage examples, see:
 claude-code-spec/
 ├── tools/cc-sdd/              # Main cc-sdd NPM package
 │   ├── src/                   # TypeScript source code
-│   ├── templates/             # Agent templates (Claude Code, Cursor IDE, Gemini CLI)
+│   ├── templates/             # Agent templates (Claude Code, Cursor IDE, Gemini CLI, Qwen Code)
 │   ├── package.json           # Package configuration
 │   └── README.md              # Tool documentation
 ├── docs/                      # Documentation

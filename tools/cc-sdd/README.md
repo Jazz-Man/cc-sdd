@@ -1,6 +1,6 @@
 # cc-sdd
 
-✨ **Transform Claude Code/ Cursor IDE / Gemini CLI from prototype to production-ready development**
+✨ **Transform Claude Code/ Cursor IDE / Gemini CLI / Qwen Code from prototype to production-ready development**
 
 <!-- npm badges -->
 [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
@@ -11,7 +11,7 @@
 English | <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README_ja.md">日本語</a> | <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
-Brings **AI-DLC (AI Driven Development Lifecycle)** to Claude Code, Cursor IDE and Gemini CLI. **AI-native processes** with **minimal human approval gates**: AI drives execution while humans validate critical decisions at each phase.
+Brings **AI-DLC (AI Driven Development Lifecycle)** to Claude Code, Cursor IDE, Gemini CLI, and Qwen Code. **AI-native processes** with **minimal human approval gates**: AI drives execution while humans validate critical decisions at each phase.
 
 🎯 **Perfect for**: Escaping the 70% overhead trap of traditional development (meetings, documentation, ceremonies) to achieve **weeks-to-hours delivery** with AI-native execution and human quality gates.
 
@@ -31,6 +31,7 @@ npx cc-sdd@latest --lang zh-TW # Traditional Chinese
 # With agent options (default: claude-code)
 npx cc-sdd@latest --gemini-cli --lang ja # For Gemini CLI instead
 npx cc-sdd@latest --cursor --lang ja # For Cursor IDE instead
+npx cc-sdd@latest --qwen-code --lang ja # For Qwen Code instead
 ```
 
 ## 🌐 Supported Languages
@@ -95,6 +96,7 @@ npx cc-sdd@latest --cursor --lang ja # For Cursor IDE instead
 | **Claude Code** | ✅ Full | 10 slash commands | `CLAUDE.md` |
 | **Gemini CLI** | ✅ Full | 10 commands | `GEMINI.md` |
 | **Cursor IDE** | ✅ Full | 10 commands | `AGENTS.md` |
+| **Qwen Code** | ✅ Full | 10 commands | `QWEN.md` |
 | Others | 📅 Planned | - | - |
  
 ## 📋 Commands
