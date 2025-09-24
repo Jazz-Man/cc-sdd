@@ -46,7 +46,7 @@ describe('contextFromResolved', () => {
     expect(ctx.KIRO_DIR).toBe('.kiro');
     expect(ctx.AGENT_DIR).toBe('.qwen');
     expect(ctx.AGENT_DOC).toBe('QWEN.md');
-    expect(ctx.AGENT_COMMANDS_DIR).toBe('.qwen/commands');
+    expect(ctx.AGENT_COMMANDS_DIR).toBe('.qwen/commands/kiro');
     expect(ctx.DEV_GUIDELINES).toBe('- 以英文思考，但以繁體中文生成回應（Think in English, generate in Traditional Chinese）');
   });
 

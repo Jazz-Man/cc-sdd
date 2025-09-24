@@ -1,6 +1,6 @@
 # cc-sdd
 
-✨ **Claude Code / Cursor IDE / Gemini CLIをプロトタイプからプロダクション開発プロセスへ**
+✨ **Claude Code / Cursor IDE / Gemini CLI / Qwen Codeをプロトタイプからプロダクション開発プロセスへ**
 
 <!-- npm badges -->
 [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
@@ -11,7 +11,7 @@
 <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README.md">English</a> | 日本語 | <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README_zh-TW.md">繁體中文</a>
 </sub></div>
 
-Claude Code、Cursor IDE、Gemini CLIを **AI-DLC (AI駆動開発ライフサイクル)**へ。**AIネイティブプロセス**と**最小限の人間承認ゲート**：AIが実行を駆動し、人間が各フェーズで重要な決定を検証。
+Claude Code、Cursor IDE、Gemini CLI、Qwen Codeを **AI-DLC (AI駆動開発ライフサイクル)**へ。**AIネイティブプロセス**と**最小限の人間承認ゲート**：AIが実行を駆動し、人間が各フェーズで重要な決定を検証。
 
 🎯 **最適な用途**: 従来開発の70%オーバーヘッド（会議・文書・儀式）から脱却し、AIネイティブ実行と人間品質ゲートで **週単位から時間単位の納期** を実現。
 
@@ -31,6 +31,7 @@ npx cc-sdd@latest --lang zh-TW # 繁体字中国語
 # エージェントオプション（デフォルト: claude-code）
 npx cc-sdd@latest --gemini-cli --lang ja # Gemini CLI用
 npx cc-sdd@latest --cursor --lang ja # Cursor IDE用
+npx cc-sdd@latest --qwen-code --lang ja # Qwen Code用
 ```
 
 ## ✨ クイックスタート
@@ -80,6 +81,7 @@ npx cc-sdd@latest --cursor --lang ja # Cursor IDE用
 | **Claude Code** | ✅ 完全対応 | 10スラッシュコマンド | `CLAUDE.md` |
 | **Gemini CLI** | ✅ 完全対応 | 10コマンド | `GEMINI.md` |
 | **Cursor IDE** | ✅ 完全対応 | 10コマンド | `AGENTS.md` |
+| **Qwen Code** | ✅ 完全対応 | 10コマンド | `QWEN.md` |
 | その他 | 📅 予定 | - | - |
  
 ## 📋 コマンド

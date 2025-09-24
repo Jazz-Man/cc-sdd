@@ -23,7 +23,7 @@ export const resolveAgentLayout = (agent: AgentType, config?: CCSddConfig): Agen
       docFile: 'GEMINI.md',
     },
     'qwen-code': {
-      commandsDir: '.qwen/commands',
+      commandsDir: '.qwen/commands/kiro',
       agentDir: '.qwen',
       docFile: 'QWEN.md',
     },

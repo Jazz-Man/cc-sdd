@@ -1,6 +1,6 @@
 # cc-sdd
 
-✨ **將 Claude Code / Cursor IDE / Gemini CLI 從原型開發轉型為生產級開發**
+✨ **將 Claude Code / Cursor IDE / Gemini CLI / Qwen Code 從原型開發轉型為生產級開發**
 
 <!-- npm badges -->
 [![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
@@ -11,7 +11,7 @@
 <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README.md">English</a> | <a href="https://github.com/gotalab/cc-sdd/blob/main/tools/cc-sdd/README_ja.md">日本語</a> | 繁體中文
 </sub></div>
 
-將 **AI-DLC (AI 驅動開發生命週期)** 帶入 Claude Code、Cursor IDE 與 Gemini CLI。**AI 原生流程**與**最小限的人類批准關卡**：AI 驅動執行，人類在各階段驗證關鍵決策。
+將 **AI-DLC (AI 驅動開發生命週期)** 帶入 Claude Code、Cursor IDE、Gemini CLI 與 Qwen Code。**AI 原生流程**與**最小限的人類批准關卡**：AI 驅動執行，人類在各階段驗證關鍵決策。
 
 🎯 **最佳用途**：脱離傳統開發 70% 的額外負擔（會議、文件、儀式），透過 AI 原生執行和人類品質關卡實現 **從週到小時的交付**。
 
@@ -31,6 +31,7 @@ npx cc-sdd@latest --lang ja    # 日語
 # 代理選項（預設：claude-code）
 npx cc-sdd@latest --gemini-cli --lang zh-TW # Gemini CLI 用
 npx cc-sdd@latest --cursor --lang zh-TW # Cursor IDE 用
+npx cc-sdd@latest --qwen-code --lang zh-TW # Qwen Code 用
 ```
 
 ## ✨ 快速開始
@@ -80,6 +81,7 @@ npx cc-sdd@latest --cursor --lang zh-TW # Cursor IDE 用
 | **Claude Code** | ✅ 完全支援 | 10 個斜線指令 | `CLAUDE.md` |
 | **Gemini CLI** | ✅ 完全支援 | 10 個指令 | `GEMINI.md` |
 | **Cursor IDE** | ✅ 完全支援 | 10 個指令 | `AGENTS.md` |
+| **Qwen Code** | ✅ 完全支援 | 10 個指令 | `QWEN.md` |
 | 其他 | 📅 規劃中 | - | - |
 
 ## 📋 指令
