@@ -50,7 +50,7 @@ skill; bootstrap hook with user-file precedence; `/sdd:init` opt-in; docs rewrit
 cc-sdd/                            plugin name: sdd
 ├── .claude-plugin/plugin.json    name: sdd, version, description
 ├── hooks/hooks.json              SessionStart hook (see 4.3)
-├── skills/                       16 skills, bare names → /sdd:<name>
+├── skills/                       15 skills, bare names → /sdd:<name>
 │   ├── init/SKILL.md
 │   ├── discovery/SKILL.md
 │   ├── spec-quick/SKILL.md
@@ -58,7 +58,6 @@ cc-sdd/                            plugin name: sdd
 │   ├── spec-requirements/SKILL.md
 │   ├── spec-design/SKILL.md
 │   ├── spec-tasks/SKILL.md
-│   ├── spec-batch/SKILL.md
 │   ├── impl/SKILL.md
 │   │   └── templates/            implementer-prompt.md, task-reviewer-prompt.md,
 │   │                             re-review-prompt.md, code-reviewer-prompt.md,
@@ -81,7 +80,8 @@ cc-sdd/                            plugin name: sdd
 ```
 
 Compared to the source 17 skills: `spec-status` is deleted (beans replaces it),
-`steering-custom` merges into `steering`, `init` is new. Total: 16.
+`spec-batch` is deleted (sequential single-feature workflow — see 5.5),
+`steering-custom` merges into `steering`, `init` is new. Total: 15.
 
 ### 4.2 Skill inventory (interaction pattern, model, origin)
 
@@ -94,7 +94,6 @@ Compared to the source 17 skills: `spec-status` is deleted (beans replaces it),
 | spec-requirements | interactive inline; drafting dispatched to subagent | opus (draft subagent) | rewritten |
 | spec-design | generative fork | opus | ported + reworked |
 | spec-tasks | generative fork | opus | ported + reworked |
-| spec-batch | orchestrator of per-spec subagent waves | inherit | rewritten |
 | impl | inline orchestrator + per-task subagents | inherit | rewritten fresh |
 | review / debug / verify-completion | protocol payloads; user-invocable | (set by caller) | ported |
 | validate-gap / -design / -impl | generative fork | opus | ported + reworked |
@@ -132,7 +131,7 @@ ever written to the file by the plugin.
    hardwired in frontmatter. (spec-requirements is NOT forked: its questioning phase
    needs the user, so the skill runs inline and dispatches only the document drafting
    to an opus subagent via the Agent tool.)
-3. **Orchestrator** (`spec-quick`, `spec-batch`, `impl`): inline in the main
+3. **Orchestrator** (`spec-quick`, `impl`): inline in the main
    conversation — owns the loop, beans state, and user gates; dispatches execution to
    subagents via the Agent tool (general-purpose type + role defined by a
    prompt-template file).
@@ -202,6 +201,24 @@ Agent calls inside prompt-templates (identifiers as supported by the host, e.g.
 - **Subagents never ask the user directly**: they return status contracts with
   structured explanations; the orchestrator formulates the AskUserQuestion.
 
+### 5.5 Single active feature
+
+Exactly one feature is active at any time — the user never works on multiple features
+in parallel. Consequences:
+
+- The active feature = the single epic bean with status `in-progress`. Skills resolve
+  it from beans; only `spec-init` and `discovery` accept a new feature
+  name/description (the moment a feature is born). All other skills take no feature
+  argument.
+- `spec-init` refuses to create a new feature while an `in-progress` epic exists — it
+  offers to complete or scrap the current one first.
+- A follow-up feature discovered mid-work is queued (epic `todo`, `--blocked-by` the
+  active epic) and starts only after the current feature completes — or instead of
+  it, if the current one is cancelled.
+- sdd is agnostic to session lifecycle: state lives on disk (beans + files), so
+  whatever the user does with their session between features is irrelevant to the
+  plugin.
+
 ## 6. Data and State
 
 ### 6.1 Target project layout (fixed, no configuration)
@@ -232,8 +249,9 @@ Agent calls inside prompt-templates (identifiers as supported by the host, e.g.
 - **Feature** → epic bean (created by spec-init, one per spec)
 - **Task** → task bean (created by spec-tasks), requirement/boundary metadata in body,
   cross-task dependencies via `--blocked-by`
-- **Initiative** (multi-spec work) → milestone bean; specs as epic beans with
-  `--blocked-by` encoding dependency waves (replaces `roadmap.md` and its checkboxes)
+- **Initiative** (multi-spec work) → milestone bean; specs as epic beans queued with
+  `--blocked-by` — strictly sequential, each next spec starts only after the previous
+  completes (replaces `roadmap.md` and its checkboxes; no parallel waves)
 - Roadmap rendering on demand: `beans roadmap` (never parsed as state)
 - Lifecycle per the global beans guide: in-progress → completed with
   `## Summary of Changes`; concern notes appended to bean bodies
@@ -265,6 +283,11 @@ discovered during work — including when review passed and plan-conformance is 
 
 The user decides (via AskUserQuestion). This applies at stop-points, review
 adjudication, and plan-deviation moments alike.
+
+**Cancellation** is a first-class outcome of escalation: choosing to abort marks the
+feature epic and its task beans `scrapped`; the feature branch (created and deleted
+by the user — agents never touch branches) carries away the spec, workspace, and bean
+files together. Nothing survives to pollute later work.
 
 Other paths:
 - `NEEDS_CONTEXT` → the orchestrator resolves it itself only if trivially answerable
@@ -304,7 +327,7 @@ Other paths:
 3. **Subagent-first + beans** — fork frontmatter on generative skills; impl
    orchestrator + prompt-template suite + status contracts + fix-loop + review-package
    builder; all tracking migrated to beans; `spec.json` deleted; `tasks.md` becomes
-   the static plan doc; discovery/spec-batch move to milestone/epic beans.
+   the static plan doc; discovery moves to milestone/epic beans (sequential queue); `spec-batch` is deleted.
    Verify: grep invariants (see 10), smoke-run `/sdd:impl` on a toy spec.
 4. **Steering + bootstrap** — integrate the steering skill with its references;
    build `/sdd:init`; SessionStart hook with the precedence rule.
@@ -348,7 +371,7 @@ behavioral:
 
 ## 12. Success Criteria
 
-1. Plugin loads via `claude --plugin-dir .`; all 16 skills invocable as `/sdd:<name>`;
+1. Plugin loads via `claude --plugin-dir .`; all 15 skills invocable as `/sdd:<name>`;
    hook injects on startup and defers to an existing `.claude/rules/sdd.md`.
 2. `git ls-files` contains none of: `tools/`, `.agents/`, `AGENTS.md`, `.kiro/`,
    ja/zh-TW files, demo specs.

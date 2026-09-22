@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T20:58:43Z
+updated_at: 2026-09-22T21:30:21Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -180,3 +180,13 @@ Plan: docs/superpowers/plans/2026-09-22-sdd-plugin-conversion.md
 - Review Focus: 5 failure modes pinned to tasks (surviving git-write prose; missing background:false; stale identifiers; literal git-write adjacency tripping user's hook; beans-guide duplication)
 - Execution method preserved: subagent-driven (user's standing choice)
 - Status: PLAN REVIEW GATE — awaiting user approval, then superpowers:subagent-driven-development
+
+## Revision 2 — single active feature (2026-09-23, user clarification)
+
+User NEVER works multiple features in parallel: one branch per feature, full cycle, cancel = branch deleted with everything. /compact between features is personal session hygiene — NOT sdd's concern (state on disk makes sdd session-agnostic).
+CHANGES applied to spec + plan:
+- NEW spec §5.5 Single active feature: active feature = the single in-progress epic (resolved from beans, no arguments); spec-init/discovery alone accept a new feature name; spec-init refuses while an in-progress epic exists; follow-up features queued (todo + blocked-by active)
+- spec-batch DELETED (16→15 skills): sequential epic queue replaces parallel wave generation
+- Cancellation = first-class escalation outcome (epic+tasks scrapped; branch deletion by user carries artifacts+beans away)
+- Plan: Tasks 3 (14 moves), 5 (hardcode note corrected), 6 (arg-hint [task-id], active-feature resolution), 8 (spec-init refusal), 10 rewritten discovery-only, 14 (map rules + 15 names), 16 (15 names); Global Constraints + self-review revision stamp
+- Sanity grep: all spec-batch mentions are deletion-context; no feature-arg leftovers

@@ -33,6 +33,11 @@ argues from the spec; executors read both.
 - **beans is the only tracker.** One-line references to the global beans guide;
   never duplicate its content. Epic per feature, task beans with `--blocked-by`,
   milestone per initiative.
+- **Single active feature** (spec 5.5). Exactly one `in-progress` epic; skills
+  resolve the active feature from beans and take NO feature argument; only
+  `spec-init`/`discovery` accept a new feature name; `spec-init` refuses while an
+  in-progress epic exists. Session lifecycle (compaction, new sessions) is not
+  sdd's concern — state lives on disk.
 - **English only.** Delete ja/zh-TW content on sight.
 - **Never touch:** `.zed/`, `.github/workflows/`. **Never mutate** any target
   project's `CLAUDE.md`. `/sdd:init` writes only `.claude/rules/sdd.md`.
@@ -150,9 +155,9 @@ numbers are kept for traceability; execute in the order given at the end.)*
 
 **Interfaces:**
 - Consumes: `tools/cc-sdd/templates/agents/claude-code-skills/skills/kiro-*/` (17 dirs).
-- Produces: `skills/{init…steering}/` — the canonical skill set (16 after deletions);
+- Produces: `skills/{init…steering}/` — the canonical skill set (15 after deletions);
   names later tasks reference: `init, discovery, spec-quick, spec-init,
-  spec-requirements, spec-design, spec-tasks, spec-batch, impl, review, debug,
+  spec-requirements, spec-design, spec-tasks, impl, review, debug,
   verify-completion, validate-gap, validate-design, validate-impl, steering`.
 
 - [ ] **Step 1: Create the manifest (verbatim)**
@@ -178,7 +183,6 @@ mv $S/kiro-spec-init        skills/spec-init
 mv $S/kiro-spec-requirements skills/spec-requirements
 mv $S/kiro-spec-design      skills/spec-design
 mv $S/kiro-spec-tasks       skills/spec-tasks
-mv $S/kiro-spec-batch       skills/spec-batch
 mv $S/kiro-impl             skills/impl
 mv $S/kiro-review           skills/review
 mv $S/kiro-debug            skills/debug
@@ -188,13 +192,15 @@ mv $S/kiro-validate-design  skills/validate-design
 mv $S/kiro-validate-impl    skills/validate-impl
 mv $S/kiro-steering         skills/steering
 ```
-(`kiro-spec-status` and `kiro-steering-custom` are NOT moved — they die with `tools/`
-in Task 1. `skills/init/` is created new in Task 14.)
+(`kiro-spec-status`, `kiro-spec-batch`, and `kiro-steering-custom` are NOT moved —
+they die with `tools/` in Task 1: beans replaces status, the sequential
+single-feature workflow (spec 5.5) replaces batch. `skills/init/` is created new in
+Task 14.)
 
 - [ ] **Step 3: Verify**
 
 Run: `ls skills | sort`
-Expected: 15 entries exactly matching the list above, each containing `SKILL.md`.
+Expected: 14 entries exactly matching the list above, each containing `SKILL.md`.
 
 Run: `claude plugin validate . 2>&1 || true` — note result; formal validation is
 re-run in Task 5 after references are fixed (broken `{{...}}` strings may warn here;
@@ -257,16 +263,16 @@ Run: `ls assets/rules | wc -l` → `12`; `ls assets/templates` → 5 files, no i
 
 In all files under `skills/`: `{{KIRO_DIR}}` → `.sdd` (96 expected occurrences;
 after Task 4's rewiring only spec-path mentions remain).
-Fix the two known hardcodes: `skills/spec-batch/SKILL.md` subagent prompts
-`.claude/skills/kiro-spec-{init,requirements,design,tasks}/SKILL.md` →
-`.sdd`-based dispatch via `${CLAUDE_PLUGIN_ROOT}/skills/...`; `docs/CLAUDE.md`
-template is already deleted with `tools/`.
+The two known hardcodes from the research (`.claude/skills/kiro-*` paths in the old
+kiro-spec-batch subagent prompts and in the old docs/CLAUDE.md template) both
+disappear via deletion — spec-batch is not relocated and docs/CLAUDE.md died with
+`tools/`. No manual hardcode fixes remain expected; the Step 4 grep confirms.
 
 - [ ] **Step 2: Invocation rename**
 
 Replace `/kiro-<x>` → `/sdd:<x>` and bare `kiro-<x>` → the bare skill name or
 `/sdd:<x>` as grammar requires, across `skills/`. Example:
-`/kiro-spec-quick {feature}` → `/sdd:spec-quick {feature}`.
+`/kiro-spec-quick {feature}` → `/sdd:spec-quick` (no feature argument — spec 5.5).
 
 - [ ] **Step 3: Rewrite root CLAUDE.md**
 
@@ -301,8 +307,11 @@ Run: `claude plugin validate .` → passes (warnings acceptable, errors not).
 **Required sections (each with full content at execution):**
 1. Frontmatter: `name: impl`, description, `allowed-tools: Read, Write, Edit, Glob,
    Grep, Bash, Agent, AskUserQuestion` (Bash restricted to read-only git — stated in
-   body), `argument-hint: <feature-name> [task-id]`.
-2. Loop (spec 5.2 verbatim semantics): query beans for next unblocked task → write
+   body), `argument-hint: [task-id]`.
+2. Loop (spec 5.2 + 5.5 semantics): resolve the active feature (the single
+   `in-progress` epic — none: stop with a pointer to `/sdd:spec-init` or
+   `/sdd:discovery`; more than one: stop and ask the user to fix beans first) →
+   query beans for its next unblocked task → write
    `workspace/task-N-brief.md` (extract the task section from tasks.md + requirement
    IDs + boundary) → dispatch implementer (Task 7 template, `model: sonnet`) with
    file path PATTERNS (never file contents) → parse `## Status Report` → build
@@ -394,9 +403,11 @@ Focus #4: prose forms only).
   (spec-quick); `requirements.md` (spec-requirements).
 
 **Requirements:**
-- `spec-init`: create `.sdd/specs/<feature>/`; create the epic bean titled after the
-  feature with `-t epic -s todo`; no spec.json (deleted concept — text must not
-  mention it).
+- `spec-init`: accepts the new feature name/description (the ONLY place a feature is
+  born); refuses if an `in-progress` epic already exists (offers complete/scrap
+  first, per spec 5.5); creates `.sdd/specs/<name>/` and the epic bean with
+  `-t epic -s in-progress`; no spec.json (deleted concept — text must not mention
+  it).
 - `spec-quick`: inline orchestrator invoking `sdd:spec-init → spec-requirements →
   spec-design → spec-tasks` via the Skill tool with an approval AskUserQuestion
   between phases; exit summary lists bean ids created.
@@ -450,31 +461,30 @@ Run: `grep -c 'beans create' skills/spec-tasks/SKILL.md` → ≥1.
 
 - [ ] **Step 3: STOP** — user reviews and commits.
 
-### Task 10: Rework — discovery and spec-batch (beans-native multi-spec)
+### Task 10: Rework — discovery (beans-native, sequential multi-spec)
 
 **Files:**
-- Rewrite: `skills/discovery/SKILL.md`, `skills/spec-batch/SKILL.md`
+- Rewrite: `skills/discovery/SKILL.md`
 
 **Interfaces:**
 - Consumes: beans milestone/epic + `--blocked-by`; `.sdd/brief.md`.
-- Produces: milestone bean + epic beans with dependency waves; `brief.md`;
-  batch generation driving per-spec subagents.
+- Produces: routing decision; milestone bean + ordered epic queue; `brief.md`.
 
 **Requirements:**
-- `discovery`: routing decision (extend existing spec / no spec / single / multi /
-  mixed) presented via AskUserQuestion with trade-offs; multi-spec → create milestone
-  bean + epic beans, cross-spec dependencies as `--blocked-by` (replaces roadmap.md
-  entirely — text must not mention roadmap.md); writes `.sdd/brief.md` (narrative:
-  intent, scope, decisions, open questions).
-- `spec-batch`: reads pending epics under the milestone from beans (NOT files);
-  dispatches per-spec subagent waves (a wave = epics whose blockers are all
-  completed), `model: opus`, one Agent per spec per wave; updates epic statuses.
+- Routing decision (extend existing spec / no spec needed / single new spec /
+  multi-spec initiative / mixed) presented via AskUserQuestion with trade-offs.
+- Multi-spec → milestone bean + epic beans as a STRICTLY SEQUENTIAL queue: each next
+  epic `--blocked-by` its predecessor; no parallel waves; no batch generation (the
+  deleted spec-batch concept). Follow-up features discovered mid-work are queued the
+  same way, never started alongside the active feature (spec 5.5).
+- Writes `.sdd/brief.md` (narrative: intent, scope, decisions, open questions).
+- No mention of roadmap.md.
 
-- [ ] **Step 1: Write both files**, complete.
+- [ ] **Step 1: Write the file**, complete.
 - [ ] **Step 2: Verify**
 
-Run: `grep -c 'roadmap' skills/discovery/SKILL.md skills/spec-batch/SKILL.md` → `0`.
-Run: `grep -c 'beans' skills/spec-batch/SKILL.md` → ≥3.
+Run: `grep -ci 'roadmap\|spec-batch' skills/discovery/SKILL.md` → `0`.
+Run: `grep -c 'blocked-by' skills/discovery/SKILL.md` → ≥1.
 
 - [ ] **Step 3: STOP** — user reviews and commits.
 
@@ -559,11 +569,13 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 - Produces: bootstrap behavior; the default rules content `/sdd:init` writes.
 
 - [ ] **Step 1: `assets/workflow-map.md` (verbatim core; executor completes the
-  skill index table with the 16 names from Task 3):** content = the workflow map:
+  skill index table with the 15 names from Task 3):** content = the workflow map:
   paths (`.sdd/specs/`, workspace, brief), phase flow (discovery → requirements →
   design → tasks → impl with approval gates), beans-only-tracking statement +
   one-line pointer to the global beans guide, AskUserQuestion-always rule,
-  stop-per-task + user-commits rule, model table. Wrapped for hook injection with
+  stop-per-task + user-commits rule, model table, single-active-feature rule
+  (resolve from beans; only spec-init/discovery take a feature name). Wrapped for
+  hook injection with
   `<EXTREMELY_IMPORTANT>` open/close and a `<SUBAGENT-STOP>` notice line at top.
 - [ ] **Step 2: `hooks/hooks.json` (verbatim):**
 
@@ -615,7 +627,7 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 - [ ] **Step 1: Full invariant battery (spec §10.2-10.3)** — all greps from Tasks
   5, 8-12 re-run repo-wide; `claude plugin validate .` clean; `claude -p
   --plugin-dir . "Reply with the exact list of your available /sdd: skills"`
-  returns the 16 names.
+  returns the 15 names.
 - [ ] **Step 2: E2E dry run (spec §10.5)** in a scratch project: `/sdd:init` →
   toy feature via `/sdd:spec-quick` (approve each phase via the offered choices) →
   `/sdd:impl` one task → verify STOP shape (short report, AskUserQuestion, no
@@ -642,3 +654,7 @@ run unchanged as numbered.)
 - **Type consistency:** status contract values, report block names, asset paths,
   skill names cross-checked across Tasks 3-14.
 - **Review Focus:** five failure modes listed; each pinned to Tasks 11, 16, 5/16, 7, 16.
+- **Revision 2 (2026-09-23):** single-active-feature model per user clarification —
+  spec-batch deleted (16→15 skills), feature arguments removed from all skills except
+  spec-init/discovery (spec 5.5), spec-init refusal rule, cancellation path in the
+  spec; /compact and session habits explicitly OUT of sdd's concerns (state on disk).
