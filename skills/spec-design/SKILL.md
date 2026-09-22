@@ -1,11 +1,11 @@
 ---
-name: kiro-spec-design
+name: spec-design
 description: Generate comprehensive technical design translating requirements (WHAT) into architecture (HOW) with discovery process. Use when creating architecture from requirements.
 allowed-tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 argument-hint: <feature-name> [-y]
 ---
 
-# kiro-spec-design Skill
+# spec-design Skill
 
 ## Core Mission
 - **Success Criteria**:
@@ -21,8 +21,8 @@ argument-hint: <feature-name> [-y]
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- `{{KIRO_DIR}}/specs/{feature}/spec.json`, `requirements.md`, `design.md` (if exists)
-- `{{KIRO_DIR}}/specs/{feature}/research.md` (if exists, contains gap analysis from `/kiro-validate-gap`)
+- `.sdd/specs/{feature}/spec.json`, `requirements.md`, `design.md` (if exists)
+- `.sdd/specs/{feature}/research.md` (if exists, contains gap analysis from `/sdd:validate-gap`)
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to requirement coverage, architecture boundaries, integrations, runtime prerequisites, security/performance constraints, or team conventions that affect implementation readiness
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -85,7 +85,7 @@ After all findings return, synthesize in main context before proceeding.
    - Boundary candidates, out-of-boundary decisions, and likely revalidation triggers
 
 4. **Persist Findings to Research Log**:
-   - Create or update `{{KIRO_DIR}}/specs/{feature}/research.md` using the shared template
+   - Create or update `.sdd/specs/{feature}/research.md` using the shared template
    - Summarize discovery scope and key findings
    - Record investigations with sources and implications
    - Document architecture pattern evaluation, design decisions, and risks
@@ -124,7 +124,7 @@ After all findings return, synthesize in main context before proceeding.
 ### Step 6: Finalize Design Document
 
 1. **Write Final Design**:
-   - Write `{{KIRO_DIR}}/specs/{feature}/design.md` only after the design review gate passes
+   - Write `.sdd/specs/{feature}/design.md` only after the design review gate passes
    - Write research.md with discovery findings and synthesis outcomes (if not already written)
 
 2. **Update Metadata** in spec.json:
@@ -149,7 +149,7 @@ After all findings return, synthesize in main context before proceeding.
 
 Provide brief summary in the language specified in spec.json:
 
-1. **Status**: Confirm design document generated at `{{KIRO_DIR}}/specs/{feature}/design.md`
+1. **Status**: Confirm design document generated at `.sdd/specs/{feature}/design.md`
 2. **Discovery Type**: Which discovery process was executed (full/light/minimal)
 3. **Key Findings**: 2-3 critical insights from discovery that shaped the design
 4. **Review Gate**: Confirm the design review gate passed
@@ -167,12 +167,12 @@ Provide brief summary in the language specified in spec.json:
 **Requirements Not Approved**:
 - **Stop Execution**: Cannot proceed without approved requirements
 - **User Message**: "Requirements not yet approved. Approval required before design generation."
-- **Suggested Action**: "Run `/kiro-spec-design {feature} -y` to auto-approve requirements and proceed"
+- **Suggested Action**: "Run `/sdd:spec-design {feature} -y` to auto-approve requirements and proceed"
 
 **Missing Requirements**:
 - **Stop Execution**: Requirements document must exist
-- **User Message**: "No requirements.md found at `{{KIRO_DIR}}/specs/{feature}/requirements.md`"
-- **Suggested Action**: "Run `/kiro-spec-requirements {feature}` to generate requirements first"
+- **User Message**: "No requirements.md found at `.sdd/specs/{feature}/requirements.md`"
+- **Suggested Action**: "Run `/sdd:spec-requirements {feature}` to generate requirements first"
 
 **Template Missing**:
 - **User Message**: "Template file missing at `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md`"
@@ -189,15 +189,15 @@ Provide brief summary in the language specified in spec.json:
 **Spec Gap Found During Design Review**:
 - **Stop Execution**: Do not write a patched-over `design.md`
 - **User Message**: "Design review found a real spec gap or ambiguity that must be resolved before design can be finalized."
-- **Suggested Action**: Clarify or fix `requirements.md`, then re-run `/kiro-spec-design {feature}`
+- **Suggested Action**: Clarify or fix `requirements.md`, then re-run `/sdd:spec-design {feature}`
 
 ### Next Phase: Task Generation
 
 **If Design Approved**:
-- **Optional**: Run `/kiro-validate-design {feature}` for interactive quality review
-- Run `/kiro-spec-tasks {feature}` to generate implementation tasks
-- Or `/kiro-spec-tasks {feature} -y` to auto-approve and proceed directly
+- **Optional**: Run `/sdd:validate-design {feature}` for interactive quality review
+- Run `/sdd:spec-tasks {feature}` to generate implementation tasks
+- Or `/sdd:spec-tasks {feature} -y` to auto-approve and proceed directly
 
 **If Modifications Needed**:
-- Provide feedback and re-run `/kiro-spec-design {feature}`
+- Provide feedback and re-run `/sdd:spec-design {feature}`
 - Existing design used as reference (merge mode)

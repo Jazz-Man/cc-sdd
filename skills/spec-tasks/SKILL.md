@@ -1,11 +1,11 @@
 ---
-name: kiro-spec-tasks
+name: spec-tasks
 description: Generate implementation tasks from requirements and design. Use when creating actionable task lists.
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent
 argument-hint: <feature-name> [-y] [--sequential]
 ---
 
-# kiro-spec-tasks Skill
+# spec-tasks Skill
 
 ## Core Mission
 - **Success Criteria**:
@@ -21,8 +21,8 @@ argument-hint: <feature-name> [-y] [--sequential]
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- `{{KIRO_DIR}}/specs/{feature}/spec.json`, `requirements.md`, `design.md`
-- `{{KIRO_DIR}}/specs/{feature}/tasks.md` (if exists, for merge mode)
+- `.sdd/specs/{feature}/spec.json`, `requirements.md`, `design.md`
+- `.sdd/specs/{feature}/tasks.md` (if exists, for merge mode)
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to requirements coverage, design boundaries, runtime prerequisites, or team conventions that affect task executability
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -100,7 +100,7 @@ Before writing `tasks.md`, run one lightweight independent sanity review of the 
 ### Step 4: Finalize
 
 **Write tasks.md**:
-- Create/update `{{KIRO_DIR}}/specs/{feature}/tasks.md`
+- Create/update `.sdd/specs/{feature}/tasks.md`
 - Update spec.json metadata:
   - Set `phase: "tasks-generated"`
   - Set `approvals.tasks.generated: true, approved: false`
@@ -112,13 +112,13 @@ Before writing `tasks.md`, run one lightweight independent sanity review of the 
 - If auto-approve flag (`-y`) is true:
   - Set `approvals.tasks.approved: true` in spec.json
   - Display task summary (task count, major groups, parallel markers)
-  - Respond: "Tasks generated and auto-approved. Start implementation with `/kiro-impl {feature}`"
+  - Respond: "Tasks generated and auto-approved. Start implementation with `/sdd:impl {feature}`"
 - Otherwise (interactive):
   - Display a summary of the generated tasks (task count, major groups, parallel markers)
   - Ask the user: "Tasks generated. Approve and proceed to implementation?"
   - If the user approves:
     - Set `approvals.tasks.approved: true` in spec.json
-    - Respond: "Tasks approved. Start implementation with `/kiro-impl {feature}`"
+    - Respond: "Tasks approved. Start implementation with `/sdd:impl {feature}`"
   - If the user wants changes:
     - Keep `approvals.tasks.approved: false`
     - Respond with guidance on what to adjust and re-run
@@ -135,7 +135,7 @@ Before writing `tasks.md`, run one lightweight independent sanity review of the 
 
 Provide brief summary in the language specified in spec.json:
 
-1. **Status**: Confirm tasks generated at `{{KIRO_DIR}}/specs/{feature}/tasks.md`
+1. **Status**: Confirm tasks generated at `.sdd/specs/{feature}/tasks.md`
 2. **Task Summary**:
    - Total: X major tasks, Y sub-tasks
    - All Z requirements covered
@@ -158,11 +158,11 @@ Provide brief summary in the language specified in spec.json:
 **Requirements or Design Not Approved**:
 - **Stop Execution**: Cannot proceed without approved requirements and design
 - **User Message**: "Requirements and design must be approved before task generation"
-- **Suggested Action**: "Run `/kiro-spec-tasks {feature} -y` to auto-approve all (requirements, design, and tasks) and proceed"
+- **Suggested Action**: "Run `/sdd:spec-tasks {feature} -y` to auto-approve all (requirements, design, and tasks) and proceed"
 
 **Missing Requirements or Design**:
 - **Stop Execution**: Both documents must exist
-- **User Message**: "Missing requirements.md or design.md at `{{KIRO_DIR}}/specs/{feature}/`"
+- **User Message**: "Missing requirements.md or design.md at `.sdd/specs/{feature}/`"
 - **Suggested Action**: "Complete requirements and design phases first"
 
 **Incomplete Requirements Coverage**:
@@ -172,10 +172,10 @@ Provide brief summary in the language specified in spec.json:
 **Spec Gap Found During Task Review**:
 - **Stop Execution**: Do not write a patched-over `tasks.md`
 - **User Message**: "Requirements/design do not provide enough clear coverage to generate an executable task plan"
-- **Suggested Action**: "Refine requirements.md or design.md, then re-run `/kiro-spec-tasks {feature}`"
+- **Suggested Action**: "Refine requirements.md or design.md, then re-run `/sdd:spec-tasks {feature}`"
 
 **Template/Rules Missing**:
-- **User Message**: "Template or rules files missing in `{{KIRO_DIR}}/settings/`"
+- **User Message**: "Template or rules files missing in `.sdd/settings/`"
 - **Fallback**: Use inline basic structure with warning
 - **Suggested Action**: "Check repository setup or restore template files"
 - **Missing Numeric Requirement IDs**:
@@ -184,5 +184,5 @@ Provide brief summary in the language specified in spec.json:
 ### Next Phase: Implementation
 
 Tasks are approved in Step 4 via user confirmation. Once approved:
-- Autonomous implementation: `/kiro-impl {feature}`
-- Specific tasks only: `/kiro-impl {feature} 1.1,1.2`
+- Autonomous implementation: `/sdd:impl {feature}`
+- Specific tasks only: `/sdd:impl {feature} 1.1,1.2`

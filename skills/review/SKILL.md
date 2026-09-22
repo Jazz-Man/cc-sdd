@@ -1,11 +1,11 @@
 ---
-name: kiro-review
+name: review
 description: Review a task implementation against approved specs, task boundaries, and verification evidence. Use after an implementer finishes a task, after remediation, or before accepting a task as complete.
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: <task-id>
 ---
 
-# kiro-review
+# review
 
 ## Overview
 

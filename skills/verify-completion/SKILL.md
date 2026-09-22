@@ -1,11 +1,11 @@
 ---
-name: kiro-verify-completion
+name: verify-completion
 description: Verify completion and success claims with fresh evidence. Use before claiming a task is complete, a fix works, tests pass, or a feature is ready for GO.
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: <claim-type> <claim>
 ---
 
-# kiro-verify-completion
+# verify-completion
 
 ## Overview
 

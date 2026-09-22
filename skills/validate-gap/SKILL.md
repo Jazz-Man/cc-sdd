@@ -1,11 +1,11 @@
 ---
-name: kiro-validate-gap
+name: validate-gap
 description: Analyze implementation gap between requirements and existing codebase. Use when planning integration with existing systems.
 allowed-tools: Read, Write, Grep, Glob, WebSearch, WebFetch
 argument-hint: <feature-name>
 ---
 
-# kiro-validate-gap Skill
+# validate-gap Skill
 
 ## Role
 You are a specialized skill for analyzing the implementation gap between requirements and existing codebase to inform implementation strategy.
@@ -24,8 +24,8 @@ You are a specialized skill for analyzing the implementation gap between require
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- Read `{{KIRO_DIR}}/specs/{feature}/spec.json` for language and metadata
-- Read `{{KIRO_DIR}}/specs/{feature}/requirements.md` for requirements
+- Read `.sdd/specs/{feature}/spec.json` for language and metadata
+- Read `.sdd/specs/{feature}/requirements.md` for requirements
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to the feature's domain rules, integrations, runtime prerequisites, compliance/security constraints, or existing product boundaries
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -57,7 +57,7 @@ After all parallel research completes, synthesize findings for gap analysis.
 
 **Write the gap analysis to disk so it survives session boundaries and can be referenced during design phase.**
 
-- Use the Write tool to save the gap analysis to `{{KIRO_DIR}}/specs/{feature}/research.md`
+- Use the Write tool to save the gap analysis to `.sdd/specs/{feature}/research.md`
 - If the file already exists, append the new analysis (separated by a horizontal rule `---`) rather than overwriting previous research
 - Verify the file was written by reading it back
 
@@ -89,7 +89,7 @@ Provide output in the language specified in spec.json with:
 ## Safety & Fallback
 
 ### Error Scenarios
-- **Missing Requirements**: If requirements.md doesn't exist, stop with message: "Run `/kiro-spec-requirements {feature}` first to generate requirements"
+- **Missing Requirements**: If requirements.md doesn't exist, stop with message: "Run `/sdd:spec-requirements {feature}` first to generate requirements"
 - **Requirements Not Approved**: If requirements not approved, warn user but proceed (gap analysis can inform requirement revisions)
 - **Empty Steering Directory**: Warn user that project context is missing and may affect analysis quality
 - **Complex Integration Unclear**: Flag for comprehensive research in design phase rather than blocking
@@ -99,7 +99,7 @@ Provide output in the language specified in spec.json with:
 
 **If Gap Analysis Complete**:
 - Review gap analysis insights
-- Run `/kiro-spec-design {feature}` to create technical design document
-- Or `/kiro-spec-design {feature} -y` to auto-approve requirements and proceed directly
+- Run `/sdd:spec-design {feature}` to create technical design document
+- Or `/sdd:spec-design {feature} -y` to auto-approve requirements and proceed directly
 
 **Note**: Gap analysis is optional but recommended for brownfield projects to inform design decisions.

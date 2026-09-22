@@ -1,12 +1,12 @@
 ---
-name: kiro-discovery
+name: discovery
 description: Entry point for new work. Determines the best action path or work decomposition (update existing spec, create new spec, mixed decomposition, or no spec needed) and refines ideas through structured dialogue.
 disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, Agent, WebSearch, WebFetch, AskUserQuestion
 argument-hint: <idea-or-request>
 ---
 
-# kiro-discovery Skill
+# discovery Skill
 
 ## Core Mission
 - **Success Criteria**:
@@ -20,9 +20,9 @@ argument-hint: <idea-or-request>
 
 Gather **only metadata** to determine the action path. Do NOT read full file contents yet.
 
-- **Specs inventory**: Glob `{{KIRO_DIR}}/specs/*/spec.json`, read each spec.json for `name`, `phase` fields and `approvals` status. Note feature names and their current status.
-- **Steering existence**: Check which files exist in `{{KIRO_DIR}}/steering/` (product.md, tech.md, structure.md, roadmap.md). Do NOT read their contents yet.
-- **Roadmap check**: If `{{KIRO_DIR}}/steering/roadmap.md` exists, read it. This contains project-level context (approach, scope, constraints, spec list) from a previous discovery session. Use it to restore project context.
+- **Specs inventory**: Glob `.sdd/specs/*/spec.json`, read each spec.json for `name`, `phase` fields and `approvals` status. Note feature names and their current status.
+- **Steering existence**: Check which files exist in `.sdd/steering/` (product.md, tech.md, structure.md, roadmap.md). Do NOT read their contents yet.
+- **Roadmap check**: If `.sdd/steering/roadmap.md` exists, read it. This contains project-level context (approach, scope, constraints, spec list) from a previous discovery session. Use it to restore project context.
 - **Top-level structure**: List the project root directory to note key directories and files. Do NOT recurse into subdirectories.
 
 This step should consume minimal context. If `specs/` is empty and no steering exists, note "greenfield project" and move to Step 2.
@@ -124,7 +124,7 @@ If the viability check reveals issues, present them to the user and revisit the 
 
 **For Path C (single spec)**:
 
-Use the Write tool to create `{{KIRO_DIR}}/specs/<feature-name>/brief.md` with this structure:
+Use the Write tool to create `.sdd/specs/<feature-name>/brief.md` with this structure:
 
 ```
 # Brief: <feature-name>
@@ -167,8 +167,8 @@ Use the Write tool to create `{{KIRO_DIR}}/specs/<feature-name>/brief.md` with t
 **For Path D (multi-spec decomposition)**:
 
 Use the Write tool to create:
-- `{{KIRO_DIR}}/steering/roadmap.md`
-- `{{KIRO_DIR}}/specs/<feature>/brief.md` for every feature listed under `## Specs (dependency order)`
+- `.sdd/steering/roadmap.md`
+- `.sdd/specs/<feature>/brief.md` for every feature listed under `## Specs (dependency order)`
 
 Use this roadmap structure:
 
@@ -200,7 +200,7 @@ Use this roadmap structure:
 - [ ] feature-c -- [one-line description]. Dependencies: feature-a, feature-b
 ```
 
-Then create `{{KIRO_DIR}}/specs/<feature>/brief.md` for **every** feature listed under `## Specs (dependency order)` using the Path C brief format. This enables parallel spec creation via `/kiro-spec-batch`.
+Then create `.sdd/specs/<feature>/brief.md` for **every** feature listed under `## Specs (dependency order)` using the Path C brief format. This enables parallel spec creation via `/sdd:spec-batch`.
 
 **For Path E (mixed decomposition)**:
 
@@ -221,7 +221,7 @@ Use the same roadmap structure as Path D, plus these additional sections:
 ```
 
 Path E rules:
-- Keep `## Specs (dependency order)` reserved for **new specs only** so `/kiro-spec-batch` can still parse it unchanged
+- Keep `## Specs (dependency order)` reserved for **new specs only** so `/sdd:spec-batch` can still parse it unchanged
 - Record existing-spec extensions under `## Existing Spec Updates`
 - Record true no-spec work under `## Direct Implementation Candidates`
 - Create `brief.md` only for the **new specs** listed under `## Specs (dependency order)`
@@ -235,17 +235,17 @@ After writing, verify the files exist by reading them back.
 
 Suggest the next command and stop. Do NOT automatically run downstream spec generation from this skill.
 
-- Path A: `/kiro-spec-requirements {feature}` to update the existing spec
+- Path A: `/sdd:spec-requirements {feature}` to update the existing spec
 - Path B: Recommend direct implementation without creating a spec
-- Path C: Default to `/kiro-spec-init <feature-name>`
-  - Optional fast path: `/kiro-spec-quick <feature-name>` when the user explicitly wants to continue immediately
-- Path D: Default to `/kiro-spec-batch` (creates all specs in parallel based on roadmap.md dependency order)
-  - Optional cautious path: `/kiro-spec-init <first-feature-name>` when the user wants to validate the first slice before batching the rest
+- Path C: Default to `/sdd:spec-init <feature-name>`
+  - Optional fast path: `/sdd:spec-quick <feature-name>` when the user explicitly wants to continue immediately
+- Path D: Default to `/sdd:spec-batch` (creates all specs in parallel based on roadmap.md dependency order)
+  - Optional cautious path: `/sdd:spec-init <first-feature-name>` when the user wants to validate the first slice before batching the rest
 - Path E: Choose the next command based on the new-spec portion of the decomposition
-  - If there is exactly one new spec: `/kiro-spec-init <new-feature-name>`
-  - If there are multiple new specs: `/kiro-spec-batch`
-  - Also note which existing specs should be revisited with `/kiro-spec-requirements <feature>`
-- Re-entry: `/kiro-spec-init <next-feature-name>` or `/kiro-spec-batch` if multiple specs remain
+  - If there is exactly one new spec: `/sdd:spec-init <new-feature-name>`
+  - If there are multiple new specs: `/sdd:spec-batch`
+  - Also note which existing specs should be revisited with `/sdd:spec-requirements <feature>`
+- Re-entry: `/sdd:spec-init <next-feature-name>` or `/sdd:spec-batch` if multiple specs remain
 
 If the decomposition contains only existing-spec updates plus direct implementation candidates, do NOT use Path E. Prefer Path A when one existing spec is the clear home, or recommend the existing-spec update plus direct implementation work without creating roadmap entries.
 
