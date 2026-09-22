@@ -249,6 +249,18 @@ Concrete example (spec-design):
 `{{KIRO_DIR}}/settings/templates/specs/design.md` →
 `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md`.
 
+ADDITIONALLY (scope extension found during execution — the template-tree skills
+reference rules as skill-local paths the installer CLI used to create):
+- In the 5 skills that use them (spec-design, spec-requirements, spec-tasks,
+  validate-design, validate-gap), replace every skill-local `rules/<name>.md`
+  reference ("from this skill's directory") →
+  `${CLAUDE_PLUGIN_ROOT}/assets/rules/<name>.md` (13 references).
+- Remove the now-meaningless `metadata.shared-rules:` frontmatter lines in those
+  same 5 skills (no installer exists to act on them; assets/ is the single source).
+- In `skills/spec-init/SKILL.md`, drop the read-reference to `init.json` (the file
+  is deleted with spec.json; Task 8 rewrites this skill wholesale anyway — the drop
+  keeps the intermediate state coherent).
+
 - [ ] **Step 3: Verify**
 
 Run: `grep -rn 'settings/rules\|settings/templates' skills/ --exclude-dir=steering | wc -l` → `0`.
@@ -256,6 +268,9 @@ Run: `grep -rn 'settings/rules\|settings/templates' skills/ --exclude-dir=steeri
 references by design — the whole skill is replaced wholesale in Task 13.)
 Run: `ls assets/rules | wc -l` → `12`; `ls assets/templates` → 5 files flat, no
 init.json, no subdirectories.
+Run: `grep -rnE 'rules/[a-z-]+\.md' skills/ --exclude-dir=steering | grep -v 'PLUGIN_ROOT' | wc -l` → `0`.
+Run: `grep -rn 'shared-rules' skills/ --exclude-dir=steering | wc -l` → `0`.
+Run: `grep -c 'init.json' skills/spec-init/SKILL.md` → `0`.
 
 - [ ] **Step 4: STOP** — user reviews and commits.
 
