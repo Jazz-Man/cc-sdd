@@ -1,19 +1,22 @@
-import { getAgentDefinition, type AgentType } from '../agents/registry.js';
+import { type AgentType, getAgentDefinition } from "../agents/registry.js";
 
-export type { AgentType } from '../agents/registry.js';
+export type { AgentType } from "../agents/registry.js";
 
 export interface AgentLayout {
-  commandsDir: string;
-  agentDir: string;
-  docFile: string;
+	commandsDir: string;
+	agentDir: string;
+	docFile: string;
 }
 
 export interface CCSddConfig {
-  agentLayouts?: Partial<Record<AgentType, Partial<AgentLayout>>>;
+	agentLayouts?: Partial<Record<AgentType, Partial<AgentLayout>>>;
 }
 
-export const resolveAgentLayout = (agent: AgentType, config?: CCSddConfig): AgentLayout => {
-  const base = getAgentDefinition(agent).layout;
-  const override = config?.agentLayouts?.[agent] ?? {};
-  return { ...base, ...override } as AgentLayout;
+export const resolveAgentLayout = (
+	agent: AgentType,
+	config?: CCSddConfig,
+): AgentLayout => {
+	const base = getAgentDefinition(agent).layout;
+	const override = config?.agentLayouts?.[agent] ?? {};
+	return { ...base, ...override } as AgentLayout;
 };
