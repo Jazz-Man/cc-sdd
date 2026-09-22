@@ -1,11 +1,11 @@
 ---
-name: kiro-validate-impl
+name: validate-impl
 description: Validate feature-level integration after all tasks are implemented. Checks cross-task consistency, full test suite, and overall spec coverage.
 allowed-tools: Read, Bash, Grep, Glob, Agent
 argument-hint: <feature-name> [task-numbers]
 ---
 
-# kiro-validate-impl Skill
+# validate-impl Skill
 
 ## Role
 Individual tasks are usually reviewed during implementation. Your job is to catch problems that only become visible when looking across all tasks together.
@@ -26,7 +26,7 @@ Boundary terminology continuity:
   - No orphaned code, conflicting implementations, integration seams, or boundary spillover
 
 ## What This Skill Does NOT Do
-This skill is not a full replacement for task-local review during `/kiro-impl`. This skill does **not** re-check:
+This skill is not a full replacement for task-local review during `/sdd:impl`. This skill does **not** re-check:
 - Individual task acceptance criteria
 - Per-file reality checks (mock/stub detection)
 - Single-task spec alignment
@@ -38,13 +38,13 @@ This skill's main question is: when the completed tasks are viewed together, do 
 ### Step 1: Detect Validation Target
 
 **If no arguments provided**:
-- Parse conversation history for `/kiro-impl` commands to detect recently implemented features and tasks
-- Scan `{{KIRO_DIR}}/specs/` for features with completed tasks `[x]`
+- Parse conversation history for `/sdd:impl` commands to detect recently implemented features and tasks
+- Scan `.sdd/specs/` for features with completed tasks `[x]`
 - Report detected implementations (e.g., "user-auth: 1.1, 1.2, 1.3")
 
 **If feature provided** (feature specified, tasks empty):
 - Use specified feature
-- Detect all completed tasks `[x]` in `{{KIRO_DIR}}/specs/{feature}/tasks.md`
+- Detect all completed tasks `[x]` in `.sdd/specs/{feature}/tasks.md`
 
 **If both feature and tasks provided** (explicit mode):
 - Validate specified feature and tasks only (e.g., `user-auth 1.1,1.2`)
@@ -53,10 +53,10 @@ This skill's main question is: when the completed tasks are viewed together, do 
 
 Reuse steering/spec context already available from conversation; load missing context below for each detected feature.
 Select skills for the current task even when steering/spec context is already available:
-- Read `{{KIRO_DIR}}/specs/<feature>/spec.json` for metadata
-- Read `{{KIRO_DIR}}/specs/<feature>/requirements.md` for requirements
-- Read `{{KIRO_DIR}}/specs/<feature>/design.md` for design structure
-- Read `{{KIRO_DIR}}/specs/<feature>/tasks.md` for task list and Implementation Notes
+- Read `.sdd/specs/<feature>/spec.json` for metadata
+- Read `.sdd/specs/<feature>/requirements.md` for requirements
+- Read `.sdd/specs/<feature>/design.md` for design structure
+- Read `.sdd/specs/<feature>/tasks.md` for task list and Implementation Notes
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to the validated boundaries, runtime prerequisites, integrations, domain rules, security/performance constraints, or team conventions that affect the GO/NO-GO call
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -143,7 +143,7 @@ These checks apply at the feature level. Use command output as the primary signa
 
 ### Step 4: Generate Report
 
-Before returning `GO`, apply the `kiro-verify-completion` protocol to the feature-level claim. Tests alone are insufficient: include full-suite, runtime liveness, coverage, integration, design-alignment, and blocked-task status in the evidence.
+Before returning `GO`, apply the `verify-completion` protocol to the feature-level claim. Tests alone are insufficient: include full-suite, runtime liveness, coverage, integration, design-alignment, and blocked-task status in the evidence.
 
 Classify concrete failures by ownership before writing remediation:
 - `LOCAL` if the defect belongs to the feature being validated
@@ -199,8 +199,8 @@ If NO-GO, REMEDIATION is mandatory — identify the exact issue and what needs t
 
 **If NO-GO Decision**:
 - Address issues listed in REMEDIATION
-- Re-run `/kiro-impl {feature} [tasks]` for targeted fixes
-- Re-validate with `/kiro-validate-impl {feature}`
+- Re-run `/sdd:impl {feature} [tasks]` for targeted fixes
+- Re-validate with `/sdd:validate-impl {feature}`
 
 **If MANUAL_VERIFY_REQUIRED**:
 - Do not treat the feature as complete

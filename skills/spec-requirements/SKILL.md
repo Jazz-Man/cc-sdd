@@ -1,10 +1,10 @@
 ---
-name: kiro-spec-requirements
+name: spec-requirements
 description: Generate EARS-format requirements based on project description and steering context. Use when generating requirements from project description.
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, AskUserQuestion
 ---
 
-# kiro-spec-requirements Skill
+# spec-requirements Skill
 
 ## Core Mission
 - **Success Criteria**:
@@ -20,9 +20,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, AskUse
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- Read `{{KIRO_DIR}}/specs/{feature}/spec.json` for language and metadata
-- Read `{{KIRO_DIR}}/specs/{feature}/brief.md` if it exists (discovery context: problem, approach, scope decisions, boundary candidates)
-- Read `{{KIRO_DIR}}/specs/{feature}/requirements.md` for project description
+- Read `.sdd/specs/{feature}/spec.json` for language and metadata
+- Read `.sdd/specs/{feature}/brief.md` if it exists (discovery context: problem, approach, scope decisions, boundary candidates)
+- Read `.sdd/specs/{feature}/requirements.md` for project description
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to feature scope, user personas, business/domain rules, compliance/security constraints, operational constraints, or existing product boundaries
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -66,7 +66,7 @@ After all research completes, synthesize findings in main context before generat
 - If the draft exposes a real scope ambiguity or contradiction, stop and ask the user to clarify instead of writing guessed requirements
 
 ### Step 5: Finalize and Update Metadata
-- Write `{{KIRO_DIR}}/specs/{feature}/requirements.md` only after the requirements review gate passes
+- Write `.sdd/specs/{feature}/requirements.md` only after the requirements review gate passes
 - Set `phase: "requirements-generated"`
 - Set `approvals.requirements.generated: true`
 - Update `updated_at` timestamp
@@ -124,10 +124,10 @@ Provide output in the language specified in spec.json with:
 
 **If Requirements Approved**:
 - **Optional Gap Analysis** (for existing codebases):
-  - Run `/kiro-validate-gap {feature}` to analyze implementation gap
+  - Run `/sdd:validate-gap {feature}` to analyze implementation gap
   - Recommended for brownfield projects; skip for greenfield
-- Run `/kiro-spec-design {feature}` to proceed to design phase
-- Or `/kiro-spec-design {feature} -y` to auto-approve requirements and proceed directly
+- Run `/sdd:spec-design {feature}` to proceed to design phase
+- Or `/sdd:spec-design {feature} -y` to auto-approve requirements and proceed directly
 
 **If Modifications Needed**:
-- Provide feedback and re-run `/kiro-spec-requirements {feature}`
+- Provide feedback and re-run `/sdd:spec-requirements {feature}`

@@ -1,12 +1,12 @@
 ---
-name: kiro-impl
+name: impl
 description: Implement approved tasks using TDD with native subagent dispatch. Runs all pending tasks autonomously or selected tasks manually.
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, Agent, WebSearch, WebFetch
 argument-hint: <feature-name> [task-numbers] [--review required|inline|off]
 ---
 
-# kiro-impl Skill
+# impl Skill
 
 ## Role
 You operate in two modes:
@@ -33,7 +33,7 @@ You operate in two modes:
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- `{{KIRO_DIR}}/specs/{feature}/spec.json`, `requirements.md`, `design.md`, `tasks.md`
+- `.sdd/specs/{feature}/spec.json`, `requirements.md`, `design.md`, `tasks.md`
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to the selected task's boundary, runtime prerequisites, integrations, domain rules, security/performance constraints, or team conventions that affect implementation or validation
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -114,17 +114,17 @@ For each task (one at a time):
 **c) Review the task**:
 - If review mode is `required`:
   - Read `templates/reviewer-prompt.md` from this skill's directory
-  - Resolve `../kiro-review/SKILL.md` relative to this skill's directory and pass its absolute path as `REVIEW_PROTOCOL_PATH`
+  - Resolve `../review/SKILL.md` relative to this skill's directory and pass its absolute path as `REVIEW_PROTOCOL_PATH`
   - Construct a review prompt with:
     - The task description and relevant spec section numbers
     - Paths to spec files (requirements.md, design.md) so the reviewer can read them directly
     - The implementer's status report (for reference only — reviewer must verify independently)
-  - The reviewer must apply the `kiro-review` protocol to this task-local review.
+  - The reviewer must apply the `review` protocol to this task-local review.
   - Preserve the existing task-specific context: task text, spec refs, `_Boundary:_` scope, validation commands, implementer report, and the actual `git diff` as the primary source of truth.
   - The reviewer subagent will run `git diff` itself to read the actual code changes and verify against the spec
   - Dispatch via **Agent tool** as a fresh subagent
 - If review mode is `inline`:
-  - Apply `kiro-review` in the parent context using the same task evidence and the actual `git diff`
+  - Apply `review` in the parent context using the same task evidence and the actual `git diff`
 - If review mode is `off`:
   - Skip task-local review
   - Record in the parent context that task-local review was skipped for this task
@@ -132,11 +132,11 @@ For each task (one at a time):
 **d) Handle reviewer verdict**:
 - If review mode is `off`:
   - Do not fabricate a reviewer verdict
-  - Before marking the task `[x]` or making any success claim, apply `kiro-verify-completion` using fresh evidence from the current code state; then mark task `[x]` in tasks.md and perform selective git commit
+  - Before marking the task `[x]` or making any success claim, apply `verify-completion` using fresh evidence from the current code state; then mark task `[x]` in tasks.md and perform selective git commit
 - Otherwise:
   - Parse reviewer verdict only from the exact `## Review Verdict` block and `- VERDICT:` field.
   - If `VERDICT` is missing, ambiguous, or replaced with prose, re-dispatch the reviewer once requesting the exact structured verdict only. Do NOT mark the task complete, commit, or continue to the next task without a parseable `APPROVED | REJECTED` value.
-  - **APPROVED** → before marking the task `[x]` or making any success claim, apply `kiro-verify-completion` using fresh evidence from the current code state; then mark task `[x]` in tasks.md and perform selective git commit
+  - **APPROVED** → before marking the task `[x]` or making any success claim, apply `verify-completion` using fresh evidence from the current code state; then mark task `[x]` in tasks.md and perform selective git commit
   - **REJECTED (round 1-2)** → re-dispatch implementer with review feedback
   - **REJECTED (round 3)** → dispatch debug subagent (see section below)
 
@@ -159,7 +159,7 @@ The debug subagent runs in a **fresh context** — it receives only the error in
   - `git diff` of the current uncommitted changes
   - The task description and relevant spec section numbers
   - Paths to spec files so the debugger can read them
-- The debugger must apply the `kiro-debug` protocol to this failure investigation.
+- The debugger must apply the `debug` protocol to this failure investigation.
 - Preserve rich failure context: error output, reviewer findings, current `git diff`, task/spec refs, and any relevant Implementation Notes.
 - When available, the debugger should inspect runtime/config state and use web or official documentation research to validate root-cause hypotheses before proposing a fix plan.
 - Dispatch via **Agent tool** as a fresh subagent
@@ -174,7 +174,7 @@ The debug subagent runs in a **fresh context** — it receives only the error in
 - **Max 2 debug rounds per task**. Each round: fresh debug subagent → fresh implementer. If still failing after 2 rounds, the task is blocked.
 - Record debug findings in `## Implementation Notes` (this helps subsequent tasks avoid the same issue)
 
-**`(P)` markers**: Tasks marked `(P)` in tasks.md indicate they have no inter-dependencies and could theoretically run in parallel. However, kiro-impl processes them sequentially (one at a time) to avoid git conflicts and simplify review. The `(P)` marker is informational for task planning, not an execution directive.
+**`(P)` markers**: Tasks marked `(P)` in tasks.md indicate they have no inter-dependencies and could theoretically run in parallel. However, impl processes them sequentially (one at a time) to avoid git conflicts and simplify review. The `(P)` marker is informational for task planning, not an execution directive.
 
 **Completion check**: If all remaining tasks are BLOCKED, stop and report blocked tasks with reasons to the user.
 
@@ -195,26 +195,26 @@ Before writing any code, read the relevant sections of requirements.md and desig
 - **REFACTOR**: Improve code structure, remove duplication. All tests must still pass.
 - **VERIFY**: All tests pass (new and existing), no regressions. Confirm verification method passes.
 - **REVIEW**:
-  - `required`: Apply `kiro-review` before marking the task complete. If the host supports fresh subagents in manual mode, use a fresh reviewer; otherwise perform the review in the main context using the `kiro-review` protocol. Do NOT continue until the verdict is parseably `APPROVED`.
-  - `inline`: Apply `kiro-review` in the main context before marking the task complete.
-  - `off`: Skip task-local review, but note that `kiro-validate-impl` becomes the primary quality gate before any feature-level completion claim.
+  - `required`: Apply `review` before marking the task complete. If the host supports fresh subagents in manual mode, use a fresh reviewer; otherwise perform the review in the main context using the `review` protocol. Do NOT continue until the verdict is parseably `APPROVED`.
+  - `inline`: Apply `review` in the main context before marking the task complete.
+  - `off`: Skip task-local review, but note that `validate-impl` becomes the primary quality gate before any feature-level completion claim.
 - **MARK COMPLETE**:
-  - `required|inline`: Only after review returns `APPROVED`, apply `kiro-verify-completion`, then update the checkbox from `- [ ]` to `- [x]` in tasks.md.
-  - `off`: Apply `kiro-verify-completion`, then update the checkbox from `- [ ]` to `- [x]` in tasks.md.
+  - `required|inline`: Only after review returns `APPROVED`, apply `verify-completion`, then update the checkbox from `- [ ]` to `- [x]` in tasks.md.
+  - `off`: Apply `verify-completion`, then update the checkbox from `- [ ]` to `- [x]` in tasks.md.
 
 ### Step 4: Final Validation
 
 **Autonomous mode**:
-- After all tasks complete, run `/kiro-validate-impl {feature}` as a GO/NO-GO gate
-- If validation returns GO → before reporting feature success, apply `kiro-verify-completion` to the feature-level claim using the validation result and fresh supporting evidence
+- After all tasks complete, run `/sdd:validate-impl {feature}` as a GO/NO-GO gate
+- If validation returns GO → before reporting feature success, apply `verify-completion` to the feature-level claim using the validation result and fresh supporting evidence
 - If validation returns NO-GO:
   - Fix only concrete findings from the validation report
   - Cap remediation at 3 rounds; if still NO-GO, stop and report remaining findings
 - If validation returns MANUAL_VERIFY_REQUIRED → stop and report the missing verification step
 
 **Manual mode**:
-- Suggest running `/kiro-validate-impl {feature}` but do not auto-execute
-- If review mode is `off`, treat `/kiro-validate-impl {feature}` as mandatory before any feature-level success claim
+- Suggest running `/sdd:validate-impl {feature}` but do not auto-execute
+- If review mode is `off`, treat `/sdd:validate-impl {feature}` as mandatory before any feature-level success claim
 
 ## Feature Flag Protocol
 
@@ -254,7 +254,7 @@ For tasks that add or change behavior, enforce RED → GREEN with a feature flag
 
 **Tasks Not Approved or Missing Spec Files**:
 - **Stop Execution**: All spec files must exist and tasks must be approved
-- **Suggested Action**: "Complete previous phases: `/kiro-spec-requirements`, `/kiro-spec-design`, `/kiro-spec-tasks`"
+- **Suggested Action**: "Complete previous phases: `/sdd:spec-requirements`, `/sdd:spec-design`, `/sdd:spec-tasks`"
 
 **Test Failures**:
 - **Stop Implementation**: Fix failing tests before continuing

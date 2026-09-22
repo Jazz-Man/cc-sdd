@@ -1,5 +1,5 @@
 ---
-name: kiro-spec-init
+name: spec-init
 description: Initialize a new specification with detailed project description
 allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
 argument-hint: <project-description>
@@ -12,17 +12,17 @@ argument-hint: <project-description>
 Generate a unique feature name from the project description ($ARGUMENTS) and initialize the specification structure.
 
 ## Execution Steps
-1. **Check for Brief**: If `{{KIRO_DIR}}/specs/{feature-name}/brief.md` exists (created by `/kiro-discovery`), read it. The brief contains problem, approach, scope, and constraints from the discovery session. Use this to pre-fill the project description and skip clarification questions that the brief already answers.
+1. **Check for Brief**: If `.sdd/specs/{feature-name}/brief.md` exists (created by `/sdd:discovery`), read it. The brief contains problem, approach, scope, and constraints from the discovery session. Use this to pre-fill the project description and skip clarification questions that the brief already answers.
 2. **Clarify Intent**: The Project Description in requirements.md must contain three elements: (a) who has the problem, (b) current situation, (c) what should change. If a brief.md exists and covers these, skip to step 3. Otherwise, ask the user to clarify before proceeding. Ask as many questions as needed; do not fill in gaps with your own assumptions.
-3. **Check Uniqueness**: Verify `{{KIRO_DIR}}/specs/` for naming conflicts. If the directory already exists with only `brief.md` (no `spec.json`), use that directory (discovery created it).
-4. **Create Directory**: `{{KIRO_DIR}}/specs/[feature-name]/` (skip if already exists from discovery)
+3. **Check Uniqueness**: Verify `.sdd/specs/` for naming conflicts. If the directory already exists with only `brief.md` (no `spec.json`), use that directory (discovery created it).
+4. **Create Directory**: `.sdd/specs/[feature-name]/` (skip if already exists from discovery)
 5. **Initialize Files Using Templates**:
    - Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/requirements-init.md`
-   - Replace placeholders:
-     - `{{FEATURE_NAME}}` → generated feature name
-     - `{{TIMESTAMP}}` → current ISO 8601 timestamp
-     - `{{PROJECT_DESCRIPTION}}` → from brief.md if available, otherwise $ARGUMENTS
-     - `{{LANG_CODE}}` → language code (detect from user's input language, default to `en`)
+   - Replace each named placeholder in the template by its name (placeholders use double-brace syntax in the template file):
+     - FEATURE_NAME → generated feature name
+     - TIMESTAMP → current ISO 8601 timestamp
+     - PROJECT_DESCRIPTION → from brief.md if available, otherwise $ARGUMENTS
+     - LANG_CODE → language code (detect from user's input language, default to `en`)
    - Write `spec.json` and `requirements.md` to spec directory
 
 ## Important Constraints
@@ -35,7 +35,7 @@ Provide output in the language specified in `spec.json` with the following struc
 1. **Generated Feature Name**: `feature-name` format with 1-2 sentence rationale
 2. **Project Summary**: Brief summary (1 sentence)
 3. **Created Files**: Bullet list with full paths
-4. **Next Step**: Command block showing `/kiro-spec-requirements <feature-name>`
+4. **Next Step**: Command block showing `/sdd:spec-requirements <feature-name>`
 
 **Format Requirements**:
 - Use Markdown headings (##, ###)

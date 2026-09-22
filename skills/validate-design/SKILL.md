@@ -1,11 +1,11 @@
 ---
-name: kiro-validate-design
+name: validate-design
 description: Interactive technical design quality review and validation. Use when reviewing design before implementation.
 allowed-tools: Read, Grep, Glob, AskUserQuestion
 argument-hint: <feature-name>
 ---
 
-# kiro-validate-design Skill
+# validate-design Skill
 
 ## Role
 You are a specialized skill for conducting interactive quality review of technical design to ensure readiness for implementation.
@@ -24,9 +24,9 @@ You are a specialized skill for conducting interactive quality review of technic
 
 Reuse steering/spec context already available from conversation; load missing context below.
 Select skills for the current task even when steering/spec context is already available:
-- Read `{{KIRO_DIR}}/specs/{feature}/spec.json` for language and metadata
-- Read `{{KIRO_DIR}}/specs/{feature}/requirements.md` for requirements
-- Read `{{KIRO_DIR}}/specs/{feature}/design.md` for design document
+- Read `.sdd/specs/{feature}/spec.json` for language and metadata
+- Read `.sdd/specs/{feature}/requirements.md` for requirements
+- Read `.sdd/specs/{feature}/design.md` for design document
 - Core steering context: `product.md`, `tech.md`, `structure.md`
 - Additional steering files only when directly relevant to architecture boundaries, integrations, runtime prerequisites, domain rules, security/performance constraints, or team conventions that affect implementation readiness
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
@@ -80,7 +80,7 @@ Provide output in the language specified in spec.json with:
 ## Safety & Fallback
 
 ### Error Scenarios
-- **Missing Design**: If design.md doesn't exist, stop with message: "Run `/kiro-spec-design {feature}` first to generate design document"
+- **Missing Design**: If design.md doesn't exist, stop with message: "Run `/sdd:spec-design {feature}` first to generate design document"
 - **Design Not Generated**: If design phase not marked as generated in spec.json, warn but proceed with review
 - **Empty Steering Directory**: Warn user that project context is missing and may affect review quality
 - **Language Undefined**: Default to English (`en`) if spec.json doesn't specify language
@@ -89,12 +89,12 @@ Provide output in the language specified in spec.json with:
 
 **If Design Passes Validation (GO Decision)**:
 - Apply any suggested improvements if agreed
-- Run `/kiro-spec-tasks {feature}` to generate implementation tasks
-- Or `/kiro-spec-tasks {feature} -y` to auto-approve and proceed directly
+- Run `/sdd:spec-tasks {feature}` to generate implementation tasks
+- Or `/sdd:spec-tasks {feature} -y` to auto-approve and proceed directly
 
 **If Design Needs Revision (NO-GO Decision)**:
 - Address critical issues identified in review
-- Re-run `/kiro-spec-design {feature}` with improvements
-- Re-validate with `/kiro-validate-design {feature}`
+- Re-run `/sdd:spec-design {feature}` with improvements
+- Re-validate with `/sdd:validate-design {feature}`
 
 **Note**: Design validation is recommended but optional. Quality review helps catch issues early.

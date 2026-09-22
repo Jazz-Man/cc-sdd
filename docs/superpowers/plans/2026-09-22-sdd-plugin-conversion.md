@@ -287,8 +287,8 @@ Run: `grep -c 'init.json' skills/spec-init/SKILL.md` → `0`.
 
 - [ ] **Step 1: Global path replacement**
 
-In all files under `skills/`: `{{KIRO_DIR}}` → `.sdd` (≈69 occurrences across the
-relocated skills — verified count; the Step 4 grep is the gate, not the number).
+In all files under `skills/`: `{{KIRO_DIR}}` → `.sdd` (post-Task-4 actual: 39
+occurrences outside steering; the Step 4 grep is the gate, not the count).
 The two known hardcodes from the research (`.claude/skills/kiro-*` paths in the old
 kiro-spec-batch subagent prompts and in the old docs/CLAUDE.md template) both
 disappear via deletion — spec-batch is not relocated and docs/CLAUDE.md died with
@@ -574,9 +574,13 @@ Run (probe): the ONE remaining inline→forked composition is impl invoking
   numbering, `_Requirements:_`, `_Boundary:_`, `_Depends:_`, detail-item guidance;
   add the header contract line (text in Task 9). Remove `(P)` parallel-marker
   semantics entirely — execution is strictly sequential (spec 5.5).
-- [ ] **Step 2: Strip spec.json/language references** from the other four templates
-  and from rules (English is the fixed output language; no per-spec language
-  config). `grep -rn 'spec.json\|LANG_CODE\|{{' assets/` → empty.
+- [ ] **Step 2: Strip spec.json/language references and old invocations** from the
+  other four templates and from rules (English is the fixed output language; no
+  per-spec language config). Also rename any `/kiro-<x>` invocation strings and
+  placeholder prose in assets (known: `/kiro-spec-requirements` +
+  `{{PROJECT_DESCRIPTION}}` in requirements-init.md; `{{LANG_CODE}}` in
+  ears-format.md).
+  `grep -rn 'spec.json\|LANG_CODE\|{{\|kiro-' assets/` → empty.
 - [ ] **Step 3: Verify consistency**: `grep -c 'mermaid\|```mermaid'
   assets/templates/design.md` → ≥1 (diagram requirement preserved).
 - [ ] **Step 4: STOP** — user reviews and commits.
