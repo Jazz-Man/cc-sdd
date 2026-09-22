@@ -2,10 +2,10 @@
 # cc-sdd-uwj4
 title: 'Adapt cc-sdd fork: Claude Code-only, beans tracking, .claude/rules steering'
 status: in-progress
-type: task
+type: feature
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T22:03:56Z
+updated_at: 2026-09-22T22:06:23Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -206,3 +206,5 @@ CHANGES applied to spec + plan:
 User: full cycle ONLY, phase by phase; quick one-off work happens in the main chat outside sdd. spec-quick + everything tied to it removed; 15→14 skills.
 - Phase transitions = confirm gates + next-command naming (review fix #10 contract became the PRIMARY path)
 - Task 8 rewritten (two skills: spec-init, spec-requirements; no orchestrator); Task 3 moves 13 dirs; probe moved to Task 11 (only remaining inline-into-forked composition: impl invoking validate-impl); dry-run phase-by-phase; counts updated everywhere (spec 4.1/10.4/10.5/12.1, plan Tasks 3/8/14/16); memory updated
+
+Plan APPROVED by user after revision 3 + opus review (2026-09-23). Execution method: subagent-driven. Starting superpowers:subagent-driven-development. Execution order: 3→4→5→1→2→6…16. Each task: fresh implementer (sonnet) + independent reviewer (opus) + STOP for user review/commit.

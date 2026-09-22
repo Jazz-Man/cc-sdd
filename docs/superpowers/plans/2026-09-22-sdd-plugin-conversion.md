@@ -173,7 +173,7 @@ numbers are kept for traceability; execute in the order given at the end.)*
 }
 ```
 
-- [ ] **Step 2: Move the 15 kept skills to bare names**
+- [ ] **Step 2: Move the 13 kept skills to bare names**
 
 ```bash
 mkdir -p skills

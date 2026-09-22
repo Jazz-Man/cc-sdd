@@ -91,3 +91,5 @@ docs/kiro/
 
 # Local dev tooling (not part of the project)
 .entire/
+# superpowers SDD execution workspace
+.superpowers/
