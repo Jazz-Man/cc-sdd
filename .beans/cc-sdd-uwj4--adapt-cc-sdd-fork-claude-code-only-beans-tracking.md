@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T20:53:25Z
+updated_at: 2026-09-22T20:56:06Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -168,3 +168,5 @@ Design spec: docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md
 - Spec file left uncommitted per user's read-only-git rule — user commits manually
 - Status: USER REVIEW GATE — awaiting spec approval, then writing-plans
 - Side note: .beans/ contains two agent-created beans (cc-sdd-0gd1 plugin-format-verification, cc-sdd-koql superpowers-research) — background research agents tracked their own work; housekeeping pending
+
+Spec APPROVED by user (2026-09-22). Brainstorming skill complete. Transitioning to superpowers:writing-plans per skill's terminal state.
