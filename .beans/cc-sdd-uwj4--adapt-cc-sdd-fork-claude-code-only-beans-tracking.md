@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T21:30:21Z
+updated_at: 2026-09-22T21:44:20Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -190,3 +190,13 @@ CHANGES applied to spec + plan:
 - Cancellation = first-class escalation outcome (epic+tasks scrapped; branch deletion by user carries artifacts+beans away)
 - Plan: Tasks 3 (14 moves), 5 (hardcode note corrected), 6 (arg-hint [task-id], active-feature resolution), 8 (spec-init refusal), 10 rewritten discovery-only, 14 (map rules + 15 names), 16 (15 names); Global Constraints + self-review revision stamp
 - Sanity grep: all spec-batch mentions are deletion-context; no feature-arg leftovers
+
+## Opus adversarial review of spec+plan (2026-09-23) — GO-WITH-FIXES → fixes applied
+
+26 findings (2 BLOCKING, 10 MAJOR, 12 MINOR, 4 NIT). All applied:
+- BLOCKING 1: Task 4 asset move was structurally wrong (source templates/ has specs/steering/steering-custom subdirs) → now moves only specs/*.md flattened, init.json at correct path, old steering templates NOT relocated (superseded by Task 13)
+- BLOCKING 2: Task 15 grep contained literal dependency-install sequence → hook-blocked LIVE during review (reviewer reproduced it) → character-class pattern + docs/guides scope
+- MAJOR: spec §10.4 count fixed to 15; Task 2 stale .kiro expectations under revised order + invalid diff-filter flag removed + find precedence fixed; Task 4 grep excludes skills/steering (replaced wholesale in Task 13); invariant SCOPE defined (skills assets hooks README CLAUDE docs/guides — excludes .github/.zed/.beans/docs-superpowers; workflows carry template-brace sequences that must stay); occurrence count corrected to ~69; Task 12 parallel-metadata note deleted (contradicted §5.5); confirm-contract for standalone generative skills added (spec §5.4 + Task 9); abort path now scraps epic+task beans (Task 6 + verify); E2E scratch repo initialized by the USER (agents read-only) + review-package scoped to boundary paths (spec §5.2)
+- MINOR: 18 agent targets (not 17); Task 1 dead index-based check removed; Debug Outcome block added to Task 6 contracts; research beans verified-only (already completed); model-param wording → orchestrator dispatch blocks; implementer writes task-N-report file; claude-subagents doc in delete list; 'verbatim' qualified for ears-format strip; write-class grep extended to bare checkout/stash/mv/rm forms
+- NIT: REQUIRED string unified ('execute via'); spec wave-2 verify uses the non-interactive probe form; init refusal grep added; untouched-proof for .zed/.github in Task 16; hook resume-omission + stale-file precedence documented as deliberate (spec §4.3)
+- Reviewer's one [Unverified] composition (inline skill invoking a forked skill via the Skill tool, spec-quick→spec-design): early probe added as Task 8 Step 3 with Agent-tool fallback and bean-recorded decision

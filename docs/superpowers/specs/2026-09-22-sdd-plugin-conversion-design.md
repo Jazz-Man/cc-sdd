@@ -16,7 +16,7 @@ workflow. The repository itself is the plugin artifact; there is no installer.
 
 - GitHub's original SDD framework proved too heavy (enterprise, token-hungry).
 - cc-sdd has the right **structure** (phase gates, EARS requirements, design docs with
-  mermaid, task discipline) but ships 17 agent targets, an npm CLI installer, and
+  mermaid, task discipline) but ships 18 agent targets, an npm CLI installer, and
   file-based tracking the user does not want.
 - superpowers has the right **execution model** (subagents, status contracts, fix-loop
   escalation, stop-and-escalate behavior) but unstructured walls-of-text specs, no
@@ -70,7 +70,8 @@ cc-sdd/                            plugin name: sdd
 │   ├── validate-impl/SKILL.md
 │   └── steering/SKILL.md         + references/ (steering-principles.md, core/, custom/)
 ├── assets/
-│   ├── rules/                    12 shared rule files (ported verbatim)
+│   ├── rules/                    12 shared rule files (ported verbatim except the
+│                                                                 placeholder/language strip in wave 3)
 │   └── templates/                5 document templates: requirements.md,
 │                                 requirements-init.md, design.md, tasks.md, research.md
 │                                 (init.json dies with spec.json)
@@ -113,6 +114,12 @@ SessionStart hook (matcher `startup|clear|compact`) checks whether
   subagents ignore it).
 - **Present** → stay silent. The user's file (created by `/sdd:init`, possibly
   hand-customized) always takes precedence over the plugin default.
+
+Two deliberate omissions, recorded so they are not reported as bugs later: the
+matcher does not include `resume` (resumed sessions rely on the file or the next
+startup injection), and a user's `sdd.md` that lags behind a newer plugin version
+remains authoritative — precedence is by design; `/sdd:init` offers to show a diff
+rather than overwrite.
 
 `/sdd:init` writes `.claude/rules/sdd.md` containing **only the sdd workflow rules** —
 no session briefing, no narrative. After writing, it informs the current session in
@@ -171,7 +178,9 @@ sequenceDiagram
 
 Status contract values: `DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`.
 Minor (non-blocking) findings never enter the fix loop — they land in a final-report
-parking lot. After the last task: whole-branch review (opus) + `validate-impl` gate
+parking lot. The review package is scoped to the task's boundary paths when declared,
+else the full working-tree diff — unrelated uncommitted user work never contaminates
+it. After the last task: whole-branch review (opus) + `validate-impl` gate
 (GO/NO-GO, max 3 remediation rounds).
 
 ### 5.3 Model policy (hardwired, never the agent's choice)
@@ -183,9 +192,9 @@ parking lot. After the last task: whole-branch review (opus) + `validate-impl` g
 | Implementer | sonnet |
 | Implementer in fix-loop rounds 4-5 (escalation) | opus |
 
-Encoded in two places: frontmatter `model:` of forked skills; `model` parameter of
-Agent calls inside prompt-templates (identifiers as supported by the host, e.g.
-`opus`, `sonnet`).
+Encoded in two places: frontmatter `model:` of forked skills; the `model` parameter
+of the orchestrator's Agent dispatch blocks (identifiers as supported by the host,
+e.g. `opus`, `sonnet`).
 
 ### 5.4 Interaction rules
 
@@ -195,6 +204,9 @@ Agent calls inside prompt-templates (identifiers as supported by the host, e.g.
   Never a plain-text "which do you prefer?" ending.
 - **Questions timeline**: clarifying questions only in discovery and the requirements
   phase. Design and tasks phases are confirm-only ("review this — any edits?").
+- **Standalone generative invocations**: when a forked skill completes outside the
+  spec-quick chain, the main context presents its result with the same confirm-only
+  AskUserQuestion.
 - **Stop-per-task**: the default rhythm. The stop report is SHORT — no diff summary,
   no changed-file list, no beans recap (the user watches changes live in the IDE;
   beans files are git-tracked). Optional one-liner for test results if tests ran.
@@ -322,12 +334,15 @@ Other paths:
 2. **Skeleton** — `plugin.json`; relocate `claude-code-skills` → `skills/` with bare
    names; rules/templates → `assets/` (collapse the `.kiro/settings` vs
    `templates/shared/settings` duplication into one source); replace `{{KIRO_DIR}}`
-   → `.sdd/` (96 references + 2 known hardcodes); delete `.kiro/`; rewrite root
-   `CLAUDE.md`. Verify: `claude --plugin-dir .` loads.
+   → `.sdd/` (≈69 occurrences in the relocated skills — the gate is the grep, not the
+   count); delete `.kiro/`; rewrite root
+   `CLAUDE.md`. Verify: `claude -p --plugin-dir . '<probe>'` responds (an interactive
+   load check would hang).
 3. **Subagent-first + beans** — fork frontmatter on generative skills; impl
    orchestrator + prompt-template suite + status contracts + fix-loop + review-package
    builder; all tracking migrated to beans; `spec.json` deleted; `tasks.md` becomes
-   the static plan doc; discovery moves to milestone/epic beans (sequential queue); `spec-batch` is deleted.
+   the static plan doc; rules/templates stripped of spec.json/`{{LANG_CODE}}`/language
+   references; discovery moves to milestone/epic beans (sequential queue); `spec-batch` is deleted.
    Verify: grep invariants (see 10), smoke-run `/sdd:impl` on a toy spec.
 4. **Steering + bootstrap** — integrate the steering skill with its references;
    build `/sdd:init`; SessionStart hook with the precedence rule.
@@ -342,7 +357,10 @@ behavioral:
 
 1. **Load check**: `claude --plugin-dir .` starts; `claude plugin validate` passes;
    skills appear under `/sdd:*`.
-2. **Grep invariants** (all must return zero hits):
+2. **Grep invariants** (all must return zero hits; scope = `skills/ assets/ hooks/
+   README.md CLAUDE.md docs/guides/` — deliberately excluding `.github/`, `.zed/`,
+   `.beans/`, and `docs/superpowers/`, whose `kiro`/`{{` content is either untouchable
+   or self-referential):
    - `{{` (unresolved placeholders), `.kiro`, `kiro-` (old names)
    - checkbox-flip instructions (`- [x]` writes) and spec.json phase/approval writes
    - git-write instructions (`git add`, `git commit`, `git push`, branch ops) in any
@@ -352,7 +370,7 @@ behavioral:
    `background: false` + `model:`; prompt-templates pin `model` per role; every
    user-facing choice-point instruction mentions AskUserQuestion; impl templates
    contain the four-part escalation format and stop-per-task rule.
-4. **Per-skill behavior checklist**: each of the 16 skills gets a short manual
+4. **Per-skill behavior checklist**: each of the 15 skills gets a short manual
    checklist (entry condition → expected interaction pattern → expected artifacts →
    expected beans effects) walked through during wave verification.
 5. **End-to-end dry run**: in a scratch project — `/sdd:init`, a toy feature through

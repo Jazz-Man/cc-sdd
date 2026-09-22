@@ -58,8 +58,9 @@ each pinned to its owning task:
 
 1. **Surviving git-write instructions in ported text** (old kiro skills contain
    commit/branch instructions; a ported file that keeps them violates the core
-   constraint) → pinned in Task 11's grep battery (`git add|git commit|git push|git
-   checkout -b|git switch` must return 0 hits across skills/ and assets/).
+   constraint) → pinned in Task 11's grep battery (the full write-class pattern
+   `git[ ]+(add|commit|push|checkout|switch|stash|mv|rm)\b` must return 0 hits across
+   skills/ and assets/).
 2. **Forked skill missing `background: false`** → silently narrowed toolset in the
    subagent (spec 11) → pinned in Task 16 invariant battery (every skill with
    `context: fork` must also carry `background: false` and `model:`).
@@ -80,7 +81,7 @@ each pinned to its owning task:
 ### Task 1: Purge — multi-agent surface, CLI, generic agents doc
 
 **Files:**
-- Delete: `tools/` (entire directory — CLI src/test/package.json, 17 agent template
+- Delete: `tools/` (entire directory — CLI src/test/package.json, 18 agent template
   variants, manifests, scripts)
 - Delete: `.agents/` (cc-sdd-new-agent skill)
 - Delete: `AGENTS.md`
@@ -101,11 +102,10 @@ rm -rf tools .agents AGENTS.md
 Run: `git status --porcelain | awk '{print $1}' | sort | uniq -c`
 Expected: only `D` entries (deletions), no `A`/`M`/`??` beyond pre-existing.
 
-Run: `git ls-files | grep -cE '^tools/|^\.agents/|^AGENTS\.md$'`
-Expected: `0` — wait, `git ls-files` reflects the index, which still holds the files
-until the user commits; the correct check while read-only is:
-`ls tools .agents AGENTS.md 2>&1`
+Run: `ls tools .agents AGENTS.md 2>&1`
 Expected: "No such file or directory" ×3.
+(Do NOT use `git ls-files` here — the index still holds the deleted paths until the
+user commits; it cannot return 0 pre-commit.)
 
 - [ ] **Step 3: STOP**
 
@@ -117,24 +117,25 @@ Short report. User reviews `git status`, commits (suggested message:
 **Files:**
 - Delete: `docs/README/README_ja.md`, `docs/README/README_zh-TW.md`,
   `docs/RELEASE_NOTES/RELEASE_NOTES_ja.md`, `docs/guides/ja/` (entire dir)
-- Delete: `.kiro/specs/` (entire dir — demo specs en and ja)
+- Note: `.kiro/specs/` (demo specs) is already gone — `.kiro/` was removed wholesale
+  in Task 4 under the revised execution order.
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: English-only docs; `.kiro/` reduced to `settings/` (consumed by Task 4).
+- Produces: English-only docs.
 
 - [ ] **Step 1: Delete**
 
 ```bash
-rm -rf docs/guides/ja .kiro/specs
+rm -rf docs/guides/ja
 rm docs/README/README_ja.md docs/README/README_zh-TW.md docs/RELEASE_NOTES/RELEASE_NOTES_ja.md
 ```
 
 - [ ] **Step 2: Verify**
 
-Run: `git ls-files ':(glob)**/*_ja*' ':(glob)**/*ja/**' ':(glob)**/*zh-TW*' --diff-filter=HEAD 2>/dev/null; ls .kiro`
-Expected: `.kiro` contains only `settings`. No ja/zh-TW files remain on disk
-(`find . -name '*_ja*' -o -name '*zh-TW*' -not -path './.git/*'` → empty).
+Run: `find . -path ./.git -prune -o \( -name '*_ja*' -o -name '*zh-TW*' \) -print`
+Expected: empty output. (The `-prune` form avoids the `.git` scan; `git ls-files`
+cannot be used pre-commit — the index still holds deleted paths.)
 
 - [ ] **Step 3: STOP** — user reviews and commits.
 
@@ -223,13 +224,20 @@ that is expected at this stage).
 
 - [ ] **Step 1: Move assets**
 
+The source `settings/templates/` contains THREE subdirectories (`specs/`, `steering/`,
+`steering-custom/`) — only `specs/*.md` is relocated, flattened:
+
 ```bash
 mkdir -p assets
-mv tools/cc-sdd/templates/shared/settings/rules      assets/rules
-mv tools/cc-sdd/templates/shared/settings/templates  assets/templates
+mv tools/cc-sdd/templates/shared/settings/rules  assets/rules
+mkdir -p assets/templates
+mv tools/cc-sdd/templates/shared/settings/templates/specs/*.md  assets/templates/
 rm assets/templates/init.json
 rm -rf .kiro
 ```
+
+The old `templates/steering/` and `templates/steering-custom/` are deliberately NOT
+relocated — superseded by the steering skill's own `references/` (Task 13).
 
 - [ ] **Step 2: Rewire skill references**
 
@@ -243,8 +251,11 @@ Concrete example (spec-design):
 
 - [ ] **Step 3: Verify**
 
-Run: `grep -rn 'settings/rules\|settings/templates' skills/ | wc -l` → `0`.
-Run: `ls assets/rules | wc -l` → `12`; `ls assets/templates` → 5 files, no init.json.
+Run: `grep -rn 'settings/rules\|settings/templates' skills/ --exclude-dir=steering | wc -l` → `0`.
+(`skills/steering/SKILL.md` still contains `{{KIRO_DIR}}/settings/templates/steering*`
+references by design — the whole skill is replaced wholesale in Task 13.)
+Run: `ls assets/rules | wc -l` → `12`; `ls assets/templates` → 5 files flat, no
+init.json, no subdirectories.
 
 - [ ] **Step 4: STOP** — user reviews and commits.
 
@@ -261,8 +272,8 @@ Run: `ls assets/rules | wc -l` → `12`; `ls assets/templates` → 5 files, no i
 
 - [ ] **Step 1: Global path replacement**
 
-In all files under `skills/`: `{{KIRO_DIR}}` → `.sdd` (96 expected occurrences;
-after Task 4's rewiring only spec-path mentions remain).
+In all files under `skills/`: `{{KIRO_DIR}}` → `.sdd` (≈69 occurrences across the
+relocated skills — verified count; the Step 4 grep is the gate, not the number).
 The two known hardcodes from the research (`.claude/skills/kiro-*` paths in the old
 kiro-spec-batch subagent prompts and in the old docs/CLAUDE.md template) both
 disappear via deletion — spec-batch is not relocated and docs/CLAUDE.md died with
@@ -302,7 +313,8 @@ Run: `claude plugin validate .` → passes (warnings acceptable, errors not).
 - Produces: the orchestrator loop contract that templates and later checklists test
   against. Key names (exact): status contract values `DONE | DONE_WITH_CONCERNS |
   BLOCKED | NEEDS_CONTEXT`; report block `## Status Report` with `- STATUS:` line;
-  review verdict block `## Review Verdict` with `- VERDICT: APPROVED|REJECTED`.
+  review verdict block `## Review Verdict` with `- VERDICT: APPROVED|REJECTED`;
+  debug outcome block `## Debug Outcome` with `- OUTCOME:` line.
 
 **Required sections (each with full content at execution):**
 1. Frontmatter: `name: impl`, description, `allowed-tools: Read, Write, Edit, Glob,
@@ -325,7 +337,9 @@ Run: `claude plugin validate .` → passes (warnings acceptable, errors not).
 3. STOP contract (spec 5.4): short report; optional one-line test result if tests
    ran; any concern/deviation presented in the four-part format (verbatim block
    below); then AskUserQuestion with options: continue next task / revise / escalate
-   to plan change / abort. The user makes the commit — the skill text says "the user
+   to plan change / abort. Abort executes `beans update <epic> -s scrapped` plus the
+   same for every task bean of the feature, then stops (spec §7). The user makes the
+   commit — the skill text says "the user
    reviews, tests, and commits" (never a literal `git commit` sequence).
 4. Four-part escalation block (verbatim):
 ```
@@ -344,6 +358,7 @@ Run: `claude plugin validate .` → passes (warnings acceptable, errors not).
 Run: `grep -c 'DONE_WITH_CONCERNS\|NEEDS_CONTEXT' skills/impl/SKILL.md` → ≥2.
 Run: `grep -c 'model: sonnet\|model: opus' skills/impl/SKILL.md` → ≥2 (in dispatch
 blocks).
+Run: `grep -c 'scrapped' skills/impl/SKILL.md` → ≥1 (abort path updates beans).
 Run: `grep -nE 'git (add|commit|push|checkout|switch)' skills/impl/SKILL.md` → empty.
 
 - [ ] **Step 3: STOP** — user reviews and commits.
@@ -368,7 +383,8 @@ Run: `grep -nE 'git (add|commit|push|checkout|switch)' skills/impl/SKILL.md` →
   findings listed.
 - `implementer-prompt.md`: TDD order (RED→GREEN→REFACTOR) per cc-sdd protocol;
   boundary discipline (only files the task's `_Boundary:` names); appends one-line
-  learning to `workspace/notes.md`; returns `## Status Report` + `- STATUS:`.
+  learning to `workspace/notes.md`; writes the fuller `workspace/task-N-report.md`
+  before returning `## Status Report` + `- STATUS:`.
 - `task-reviewer-prompt.md`: reads ONLY brief + review-package; spec-conformance
   first, quality second; blocking vs minor split (minor → parking-lot list, never
   the fix loop); returns `## Review Verdict` + `- VERDICT: APPROVED|REJECTED`.
@@ -426,7 +442,14 @@ Run: `grep -c 'spec.json\|phase:\|approvals' skills/spec-init/SKILL.md
 Run: `grep -c 'AskUserQuestion' skills/spec-requirements/SKILL.md` → ≥2.
 Run: `grep -c 'context: fork' skills/spec-requirements/SKILL.md` → `0`.
 
-- [ ] **Step 3: STOP** — user reviews and commits.
+- [ ] **Step 3: Probe the unverified composition EARLY** — inline skill invoking a
+  forked skill via the Skill tool (spec-quick → spec-design) was never verified as a
+  composition. In a scratch dir, run `/sdd:spec-design` once (standalone or through a
+  dry spec-quick segment) and confirm the fork triggers and returns in-turn. If it
+  does not, fall back to spec-quick dispatching design/tasks drafting via the Agent
+  tool directly (same contracts) and record the decision in the umbrella bean.
+
+- [ ] **Step 4: STOP** — user reviews and commits.
 
 ### Task 9: Rework — spec-design, spec-tasks (generative forks)
 
@@ -449,8 +472,12 @@ Run: `grep -c 'context: fork' skills/spec-requirements/SKILL.md` → `0`.
   `_Requirements:` IDs, `_Boundary:`, `_Depends:`; creates one task bean per
   sub-task (`-t task`, body carries requirement/boundary metadata, `--blocked-by`
   for `_Depends:`); tasks.md contains NO checkboxes; header contract line verbatim:
-  `> **For executors:** REQUIRED: run via /sdd:impl. State lives in beans — never
+  `> **For executors:** REQUIRED: execute via /sdd:impl. State lives in beans — never
   edit this document to record progress.`
+
+- Confirm contract for both skills: on fork completion the result is presented in
+  main context with a confirm-only AskUserQuestion ("review — any edits?") — this
+  covers standalone invocations outside the spec-quick chain (a fork cannot ask).
 
 - [ ] **Step 1: Write both SKILL.md files**, complete.
 - [ ] **Step 2: Verify**
@@ -511,7 +538,7 @@ Run: `grep -c 'blocked-by' skills/discovery/SKILL.md` → ≥1.
 - [ ] **Step 1: Apply rewrites.**
 - [ ] **Step 2: Verify (Review Focus #1 pin)**
 
-Run: `grep -rnE 'git (add|commit|push|checkout -b|switch)' skills/ assets/` → empty.
+Run: `grep -rnE 'git[ ]+(add|commit|push|checkout|switch|stash|mv|rm)\b' skills/ assets/` → empty.
 Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
   validate-gap, validate-design, validate-impl (5 files).
 
@@ -532,8 +559,7 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 - [ ] **Step 1: Rework tasks.md template** — remove all checkbox grammar; keep
   numbering, `_Requirements:_`, `_Boundary:_`, `_Depends:_`, detail-item guidance;
   add the header contract line (text in Task 9). Remove `(P)` parallel-marker
-  semantics (parallelism is a beans/dispatch concern now) — keep a note that
-  independent tasks may carry `parallel: yes` metadata for the orchestrator.
+  semantics entirely — execution is strictly sequential (spec 5.5).
 - [ ] **Step 2: Strip spec.json/language references** from the other four templates
   and from rules (English is the fixed output language; no per-spec language
   config). `grep -rn 'spec.json\|LANG_CODE\|{{' assets/` → empty.
@@ -605,7 +631,8 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
   overwriting); after writing, one short in-chat note that the file now governs the
   workflow. No other content ever goes into that file.
 - [ ] **Step 4: Verify**: `python3 -c "import json;json.load(open('hooks/hooks.json'))"`
-  → OK. `grep -c 'sdd.md' skills/init/SKILL.md` → ≥2.
+  → OK. `grep -ci 'exists' skills/init/SKILL.md` → ≥1 (the refuse-if-exists rule is
+  present, not just the file name).
 - [ ] **Step 5: STOP** — user reviews and commits.
 
 ### Task 15: Docs, README, CHANGELOG
@@ -614,10 +641,16 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 - Rewrite: `README.md`; prune `docs/guides/` to skill-reference.md, spec-driven.md,
   why-cc-sdd.md (updated to fork reality: no CLI, no agents table, /sdd:* usage,
   beans, models, stop-per-task); delete command-reference.md, customization-guide.md,
-  migration-guide.md, `docs/README/`, `docs/RELEASE_NOTES/`; reset `CHANGELOG.md`
+  migration-guide.md, claude-subagents.md, `docs/README/`, `docs/RELEASE_NOTES/`;
+  reset `CHANGELOG.md`
   to a fork-initial entry.
 
-- [ ] **Step 1: Apply.** Step 2: Verify `grep -rn 'kiro-\|\.kiro\|npm install cc-sdd' README.md docs/` → 0.
+- [ ] **Step 1: Apply.**
+- [ ] **Step 2: Verify** — run: `grep -rnE 'kiro-|\.kiro|npm[ ]+install[ ]+cc-sdd' README.md docs/guides/`
+  → 0. (Character-class pattern so the command string cannot trip the user's
+  dependency-install hook — the plain spelling was reproduced as blocked during
+  review. Scope is docs/guides/, not docs/: docs/superpowers/ legitimately mentions
+  the old names.)
 - [ ] **Step 3: STOP** — user reviews and commits.
 
 ### Task 16: Final verification battery and housekeeping
@@ -625,15 +658,23 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 **Files:** none created; verification + beans cleanup.
 
 - [ ] **Step 1: Full invariant battery (spec §10.2-10.3)** — all greps from Tasks
-  5, 8-12 re-run repo-wide; `claude plugin validate .` clean; `claude -p
-  --plugin-dir . "Reply with the exact list of your available /sdd: skills"`
-  returns the 15 names.
-- [ ] **Step 2: E2E dry run (spec §10.5)** in a scratch project: `/sdd:init` →
-  toy feature via `/sdd:spec-quick` (approve each phase via the offered choices) →
-  `/sdd:impl` one task → verify STOP shape (short report, AskUserQuestion, no
-  diff-list), beans state, workspace artifacts.
-- [ ] **Step 3: Housekeeping**: mark the two research-agent beans
-  (`cc-sdd-0gd1`, `cc-sdd-koql`) completed; update umbrella `cc-sdd-uwj4` with
+  5, 8-12 re-run over the invariant scope (`skills/ assets/ hooks/ README.md
+  CLAUDE.md docs/guides/` — NEVER `.github/`, `.zed/`, `.beans/`,
+  `docs/superpowers/`: workflows carry literal `${{ secrets.* }}` that must stay,
+  and the plan/spec/bean files legitimately mention old names); use the
+  hook-blocker-safe grep forms (Task 15 pattern); `claude plugin validate .` clean;
+  `claude -p --plugin-dir . "Reply with the exact list of your available /sdd:
+  skills"` returns the 15 names. Untouched proof: `git status --porcelain .zed
+  .github` → empty.
+- [ ] **Step 2: E2E dry run (spec §10.5)** in a scratch project. Setup first: ask
+  the USER to initialize the scratch repo and record an initial snapshot (agents
+  don't — read-only git; the review-package step needs a HEAD to diff against).
+  Then: `/sdd:init` → toy feature via `/sdd:spec-quick` (approve each phase via the
+  offered choices) → `/sdd:impl` one task → verify STOP shape (short report,
+  AskUserQuestion, no diff-list), beans state, workspace artifacts.
+- [ ] **Step 3: Housekeeping**: verify the two research-agent beans
+  (`cc-sdd-0gd1`, `cc-sdd-koql`) are completed (they already were at plan-review
+  time — confirm, don't redo); update umbrella `cc-sdd-uwj4` with
   `## Summary of Changes`.
 - [ ] **Step 4: STOP** — final user review and commit.
 
