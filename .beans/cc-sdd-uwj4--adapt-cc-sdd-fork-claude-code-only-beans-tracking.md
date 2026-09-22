@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T21:44:20Z
+updated_at: 2026-09-22T22:03:56Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -200,3 +200,9 @@ CHANGES applied to spec + plan:
 - MINOR: 18 agent targets (not 17); Task 1 dead index-based check removed; Debug Outcome block added to Task 6 contracts; research beans verified-only (already completed); model-param wording → orchestrator dispatch blocks; implementer writes task-N-report file; claude-subagents doc in delete list; 'verbatim' qualified for ears-format strip; write-class grep extended to bare checkout/stash/mv/rm forms
 - NIT: REQUIRED string unified ('execute via'); spec wave-2 verify uses the non-interactive probe form; init refusal grep added; untouched-proof for .zed/.github in Task 16; hook resume-omission + stale-file precedence documented as deliberate (spec §4.3)
 - Reviewer's one [Unverified] composition (inline skill invoking a forked skill via the Skill tool, spec-quick→spec-design): early probe added as Task 8 Step 3 with Agent-tool fallback and bean-recorded decision
+
+## Revision 3 — spec-quick deleted (2026-09-23, user)
+
+User: full cycle ONLY, phase by phase; quick one-off work happens in the main chat outside sdd. spec-quick + everything tied to it removed; 15→14 skills.
+- Phase transitions = confirm gates + next-command naming (review fix #10 contract became the PRIMARY path)
+- Task 8 rewritten (two skills: spec-init, spec-requirements; no orchestrator); Task 3 moves 13 dirs; probe moved to Task 11 (only remaining inline-into-forked composition: impl invoking validate-impl); dry-run phase-by-phase; counts updated everywhere (spec 4.1/10.4/10.5/12.1, plan Tasks 3/8/14/16); memory updated

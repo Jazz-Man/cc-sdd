@@ -50,10 +50,9 @@ skill; bootstrap hook with user-file precedence; `/sdd:init` opt-in; docs rewrit
 cc-sdd/                            plugin name: sdd
 ├── .claude-plugin/plugin.json    name: sdd, version, description
 ├── hooks/hooks.json              SessionStart hook (see 4.3)
-├── skills/                       15 skills, bare names → /sdd:<name>
+├── skills/                       14 skills, bare names → /sdd:<name>
 │   ├── init/SKILL.md
 │   ├── discovery/SKILL.md
-│   ├── spec-quick/SKILL.md
 │   ├── spec-init/SKILL.md
 │   ├── spec-requirements/SKILL.md
 │   ├── spec-design/SKILL.md
@@ -81,8 +80,10 @@ cc-sdd/                            plugin name: sdd
 ```
 
 Compared to the source 17 skills: `spec-status` is deleted (beans replaces it),
-`spec-batch` is deleted (sequential single-feature workflow — see 5.5),
-`steering-custom` merges into `steering`, `init` is new. Total: 15.
+`spec-quick` is deleted (full cycle only, phase by phase — quick one-off work stays
+in the main chat outside sdd), `spec-batch` is deleted (sequential single-feature
+workflow — see 5.5), `steering-custom` merges into `steering`, `init` is new.
+Total: 14.
 
 ### 4.2 Skill inventory (interaction pattern, model, origin)
 
@@ -90,7 +91,6 @@ Compared to the source 17 skills: `spec-status` is deleted (beans replaces it),
 |---|---|---|---|
 | init | interactive (writes file, briefs session in chat) | inherit | new |
 | discovery | interactive; research to subagents | inherit | rewritten |
-| spec-quick | inline orchestrator of the phase chain | inherit | rewritten |
 | spec-init | inline, lightweight | inherit | rewritten |
 | spec-requirements | interactive inline; drafting dispatched to subagent | opus (draft subagent) | rewritten |
 | spec-design | generative fork | opus | ported + reworked |
@@ -138,7 +138,7 @@ ever written to the file by the plugin.
    hardwired in frontmatter. (spec-requirements is NOT forked: its questioning phase
    needs the user, so the skill runs inline and dispatches only the document drafting
    to an opus subagent via the Agent tool.)
-3. **Orchestrator** (`spec-quick`, `impl`): inline in the main
+3. **Orchestrator** (`impl`): inline in the main
    conversation — owns the loop, beans state, and user gates; dispatches execution to
    subagents via the Agent tool (general-purpose type + role defined by a
    prompt-template file).
@@ -204,9 +204,11 @@ e.g. `opus`, `sonnet`).
   Never a plain-text "which do you prefer?" ending.
 - **Questions timeline**: clarifying questions only in discovery and the requirements
   phase. Design and tasks phases are confirm-only ("review this — any edits?").
-- **Standalone generative invocations**: when a forked skill completes outside the
-  spec-quick chain, the main context presents its result with the same confirm-only
-  AskUserQuestion.
+- **Standalone generative invocations are the norm** (there is no chain skill): when
+  a forked skill completes, the main context presents its result with a confirm-only
+  AskUserQuestion that also names the next phase command (init → requirements →
+  design → tasks → impl). The user drives the full cycle phase by phase; quick
+  one-off work happens in the main chat outside sdd.
 - **Stop-per-task**: the default rhythm. The stop report is SHORT — no diff summary,
   no changed-file list, no beans recap (the user watches changes live in the IDE;
   beans files are git-tracked). Optional one-liner for test results if tests ran.
@@ -370,11 +372,12 @@ behavioral:
    `background: false` + `model:`; prompt-templates pin `model` per role; every
    user-facing choice-point instruction mentions AskUserQuestion; impl templates
    contain the four-part escalation format and stop-per-task rule.
-4. **Per-skill behavior checklist**: each of the 15 skills gets a short manual
+4. **Per-skill behavior checklist**: each of the 14 skills gets a short manual
    checklist (entry condition → expected interaction pattern → expected artifacts →
    expected beans effects) walked through during wave verification.
 5. **End-to-end dry run**: in a scratch project — `/sdd:init`, a toy feature through
-   spec-quick (approving each phase), `/sdd:impl` for one task verifying the
+   spec-init → spec-requirements → spec-design → spec-tasks (approving each
+   confirm), `/sdd:impl` for one task verifying the
    stop-point and report shape, beans state inspected.
 
 ## 11. Open Items (inferences to verify during build)
@@ -389,7 +392,7 @@ behavioral:
 
 ## 12. Success Criteria
 
-1. Plugin loads via `claude --plugin-dir .`; all 15 skills invocable as `/sdd:<name>`;
+1. Plugin loads via `claude --plugin-dir .`; all 14 skills invocable as `/sdd:<name>`;
    hook injects on startup and defers to an existing `.claude/rules/sdd.md`.
 2. `git ls-files` contains none of: `tools/`, `.agents/`, `AGENTS.md`, `.kiro/`,
    ja/zh-TW files, demo specs.

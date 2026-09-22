@@ -156,8 +156,8 @@ numbers are kept for traceability; execute in the order given at the end.)*
 
 **Interfaces:**
 - Consumes: `tools/cc-sdd/templates/agents/claude-code-skills/skills/kiro-*/` (17 dirs).
-- Produces: `skills/{init…steering}/` — the canonical skill set (15 after deletions);
-  names later tasks reference: `init, discovery, spec-quick, spec-init,
+- Produces: `skills/{init…steering}/` — the canonical skill set (14 after deletions);
+  names later tasks reference: `init, discovery, spec-init,
   spec-requirements, spec-design, spec-tasks, impl, review, debug,
   verify-completion, validate-gap, validate-design, validate-impl, steering`.
 
@@ -179,7 +179,6 @@ numbers are kept for traceability; execute in the order given at the end.)*
 mkdir -p skills
 S=tools/cc-sdd/templates/agents/claude-code-skills/skills
 mv $S/kiro-discovery        skills/discovery
-mv $S/kiro-spec-quick       skills/spec-quick
 mv $S/kiro-spec-init        skills/spec-init
 mv $S/kiro-spec-requirements skills/spec-requirements
 mv $S/kiro-spec-design      skills/spec-design
@@ -193,15 +192,16 @@ mv $S/kiro-validate-design  skills/validate-design
 mv $S/kiro-validate-impl    skills/validate-impl
 mv $S/kiro-steering         skills/steering
 ```
-(`kiro-spec-status`, `kiro-spec-batch`, and `kiro-steering-custom` are NOT moved —
-they die with `tools/` in Task 1: beans replaces status, the sequential
+(`kiro-spec-status`, `kiro-spec-quick`, `kiro-spec-batch`, and
+`kiro-steering-custom` are NOT moved — they die with `tools/` in Task 1: beans
+replaces status, the phase-by-phase full cycle replaces quick, the sequential
 single-feature workflow (spec 5.5) replaces batch. `skills/init/` is created new in
 Task 14.)
 
 - [ ] **Step 3: Verify**
 
 Run: `ls skills | sort`
-Expected: 14 entries exactly matching the list above, each containing `SKILL.md`.
+Expected: 13 entries exactly matching the list above, each containing `SKILL.md`.
 
 Run: `claude plugin validate . 2>&1 || true` — note result; formal validation is
 re-run in Task 5 after references are fixed (broken `{{...}}` strings may warn here;
@@ -283,7 +283,7 @@ disappear via deletion — spec-batch is not relocated and docs/CLAUDE.md died w
 
 Replace `/kiro-<x>` → `/sdd:<x>` and bare `kiro-<x>` → the bare skill name or
 `/sdd:<x>` as grammar requires, across `skills/`. Example:
-`/kiro-spec-quick {feature}` → `/sdd:spec-quick` (no feature argument — spec 5.5).
+`/kiro-spec-design {feature}` → `/sdd:spec-design` (no feature argument — spec 5.5).
 
 - [ ] **Step 3: Rewrite root CLAUDE.md**
 
@@ -407,49 +407,41 @@ Focus #4: prose forms only).
 
 - [ ] **Step 3: STOP** — user reviews and commits.
 
-### Task 8: Rework — spec-init, spec-quick, spec-requirements
+### Task 8: Rework — spec-init, spec-requirements
 
 **Files:**
-- Rewrite: `skills/spec-init/SKILL.md`, `skills/spec-quick/SKILL.md`,
-  `skills/spec-requirements/SKILL.md`
+- Rewrite: `skills/spec-init/SKILL.md`, `skills/spec-requirements/SKILL.md`
 
 **Interfaces:**
 - Consumes: beans (`beans create ... -t epic`), Agent dispatch for drafting.
-- Produces: `.sdd/specs/<feature>/` + epic bean (spec-init); phase-chain approvals
-  (spec-quick); `requirements.md` (spec-requirements).
+- Produces: `.sdd/specs/<feature>/` + epic bean (spec-init); `requirements.md`
+  (spec-requirements).
 
 **Requirements:**
 - `spec-init`: accepts the new feature name/description (the ONLY place a feature is
   born); refuses if an `in-progress` epic already exists (offers complete/scrap
   first, per spec 5.5); creates `.sdd/specs/<name>/` and the epic bean with
   `-t epic -s in-progress`; no spec.json (deleted concept — text must not mention
-  it).
-- `spec-quick`: inline orchestrator invoking `sdd:spec-init → spec-requirements →
-  spec-design → spec-tasks` via the Skill tool with an approval AskUserQuestion
-  between phases; exit summary lists bean ids created.
+  it); its completion summary names the next command (`/sdd:spec-requirements`).
 - `spec-requirements`: interactive phase FIRST (clarifying questions in main
   context, one at a time, AskUserQuestion; user may paste context); then dispatch
   the DRAFTING to an Agent subagent (`model: opus`) carrying the Q&A digest + EARS
   rule path `${CLAUDE_PLUGIN_ROOT}/assets/rules/ears-format.md` + template path;
-  confirm-only afterwards. Skill itself is NOT forked (frontmatter has no
-  `context: fork`).
+  confirm-only afterwards, naming the next command (`/sdd:spec-design`). Skill
+  itself is NOT forked (frontmatter has no `context: fork`).
+- NOTE: there is NO spec-quick skill — the user runs the full cycle phase by phase
+  (quick one-off work happens in the main chat outside sdd, per the user's
+  workflow). Phase transitions are the confirm gates + next-command naming.
 
-- [ ] **Step 1: Write the three SKILL.md files**, complete.
+- [ ] **Step 1: Write the two SKILL.md files**, complete.
 - [ ] **Step 2: Verify**
 
 Run: `grep -c 'spec.json\|phase:\|approvals' skills/spec-init/SKILL.md
-  skills/spec-quick/SKILL.md skills/spec-requirements/SKILL.md` → `0` per file.
+  skills/spec-requirements/SKILL.md` → `0` per file.
 Run: `grep -c 'AskUserQuestion' skills/spec-requirements/SKILL.md` → ≥2.
 Run: `grep -c 'context: fork' skills/spec-requirements/SKILL.md` → `0`.
 
-- [ ] **Step 3: Probe the unverified composition EARLY** — inline skill invoking a
-  forked skill via the Skill tool (spec-quick → spec-design) was never verified as a
-  composition. In a scratch dir, run `/sdd:spec-design` once (standalone or through a
-  dry spec-quick segment) and confirm the fork triggers and returns in-turn. If it
-  does not, fall back to spec-quick dispatching design/tasks drafting via the Agent
-  tool directly (same contracts) and record the decision in the umbrella bean.
-
-- [ ] **Step 4: STOP** — user reviews and commits.
+- [ ] **Step 3: STOP** — user reviews and commits.
 
 ### Task 9: Rework — spec-design, spec-tasks (generative forks)
 
@@ -476,8 +468,9 @@ Run: `grep -c 'context: fork' skills/spec-requirements/SKILL.md` → `0`.
   edit this document to record progress.`
 
 - Confirm contract for both skills: on fork completion the result is presented in
-  main context with a confirm-only AskUserQuestion ("review — any edits?") — this
-  covers standalone invocations outside the spec-quick chain (a fork cannot ask).
+  main context with a confirm-only AskUserQuestion ("review — any edits?") — a fork
+  cannot ask; the confirm names the next phase command
+  (`/sdd:spec-tasks` after design, `/sdd:impl` after tasks).
 
 - [ ] **Step 1: Write both SKILL.md files**, complete.
 - [ ] **Step 2: Verify**
@@ -541,6 +534,12 @@ Run: `grep -c 'blocked-by' skills/discovery/SKILL.md` → ≥1.
 Run: `grep -rnE 'git[ ]+(add|commit|push|checkout|switch|stash|mv|rm)\b' skills/ assets/` → empty.
 Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
   validate-gap, validate-design, validate-impl (5 files).
+Run (probe): the ONE remaining inline→forked composition is impl invoking
+  `validate-impl` via the Skill tool at feature end (Task 6 §5). With a stub
+  validate-impl, confirm the Skill-tool call triggers the fork and returns
+  in-turn from an inline context. If it does not, change Task 6 §5 to dispatch the
+  validation via the Agent tool directly (same GO/NO-GO contract) and record the
+  decision in the umbrella bean.
 
 - [ ] **Step 3: STOP** — user reviews and commits.
 
@@ -595,7 +594,7 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
 - Produces: bootstrap behavior; the default rules content `/sdd:init` writes.
 
 - [ ] **Step 1: `assets/workflow-map.md` (verbatim core; executor completes the
-  skill index table with the 15 names from Task 3):** content = the workflow map:
+  skill index table with the 14 names from Task 3):** content = the workflow map:
   paths (`.sdd/specs/`, workspace, brief), phase flow (discovery → requirements →
   design → tasks → impl with approval gates), beans-only-tracking statement +
   one-line pointer to the global beans guide, AskUserQuestion-always rule,
@@ -664,14 +663,16 @@ Run: `grep -rln 'context: fork' skills/` → exactly: spec-design, spec-tasks,
   and the plan/spec/bean files legitimately mention old names); use the
   hook-blocker-safe grep forms (Task 15 pattern); `claude plugin validate .` clean;
   `claude -p --plugin-dir . "Reply with the exact list of your available /sdd:
-  skills"` returns the 15 names. Untouched proof: `git status --porcelain .zed
+  skills"` returns the 14 names. Untouched proof: `git status --porcelain .zed
   .github` → empty.
 - [ ] **Step 2: E2E dry run (spec §10.5)** in a scratch project. Setup first: ask
   the USER to initialize the scratch repo and record an initial snapshot (agents
   don't — read-only git; the review-package step needs a HEAD to diff against).
-  Then: `/sdd:init` → toy feature via `/sdd:spec-quick` (approve each phase via the
-  offered choices) → `/sdd:impl` one task → verify STOP shape (short report,
-  AskUserQuestion, no diff-list), beans state, workspace artifacts.
+  Then: `/sdd:init` → toy feature phase by phase: `/sdd:spec-init` →
+  `/sdd:spec-requirements` (answer the offered questions) → `/sdd:spec-design` →
+  `/sdd:spec-tasks` (approve each confirm) → `/sdd:impl` one task → verify STOP
+  shape (short report, AskUserQuestion, no diff-list), beans state, workspace
+  artifacts.
 - [ ] **Step 3: Housekeeping**: verify the two research-agent beans
   (`cc-sdd-0gd1`, `cc-sdd-koql`) are completed (they already were at plan-review
   time — confirm, don't redo); update umbrella `cc-sdd-uwj4` with
@@ -699,3 +700,7 @@ run unchanged as numbered.)
   spec-batch deleted (16→15 skills), feature arguments removed from all skills except
   spec-init/discovery (spec 5.5), spec-init refusal rule, cancellation path in the
   spec; /compact and session habits explicitly OUT of sdd's concerns (state on disk).
+- **Revision 3 (2026-09-23):** spec-quick deleted (15→14 skills) per user — full
+  cycle only, phase by phase; quick one-off work stays outside sdd in the main chat.
+  Phase transitions = confirm gates + next-command naming; the inline→forked probe
+  moved to Task 11 (the only remaining composition is impl → validate-impl).
