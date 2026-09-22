@@ -1,0 +1,6 @@
+{
+  "name": "sdd",
+  "version": "0.1.0",
+  "description": "Kiro-style spec-driven development for Claude Code with subagent-first execution",
+  "displayName": "sdd"
+}
