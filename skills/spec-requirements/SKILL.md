@@ -2,8 +2,6 @@
 name: kiro-spec-requirements
 description: Generate EARS-format requirements based on project description and steering context. Use when generating requirements from project description.
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, AskUserQuestion
-metadata:
-  shared-rules: "ears-format.md, requirements-review-gate.md"
 ---
 
 # kiro-spec-requirements Skill
@@ -30,9 +28,9 @@ Select skills for the current task even when steering/spec context is already av
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
 
 ### Step 2: Read Guidelines
-- Read `rules/ears-format.md` from this skill's directory for EARS syntax rules
-- Read `rules/requirements-review-gate.md` from this skill's directory for pre-write review criteria
-- Read `{{KIRO_DIR}}/settings/templates/specs/requirements.md` for document structure
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/ears-format.md` from this skill's directory for EARS syntax rules
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/requirements-review-gate.md` from this skill's directory for pre-write review criteria
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/requirements.md` for document structure
 
 #### Parallel Research (subagent dispatch)
 
@@ -61,7 +59,7 @@ After all research completes, synthesize findings in main context before generat
 - Keep this as a draft until the review gate passes; do not write `requirements.md` yet
 
 ### Step 4: Review Requirements Draft
-- Run the `Requirements Review Gate` from `rules/requirements-review-gate.md`
+- Run the `Requirements Review Gate` from `${CLAUDE_PLUGIN_ROOT}/assets/rules/requirements-review-gate.md`
 - Review coverage, EARS compliance, ambiguity, adjacent expectations, and scope boundaries before finalizing
 - If issues are local to the draft, repair the requirements and review again
 - Keep the review bounded to at most 2 repair passes
