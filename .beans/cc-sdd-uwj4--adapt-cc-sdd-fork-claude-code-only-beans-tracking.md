@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T20:20:17Z
+updated_at: 2026-09-22T20:28:55Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -142,3 +142,16 @@ Rationale notes: user picks Opus manually in main chat today — pinned model in
 3. CONSISTENCY DISCIPLINE replaces conciseness discipline: brevity NOT a goal (big tasks need volume; compression loses architecture moments); walls of text acceptable. HARD requirement: tables and diagrams (mermaid) 100% consistent with the prose and with user's description + research findings. Fidelity over compression.
 4. RESEARCH + OPTIONS PROPOSAL: during discovery/requirements/design the agent runs its own research (codebase, LSP, docs/API/web tools) and PROPOSES solution options with trade-offs (superpowers-style), never picks silently. Aligns with no-blind-decisions.
 5. BEANS ROADMAP INTEGRATION (verified: beans roadmap renders milestones/epics → Markdown; flags --status/--include-done/--no-links; also exists: check, prime, init, graphql, tui): DESIGN — discovery's roadmap.md (checkbox state file) REPLACED by beans hierarchy: milestone bean = initiative, epic beans = specs (one per spec), --blocked-by = dependency waves; spec-batch queries beans (list/roadmap) instead of parsing markdown checkboxes. brief.md STAYS (narrative context, not state). Principle: state=beans applies to multi-spec level too.
+
+## Refinement round 4 (2026-09-22): interaction format
+
+POLICY — ALL choice-points/questions to the user go through AskUserQuestion, ALWAYS (superpowers does it mostly; user wants 100%). Hybrid format (user likes superpowers' style, keep it):
+1. Detailed explanation FIRST in chat prose (approaches, trade-offs, reasoning) — the tool is not a substitute for the analysis
+2. THEN AskUserQuestion with compact options: recommended option FIRST labeled '(Recommended)', short labels, <=4 questions per call, related questions batched, one-at-a-time only when next question depends on the answer; built-in 'Other' covers free text
+3. NEVER plain-text 'which do you prefer?' endings
+
+PLATFORM NUANCE to encode: subagents do NOT ask user questions directly — they return status contracts (NEEDS_CONTEXT / DONE_WITH_CONCERNS / BLOCKED + four-part explanation) and the ORCHESTRATOR in main context formulates the AskUserQuestion. Interactive gateways live in main context (established architecture decision); applies to impl stop-points and escalation resolution options (accept as-is / fix / abort).
+
+Answer to user's question: cc-sdd/kiro skills have NO structured-question convention (free-form 'ask the user') — nothing better to import; the hybrid above formalizes the superpowers pattern with the always-tool guarantee. User's global steering skill already uses AskUserQuestion explicitly — consistent.
+
+WHERE ENCODED: (1) workflow map (bootstrap hook + /sdd:init rules file), (2) interactive skills (discovery, spec-requirements questioning, approvals), (3) impl orchestrator stop/escalation points, (4) subagent prompt templates (route questions via status contracts).
