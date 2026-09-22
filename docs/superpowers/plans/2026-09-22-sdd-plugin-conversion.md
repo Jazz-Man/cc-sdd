@@ -659,7 +659,8 @@ Run (probe): the ONE remaining inline→forked composition is impl invoking
 - Rewrite: `README.md`; prune `docs/guides/` to skill-reference.md, spec-driven.md,
   why-cc-sdd.md (updated to fork reality: no CLI, no agents table, /sdd:* usage,
   beans, models, stop-per-task); delete command-reference.md, customization-guide.md,
-  migration-guide.md, claude-subagents.md, `docs/README/`, `docs/RELEASE_NOTES/`;
+  migration-guide.md, claude-subagents.md, `docs/README/`, `docs/README.md` (the
+  language index file — carries dangling ja/zh-TW links), `docs/RELEASE_NOTES/`;
   reset `CHANGELOG.md`
   to a fork-initial entry.
 
