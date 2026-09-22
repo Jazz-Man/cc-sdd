@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T20:28:55Z
+updated_at: 2026-09-22T20:44:45Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -155,3 +155,7 @@ PLATFORM NUANCE to encode: subagents do NOT ask user questions directly — they
 Answer to user's question: cc-sdd/kiro skills have NO structured-question convention (free-form 'ask the user') — nothing better to import; the hybrid above formalizes the superpowers pattern with the always-tool guarantee. User's global steering skill already uses AskUserQuestion explicitly — consistent.
 
 WHERE ENCODED: (1) workflow map (bootstrap hook + /sdd:init rules file), (2) interactive skills (discovery, spec-requirements questioning, approvals), (3) impl orchestrator stop/escalation points, (4) subagent prompt templates (route questions via status contracts).
+
+## Brainstorm (superpowers:brainstorming v6.4.1, resumed after /reload-plugins)
+
+Approach selected: A — MIGRATE IN PLACE (5 waves, repo loadable after each), with B-borrowing: skills whose internals transform >50% (impl, tracking parts of spec-*) rewritten fresh on the basis of old; proven content (templates/rules/protocols) ported verbatim. Spec scope: ONE spec. Next: sectioned design presentation → spec doc → self-review → user gate → writing-plans.
