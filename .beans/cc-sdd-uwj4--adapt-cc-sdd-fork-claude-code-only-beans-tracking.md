@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T19:42:36Z
+updated_at: 2026-09-22T20:20:17Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -134,3 +134,11 @@ ARCHITECTURE REFINEMENT: two tiers → THREE interaction patterns:
 3. Orchestrator (impl) — inline loop + per-task subagents per templates, stop-per-task
 
 Rationale notes: user picks Opus manually in main chat today — pinned model in forks is strictly more reliable; ~30% of their superpowers spec+plan runs had model-choice/hallucination gaps requiring extra correction cycles.
+
+## Refinements round 3 (2026-09-22)
+
+1. STOP REPORT SLIMMED: user watches changes live in IDE (runs Claude Code in terminal inside IDE) → NO diff summary, NO changed-files list, NO beans-state recap in the stop report. SHORT report only; test results = optional one-liner if tests ran. Keep superpowers-style task status output (user liked it).
+2. ESCALATION POLICY (critical): NO BLIND DECISIONS EVER. Any concern/minor problem/deviation from plan during work — even when review passed and plan-conformance OK (DONE_WITH_CONCERNS path) — escalates to user with four-part format: (a) how it should be per plan, (b) what actually happened, (c) why it matters, (d) resolution options (accept as-is / fix / abort / other). User decides. Encode in implementer/reviewer prompt templates + orchestrator rules.
+3. CONSISTENCY DISCIPLINE replaces conciseness discipline: brevity NOT a goal (big tasks need volume; compression loses architecture moments); walls of text acceptable. HARD requirement: tables and diagrams (mermaid) 100% consistent with the prose and with user's description + research findings. Fidelity over compression.
+4. RESEARCH + OPTIONS PROPOSAL: during discovery/requirements/design the agent runs its own research (codebase, LSP, docs/API/web tools) and PROPOSES solution options with trade-offs (superpowers-style), never picks silently. Aligns with no-blind-decisions.
+5. BEANS ROADMAP INTEGRATION (verified: beans roadmap renders milestones/epics → Markdown; flags --status/--include-done/--no-links; also exists: check, prime, init, graphql, tui): DESIGN — discovery's roadmap.md (checkbox state file) REPLACED by beans hierarchy: milestone bean = initiative, epic beans = specs (one per spec), --blocked-by = dependency waves; spec-batch queries beans (list/roadmap) instead of parsing markdown checkboxes. brief.md STAYS (narrative context, not state). Principle: state=beans applies to multi-spec level too.
