@@ -3,8 +3,6 @@ name: kiro-validate-design
 description: Interactive technical design quality review and validation. Use when reviewing design before implementation.
 allowed-tools: Read, Grep, Glob, AskUserQuestion
 argument-hint: <feature-name>
-metadata:
-  shared-rules: "design-review.md"
 ---
 
 # kiro-validate-design Skill
@@ -36,7 +34,7 @@ Select skills for the current task even when steering/spec context is already av
 #### Parallel Research
 
 The following research areas are independent and can be executed in parallel:
-1. **Context & rules loading**: Spec documents, core steering, task-relevant extra steering, relevant local agent skills/playbooks, and `rules/design-review.md` from this skill's directory for review criteria
+1. **Context & rules loading**: Spec documents, core steering, task-relevant extra steering, relevant local agent skills/playbooks, and `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review.md` from this skill's directory for review criteria
 2. **Codebase pattern survey**: Gather existing architecture patterns, naming conventions, and component structure from the codebase to use as reference during review
 
 After all parallel research completes, synthesize findings for review.

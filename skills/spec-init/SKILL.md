@@ -17,8 +17,7 @@ Generate a unique feature name from the project description ($ARGUMENTS) and ini
 3. **Check Uniqueness**: Verify `{{KIRO_DIR}}/specs/` for naming conflicts. If the directory already exists with only `brief.md` (no `spec.json`), use that directory (discovery created it).
 4. **Create Directory**: `{{KIRO_DIR}}/specs/[feature-name]/` (skip if already exists from discovery)
 5. **Initialize Files Using Templates**:
-   - Read `{{KIRO_DIR}}/settings/templates/specs/init.json`
-   - Read `{{KIRO_DIR}}/settings/templates/specs/requirements-init.md`
+   - Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/requirements-init.md`
    - Replace placeholders:
      - `{{FEATURE_NAME}}` → generated feature name
      - `{{TIMESTAMP}}` → current ISO 8601 timestamp
@@ -46,6 +45,6 @@ Provide output in the language specified in `spec.json` with the following struc
 
 ## Safety & Fallback
 - **Ambiguous Feature Name**: If feature name generation is unclear, propose 2-3 options and ask user to select
-- **Template Missing**: If template files don't exist in `{{KIRO_DIR}}/settings/templates/specs/`, report error with specific missing file path and suggest checking repository setup
+- **Template Missing**: If template files don't exist in `${CLAUDE_PLUGIN_ROOT}/assets/templates/`, report error with specific missing file path and suggest checking repository setup
 - **Directory Conflict**: If feature name already exists, append numeric suffix (e.g., `feature-name-2`) and notify user of automatic conflict resolution
 - **Write Failure**: Report error with specific path and suggest checking permissions or disk space

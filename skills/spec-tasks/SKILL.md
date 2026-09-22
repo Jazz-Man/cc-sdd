@@ -3,8 +3,6 @@ name: kiro-spec-tasks
 description: Generate implementation tasks from requirements and design. Use when creating actionable task lists.
 allowed-tools: Read, Write, Edit, Glob, Grep, Agent
 argument-hint: <feature-name> [-y] [--sequential]
-metadata:
-  shared-rules: "tasks-generation.md, tasks-parallel-analysis.md"
 ---
 
 # kiro-spec-tasks Skill
@@ -38,9 +36,9 @@ Select skills for the current task even when steering/spec context is already av
 
 ### Step 2: Generate Implementation Tasks
 
-- Read `rules/tasks-generation.md` from this skill's directory for principles
-- Read `rules/tasks-parallel-analysis.md` from this skill's directory for parallel judgement criteria
-- Read `{{KIRO_DIR}}/settings/templates/specs/tasks.md` for format (supports `(P)` markers)
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md` from this skill's directory for principles
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-parallel-analysis.md` from this skill's directory for parallel judgement criteria
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/tasks.md` for format (supports `(P)` markers)
 
 #### Parallel Research
 
@@ -65,7 +63,7 @@ After all parallel research completes, synthesize findings before generating tas
 ### Step 3: Review Task Plan
 
 - Keep the draft task plan in working memory; do NOT write `tasks.md` yet
-- Run the `Task Plan Review Gate` from `rules/tasks-generation.md`
+- Run the `Task Plan Review Gate` from `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md`
 - Review coverage:
   - Every requirement ID appears in at least one task
   - Every design component, contract, integration point, runtime prerequisite, and validation concern is represented

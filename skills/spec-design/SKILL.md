@@ -3,8 +3,6 @@ name: kiro-spec-design
 description: Generate comprehensive technical design translating requirements (WHAT) into architecture (HOW) with discovery process. Use when creating architecture from requirements.
 allowed-tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
 argument-hint: <feature-name> [-y]
-metadata:
-  shared-rules: "design-principles.md, design-discovery-full.md, design-discovery-light.md, design-synthesis.md, design-review-gate.md"
 ---
 
 # kiro-spec-design Skill
@@ -29,9 +27,9 @@ Select skills for the current task even when steering/spec context is already av
 - Additional steering files only when directly relevant to requirement coverage, architecture boundaries, integrations, runtime prerequisites, security/performance constraints, or team conventions that affect implementation readiness
 - Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
 - Consult relevant domain skills even when building by hand without adopting a new library.
-- `{{KIRO_DIR}}/settings/templates/specs/design.md` for document structure
-- Read `rules/design-principles.md` from this skill's directory for design principles
-- `{{KIRO_DIR}}/settings/templates/specs/research.md` for discovery log structure
+- `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` for document structure
+- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-principles.md` from this skill's directory for design principles
+- `${CLAUDE_PLUGIN_ROOT}/assets/templates/research.md` for discovery log structure
 
 **Validate requirements approval**:
 - If auto-approve flag is true: Auto-approve requirements in spec.json
@@ -50,7 +48,7 @@ Select skills for the current task even when steering/spec context is already av
 2. **Execute Appropriate Discovery Process**:
 
    **For Complex/New Features**:
-   - Read and execute `rules/design-discovery-full.md` from this skill's directory
+   - Read and execute `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-full.md` from this skill's directory
    - Conduct thorough research using WebSearch/WebFetch:
      - Latest architectural patterns and best practices
      - External dependency verification (APIs, libraries, versions, compatibility)
@@ -58,7 +56,7 @@ Select skills for the current task even when steering/spec context is already av
      - Performance benchmarks and security considerations
 
    **For Extensions**:
-   - Read and execute `rules/design-discovery-light.md` from this skill's directory
+   - Read and execute `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-light.md` from this skill's directory
    - Focus on integration points, existing patterns, compatibility
    - Use Grep to analyze existing codebase patterns
 
@@ -98,7 +96,7 @@ After all findings return, synthesize in main context before proceeding.
 
 **Apply design synthesis to discovery findings before writing.**
 
-- Read and apply `rules/design-synthesis.md` from this skill's directory
+- Read and apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-synthesis.md` from this skill's directory
 - This step requires the full picture from discovery findings — execute in main context, not in a subagent
 - Record synthesis outcomes (generalizations found, build-vs-adopt decisions, simplifications) in `research.md`
 
@@ -117,7 +115,7 @@ After all findings return, synthesize in main context before proceeding.
 
 ### Step 5: Review Design Draft
 
-- Read and apply `rules/design-review-gate.md` from this skill's directory
+- Read and apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` from this skill's directory
 - Verify requirements coverage, architecture readiness, and implementation executability before finalizing the design
 - If issues are local to the draft, repair the design and review again
 - Keep the review bounded to at most 2 repair passes
@@ -160,7 +158,7 @@ Provide brief summary in the language specified in spec.json:
 
 **Format**: Concise Markdown (under 200 words) - this is the command output, NOT the design document itself
 
-**Note**: The actual design document follows `{{KIRO_DIR}}/settings/templates/specs/design.md` structure.
+**Note**: The actual design document follows `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` structure.
 
 ## Safety & Fallback
 
@@ -177,7 +175,7 @@ Provide brief summary in the language specified in spec.json:
 - **Suggested Action**: "Run `/kiro-spec-requirements {feature}` to generate requirements first"
 
 **Template Missing**:
-- **User Message**: "Template file missing at `{{KIRO_DIR}}/settings/templates/specs/design.md`"
+- **User Message**: "Template file missing at `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md`"
 - **Suggested Action**: "Check repository setup or restore template file"
 - **Fallback**: Use inline basic structure with warning
 
