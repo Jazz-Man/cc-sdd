@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-22T20:44:45Z
+updated_at: 2026-09-22T20:53:25Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -159,3 +159,12 @@ WHERE ENCODED: (1) workflow map (bootstrap hook + /sdd:init rules file), (2) int
 ## Brainstorm (superpowers:brainstorming v6.4.1, resumed after /reload-plugins)
 
 Approach selected: A — MIGRATE IN PLACE (5 waves, repo loadable after each), with B-borrowing: skills whose internals transform >50% (impl, tracking parts of spec-*) rewritten fresh on the basis of old; proven content (templates/rules/protocols) ported verbatim. Spec scope: ONE spec. Next: sectioned design presentation → spec doc → self-review → user gate → writing-plans.
+
+## Spec written (2026-09-22)
+
+Design spec: docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md
+- Sectioned design presented & approved (correction applied: /sdd:init writes ONLY sdd rules into .claude/rules/sdd.md — no session briefing in the file; one-line in-chat note after write)
+- Self-review fixed 3 defects: (1) review-package built from WORKING-TREE diff (agents never make commits — none exist mid-task), (2) spec-requirements is inline-interactive, dispatches only drafting to opus subagent (forked skill cannot ask questions), (3) brief.md relocated to .sdd/brief.md (workstream-level)
+- Spec file left uncommitted per user's read-only-git rule — user commits manually
+- Status: USER REVIEW GATE — awaiting spec approval, then writing-plans
+- Side note: .beans/ contains two agent-created beans (cc-sdd-0gd1 plugin-format-verification, cc-sdd-koql superpowers-research) — background research agents tracked their own work; housekeeping pending
