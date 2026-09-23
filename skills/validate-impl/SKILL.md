@@ -1,14 +1,40 @@
 ---
 name: validate-impl
-description: Validate feature-level integration after all tasks are implemented. Checks cross-task consistency, full test suite, and overall spec coverage.
-allowed-tools: Read, Bash, Grep, Glob, Agent
-argument-hint: <feature-name> [task-numbers]
+description: Generative fork - the feature-level GO/NO-GO gate. Reads completion state from the feature's task beans, runs integration, coverage, design-alignment, and boundary checks with fresh evidence, and returns the verdict with remediation. Runs at feature finish (dispatched by impl) or standalone on demand.
+context: fork
+background: false
+model: opus
+allowed-tools: Read, Bash, Grep, Glob
 ---
 
-# validate-impl Skill
+# validate-impl - feature-level GO/NO-GO
+
+## Entry paths - this skill is entered one of two ways
+
+1. **Standalone**: the user invokes `/sdd:validate-impl`; this skill body
+   loads as a fork and IS the task prompt.
+2. **Orchestrator dispatch**: the `/sdd:impl` feature-finish step
+   dispatches a fresh subagent whose prompt says
+   `Apply: <abs-path>/skills/validate-impl/SKILL.md` plus the feature's
+   spec and workspace paths. Reading and following this file top-to-
+   bottom is exactly that dispatch's task; the SKILL.md is the single
+   source of truth for both entries.
+
+Neither path carries conversation history, and nothing below may depend
+on one. Both entries do the same thing: resolve the feature from beans,
+run the gate, return the verdict contract.
 
 ## Role
-Individual tasks are usually reviewed during implementation. Your job is to catch problems that only become visible when looking across all tasks together.
+
+You are a FORK: a fresh subagent with no conversation history. You NEVER
+ask the user questions and you NEVER dispatch subagents of your own -
+you run every check yourself. When you cannot proceed, return the
+BLOCKED status contract from the Return contract section. The context
+that invoked you owns all dialogue with the user.
+
+Individual tasks were reviewed during implementation. Your job is to
+catch what only becomes visible when the completed tasks are viewed
+together.
 
 Boundary terminology continuity:
 - discovery identifies `Boundary Candidates`
@@ -16,147 +42,184 @@ Boundary terminology continuity:
 - tasks constrain execution with `_Boundary:_`
 - feature validation checks for cross-task `Boundary Violations`
 
-## Core Mission
-- **Success Criteria**:
-  - All tasks marked `[x]` in tasks.md
-  - Full test suite passes (not just per-task tests)
-  - Cross-task integration works (data flows between components, interfaces match)
-  - Requirements coverage is complete across all tasks (no gaps between tasks)
-  - Design structure is reflected end-to-end (not just per-component)
-  - No orphaned code, conflicting implementations, integration seams, or boundary spillover
+## Hard rules
 
-## What This Skill Does NOT Do
-This skill is not a full replacement for task-local review during `/sdd:impl`. This skill does **not** re-check:
-- Individual task acceptance criteria
-- Per-file reality checks (mock/stub detection)
-- Single-task spec alignment
+1. **Git is read-only.** Bash is limited to the beans CLI, validation
+   commands, greps, and read-only git inspection. Nothing in this run
+   stages, commits, pushes, or touches branches: the user reviews,
+   tests, and commits.
+2. **This skill writes no beans** and flips no checkboxes anywhere.
+   Completion state is READ from the task beans under the feature epic -
+   beans is the tracker, documents are static.
+3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
+4. **Fresh evidence only.** Reported success in implementer reports and
+   review packages is reference material, never evidence. Run every
+   mechanical check against the current code state yourself and use the
+   actual output and exit codes.
+5. **English output** - fixed; no per-spec language configuration exists.
 
-This skill's main question is: when the completed tasks are viewed together, do they still respect the designed boundary seams and dependency direction?
+## What this skill does NOT do
 
-## Execution Steps
+It does not replace task-local review. It does not re-check individual
+task acceptance criteria, per-file reality (mock/stub detection), or
+single-task spec alignment. Its one question: when the completed tasks
+are viewed together, do they respect the designed boundary seams and
+dependency direction - and is the feature actually finished and
+verifiable?
 
-### Step 1: Detect Validation Target
+## Step 1 - Resolve the active feature
 
-**If no arguments provided**:
-- Parse conversation history for `/sdd:impl` commands to detect recently implemented features and tasks
-- Scan `.sdd/specs/` for features with completed tasks `[x]`
-- Report detected implementations (e.g., "user-auth: 1.1, 1.2, 1.3")
+Query beans: `beans list --json -t epic -s in-progress`.
 
-**If feature provided** (feature specified, tasks empty):
-- Use specified feature
-- Detect all completed tasks `[x]` in `.sdd/specs/{feature}/tasks.md`
+- **Exactly one** -> that epic is the active feature. Resolve its spec
+  directory from the `Spec path:` line in the bean body
+  (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
+  asking the invoking context where the feature lives.
+- **None** -> return BLOCKED: no active feature; point to
+  `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
+  (nothing shaped yet).
+- **More than one** -> return BLOCKED: the single-active-feature rule is
+  violated; the invoking context resolves it with the user.
 
-**If both feature and tasks provided** (explicit mode):
-- Validate specified feature and tasks only (e.g., `user-auth 1.1,1.2`)
+## Step 2 - Read completion state from beans
 
-### Step 2: Gather Context
+Query the epic's children, e.g.
+`beans query --json '{ bean(id: "<epic-id>") { children { id title status body } } }'`.
 
-Reuse steering/spec context already available from conversation; load missing context below for each detected feature.
-Select skills for the current task even when steering/spec context is already available:
-- Read `.sdd/specs/<feature>/spec.json` for metadata
-- Read `.sdd/specs/<feature>/requirements.md` for requirements
-- Read `.sdd/specs/<feature>/design.md` for design structure
-- Read `.sdd/specs/<feature>/tasks.md` for task list and Implementation Notes
-- Core steering context: `product.md`, `tech.md`, `structure.md`
-- Additional steering files only when directly relevant to the validated boundaries, runtime prerequisites, integrations, domain rules, security/performance constraints, or team conventions that affect the GO/NO-GO call
-- Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
+- **No task beans at all** -> return BLOCKED pointing to
+  `/sdd:spec-tasks`: the plan has not been generated.
+- **Every task bean completed or scrapped** -> proceed to the full gate
+  (Step 3). A task bean carrying a `## Blocker` note is not complete -
+  it reads `in-progress` and counts as open.
+- **Any task bean open** (`todo`, `draft`, `in-progress`) -> the feature
+  is not finished; the full battery is predetermined to fail. Return
+  DONE with `DECISION: NO-GO`, the open tasks as the blocking finding,
+  and REMEDIATION pointing to `/sdd:impl` - and say explicitly that
+  integration checks were skipped because the feature is incomplete.
 
-**Discover canonical validation commands**:
-- Inspect repository-local sources of truth in this order: project scripts/manifests (`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, app manifests), task runners (`Makefile`, `justfile`), CI/workflow files, existing e2e/integration configs, then `README*`
-- Derive a feature-level validation set for this repo: `TEST_COMMANDS`, `BUILD_COMMANDS`, and `SMOKE_COMMANDS`
-- Prefer commands already used by repo automation over ad hoc shell pipelines
-- For `SMOKE_COMMANDS`, choose the lightest trustworthy runtime-liveness check for the app shape (for example: root URL load, Electron launch, CLI `--help`, service health endpoint, mobile simulator/e2e harness if one already exists)
-- If multiple candidates exist, prefer the command with the smallest setup cost that still exercises the real built artifact
+## Step 3 - Load inputs and discover validation commands
 
-### Step 3: Execute Integration Validation
+Read, under the spec directory:
 
-#### Subagent Dispatch (parallel)
+- `.sdd/specs/<feature>/requirements.md` - REQUIRED. Missing -> return
+  BLOCKED pointing to `/sdd:spec-requirements`.
+- `.sdd/specs/<feature>/design.md` and `tasks.md` - the conformance
+  references: boundary commitments, structure map, requirement mapping,
+  `## Implementation Notes`. Either missing -> return BLOCKED pointing
+  to the generating skill.
+- `.sdd/specs/<feature>/workspace/` - reports, review packages, and
+  `notes.md` (including its `## Minor Findings` parking lot). Reference
+  only: claims there are never evidence.
+- Steering: Glob `.claude/rules/*.md`; read files constraining the
+  validated boundaries and integrations.
+- The verify-completion protocol at `skills/verify-completion/SKILL.md`
+  (a sibling directory of this file in the plugin; Hard rule 4 and
+  Step 5 restate its core discipline regardless) - the fresh-evidence
+  gate you apply in Step 5, claim type `FEATURE_GO`.
 
-The following validation dimensions are independent and can be dispatched as **subagents** via the Agent tool. The agent should decide the optimal decomposition based on feature scope — split, merge, or skip subagents as appropriate. Each subagent returns a **structured findings summary** to keep the main context clean for GO/NO-GO synthesis.
+**Feature boundary scope**: translate the tasks' `_Boundary:_`
+annotations into path patterns via design.md's structure map; when no
+boundary is declared or the translation is not confident, use the full
+working tree.
 
-**Typical validation dimensions** (adjust as appropriate):
-- **Test execution**: Run the complete test suite, report pass/fail with details
-- **Requirements coverage**: Build requirements → implementation matrix, report gaps
-- **Design alignment**: Verify architecture matches design.md, report drift and dependency violations
-- **Cross-task integration**: Verify data flows, API contracts, shared state consistency
+**Discover canonical validation commands**: inspect repository-local
+sources of truth in this order - project scripts/manifests
+(`package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, app
+manifests), task runners (`Makefile`, `justfile`), CI/workflow files,
+existing e2e/integration configs, then `README*`. Derive the full-test
+command and the lightest trustworthy smoke command. Prefer commands
+already used by repo automation over ad hoc pipelines.
 
-For simple features (few tasks, small scope), run checks in main context without subagent dispatch.
+## Step 4 - Run the gate
 
-If the implementation run explicitly skipped task-local review (for example `--review off`), tighten scrutiny on obvious task-level gaps that surface during integration validation and call out that reduced review coverage in the report.
+### Mechanical checks (run them; output and exit codes are the signal)
 
-#### Mechanical Checks (run commands, use results)
+**A. Full test suite**
+- Run the canonical full-test command. Use the exit code.
+- Tests fail -> NO-GO. No judgment needed.
+- No canonical test command identifiable -> MANUAL_VERIFY_REQUIRED.
 
-These checks apply at the feature level. Use command output as the primary signal.
+**B. Residual placeholder markers**
+- `grep -rn "TBD\|TODO\|FIXME\|HACK\|XXX" <feature-boundary-paths>`
+- Matches introduced by this feature -> Warning finding.
 
-**A. Full Test Suite**
-- Run the discovered canonical full-test command. Use the exit code.
-- If tests fail → NO-GO. No judgment needed.
-- If the canonical test command cannot be identified → `MANUAL_VERIFY_REQUIRED`
+**C. Residual hardcoded secrets**
+- `grep -rn "password\s*=\|api_key\s*=\|secret\s*=\|token\s*=" <feature-boundary-paths>`
+  (case-insensitive)
+- Matches that are not environment-variable references -> Critical
+  finding.
 
-**B. Residual TBD/TODO/FIXME**
-- Run: `grep -rn "TBD\|TODO\|FIXME\|HACK\|XXX" <files-in-feature-boundary>`
-- If matches found that were introduced by this feature → flag as Warning
+**D. Runtime liveness (smoke boot)**
+- Run the canonical smoke command proving the built artifact starts and
+  reaches its first usable state (root URL load, Electron launch-ready,
+  CLI `--help`, service health endpoint - whatever fits the app shape).
+- Boot crash, unhandled exception, module-load failure, native ABI
+  mismatch, missing required env/config -> NO-GO.
+- No trustworthy smoke command, or the runtime environment is
+  unavailable -> MANUAL_VERIFY_REQUIRED.
 
-**C. Residual Hardcoded Secrets**
-- Run: `grep -rn "password\s*=\|api_key\s*=\|secret\s*=\|token\s*=" <files-in-feature-boundary>` (case-insensitive)
-- If matches found that aren't environment variable references → flag as Critical
+### Judgment checks (read code, compare to spec)
 
-**D. Runtime Liveness (Smoke Boot)**
-- Run the discovered canonical smoke command that proves the built artifact actually starts and reaches its first usable state.
-- Examples if relevant: open the root URL in a headless browser and require zero boot-time console errors; launch Electron and wait for the main process ready signal and first renderer load; run a CLI with `--help`; start a service and hit its health endpoint.
-- If boot produces a runtime crash, unhandled exception, module-load failure, native ABI mismatch, or missing required env/config → NO-GO.
-- If no trustworthy smoke command can be identified, or the required runtime environment is unavailable → `MANUAL_VERIFY_REQUIRED`
+**E. Cross-task integration**
+- Where tasks share interfaces, data models, or API contracts: Task A's
+  output format matches Task B's expected input.
+- No conflicting assumptions between tasks (naming, error codes, data
+  shapes); shared state (schemas, config, environment) consistent.
+- Integration happens at the designed seams, not by leaking one
+  boundary's behavior into another.
 
-#### Judgment Checks (read code, compare to spec)
+**F. Requirements coverage gaps**
+- Every requirement section maps to at least one completed task;
+  identify cross-cutting requirements no single task fully covers.
+- Use the original section numbering from requirements.md; never invent
+  `REQ-*` aliases.
 
-**E. Cross-Task Integration**
-- Identify where tasks share interfaces, data models, or API contracts
-- Verify that Task A's output format matches Task B's expected input
-- Check for conflicting assumptions between tasks (naming conventions, error codes, data shapes)
-- Verify shared state (database schemas, config, environment) is consistent across tasks
-- Verify integration work happens at the intended seams rather than by leaking one boundary's behavior into another
+**G. Design end-to-end alignment**
+- Component graph, integration patterns, and dependency direction match
+  design.md (no upward imports); File Structure Plan matches the actual
+  layout. Report drift.
 
-**F. Requirements Coverage Gaps**
-- Map every requirement section to at least one completed task
-- Identify requirements that no single task fully covers (cross-cutting requirements)
-- Identify requirements partially covered by multiple tasks but not fully by any
-- Use the original section numbering from `requirements.md`; do NOT invent `REQ-*` aliases
+**G.5 Boundary audit**
+- Compare completed work against the design's Boundary Commitments,
+  Out of Boundary, Allowed Dependencies, and Revalidation Triggers.
+- Cross-task spillover (one area quietly absorbing another boundary's
+  responsibility), downstream-specific workarounds embedded upstream,
+  new hidden dependencies or undeclared shared ownership -> findings.
+- If a revalidation trigger fired, verify the affected adjacent
+  integration points were actually re-checked.
 
-**G. Design End-to-End Alignment**
-- Verify the overall component graph matches design.md
-- Check that integration patterns (event flow, API boundaries, dependency injection) work as designed
-- Verify dependency direction follows design.md's architecture (no upward imports)
-- Verify File Structure Plan matches the actual file layout
-- Identify any architectural drift from the original design
-- Use the original section numbering from `design.md`
+**H. Blocked tasks and implementation notes**
+- Open task beans and unresolved `## Blocker` notes (Step 2) and their
+  impact on feature completeness.
+- `## Implementation Notes` in tasks.md that need cross-cutting
+  attention.
 
-**G.5 Boundary Audit**
-- Compare completed work against the design's `Boundary Commitments`, `Out of Boundary`, `Allowed Dependencies`, and `Revalidation Triggers`
-- Identify cross-task spillover where one area quietly absorbed another boundary's responsibility
-- Identify downstream-specific workarounds embedded upstream "to make integration easier"
-- Identify new hidden dependencies or shared ownership that were not declared in the design
-- If a revalidation trigger fired, verify the affected adjacent specs or integration points were actually re-checked
+## Step 5 - Classify ownership, apply verify-completion, report
 
-**H. Blocked Tasks & Implementation Notes**
-- Check for any tasks still marked `_Blocked:_` — report why and assess impact on feature completeness
-- Review `## Implementation Notes` in tasks.md for cross-cutting insights that need attention
+**Ownership** (before writing any remediation):
+- `LOCAL` - the defect belongs to this feature.
+- `UPSTREAM` - the root cause belongs to a dependency, foundation,
+  shared platform, or earlier spec. Do not collapse it into local
+  remediation: name the owning upstream spec and which dependent specs
+  need revalidation after the upstream fix.
+- `UNCLEAR` - ownership cannot be established from the evidence.
 
-### Step 4: Generate Report
+**Fresh-evidence discipline**: before returning any decision, apply the
+verify-completion protocol, claim type `FEATURE_GO` - a passing test
+suite alone is insufficient; the evidence must span full-suite, runtime
+liveness, coverage, integration, design alignment, and completion
+state.
 
-Before returning `GO`, apply the `verify-completion` protocol to the feature-level claim. Tests alone are insufficient: include full-suite, runtime liveness, coverage, integration, design-alignment, and blocked-task status in the evidence.
+## Return contract
 
-Classify concrete failures by ownership before writing remediation:
-- `LOCAL` if the defect belongs to the feature being validated
-- `UPSTREAM` if the root cause belongs to a dependency, foundation, shared platform, or earlier spec
-- `UNCLEAR` if ownership cannot be established from the available evidence
-
-If ownership is `UPSTREAM`, do not collapse the issue into local remediation for this feature. Name the owning upstream spec and explain which dependent specs should be revalidated after that upstream fix lands.
-
-Provide summary in the language specified in spec.json:
+**To the fork (your final message).** Return exactly this block - the
+caller parses the heading, the `- STATUS:` line, and the `- DECISION:`
+line mechanically:
 
 ```
-## Validation Report
-- DECISION: GO | NO-GO | MANUAL_VERIFY_REQUIRED
+## Validation Summary
+- STATUS: <DONE | BLOCKED>
+- DECISION: <GO | NO-GO | MANUAL_VERIFY_REQUIRED>
 - MECHANICAL_RESULTS:
   - Tests: PASS | FAIL (command and exit code)
   - TBD/TODO grep: CLEAN | <count> matches
@@ -168,40 +231,37 @@ Provide summary in the language specified in spec.json:
   - Boundary audit: <status>
 - COVERAGE:
   - Requirements mapped: <X/Y sections covered>
-  - Coverage gaps: <list of uncovered requirement sections>
+  - Coverage gaps: <uncovered requirement sections, or none>
 - DESIGN:
-  - Architecture drift: <findings>
-  - Dependency direction: <violations if any>
+  - Architecture drift: <findings or none>
+  - Dependency direction: <violations or none>
   - File Structure Plan vs actual: <match/mismatch>
+- INCOMPLETE_TASKS: <open task beans, or none>
 - OWNERSHIP: LOCAL | UPSTREAM | UNCLEAR
-- UPSTREAM_SPEC: <feature-name | N/A>
-- BLOCKED_TASKS: <list and impact assessment>
-- REMEDIATION: <if NO-GO: specific, actionable steps to fix each issue>
+- UPSTREAM_SPEC: <feature name | N/A>
+- REMEDIATION: <mandatory when NO-GO - specific, actionable steps; vague feedback is not acceptable>
+- BLOCKERS: <BLOCKED only - the condition and the command to run>
 ```
 
-If NO-GO, REMEDIATION is mandatory — identify the exact issue and what needs to change. Vague feedback is not acceptable.
+Return `GO` only when every check passed. Return `NO-GO` for concrete
+failures and `MANUAL_VERIFY_REQUIRED` when a mandatory validation could
+not be executed - and never treat a feature as complete on a manual-
+verify result. Do not return GO if the feature only works by smearing
+responsibilities across boundaries, even when tests pass.
 
-## Important Constraints
-- **Strict Final Gate**: Return `GO` only when all integration checks passed; return `NO-GO` for concrete failures and `MANUAL_VERIFY_REQUIRED` when mandatory validation could not be completed
-- **Boundary integrity over convenience**: Do not return `GO` if the feature only works by smearing responsibilities across boundaries, even when tests pass
+**Remediation is not yours.** When dispatched by the impl orchestrator
+(feature finish), the orchestrator owns the remediation budget: 3 rounds
+total for the finish phase, shared with the whole-branch review gate -
+each round fixes findings, then re-runs this gate. `GO` plus an approved
+whole-branch review ends the phase.
 
-## Safety & Fallback
-
-### Error Scenarios
-- **No Implementation Found**: If no `[x]` tasks found, report "No implementations detected"
-- **Test Command Unknown**: Return `MANUAL_VERIFY_REQUIRED` and explain which validation command is missing; do not return `GO`
-- **Missing Spec Files**: Stop with error if spec.json/requirements.md/design.md missing
-
-### Next Steps Guidance
-
-**If GO Decision**:
-- Feature validated end-to-end and ready for deployment or next feature
-
-**If NO-GO Decision**:
-- Address issues listed in REMEDIATION
-- Re-run `/sdd:impl {feature} [tasks]` for targeted fixes
-- Re-validate with `/sdd:validate-impl {feature}`
-
-**If MANUAL_VERIFY_REQUIRED**:
-- Do not treat the feature as complete
-- Provide the exact missing validation step or environment prerequisite
+**To the presenting main context (standalone entry only).** On DONE:
+present the decision with its evidence highlights (the block above is
+the report; do not dump spec files into chat), then AskUserQuestion:
+**GO** - suggest completing the feature: finish via `/sdd:impl`
+(feature-finish flow) or complete the epic bean per the global beans
+guide; **NO-GO** - remediate via `/sdd:impl` or manual work, then
+re-invoke `/sdd:validate-impl`; **MANUAL_VERIFY_REQUIRED** - state the
+exact missing validation or environment prerequisite; the feature is
+not complete until it is resolved. On BLOCKED: present the condition and
+the named command, then AskUserQuestion on how to proceed.

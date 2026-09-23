@@ -1,100 +1,180 @@
 ---
 name: validate-design
-description: Interactive technical design quality review and validation. Use when reviewing design before implementation.
-allowed-tools: Read, Grep, Glob, AskUserQuestion
-argument-hint: <feature-name>
+description: Generative fork - quality-review the active feature's design.md against the four review criteria, write the verdict-per-criterion report to workspace/design-review.md, and return a GO/NO-GO with blocking and minor findings. Use after /sdd:spec-design to pressure-test the design before tasks.
+context: fork
+background: false
+model: opus
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# validate-design Skill
+# validate-design - design quality review
 
 ## Role
-You are a specialized skill for conducting interactive quality review of technical design to ensure readiness for implementation.
 
-## Core Mission
-- **Mission**: Conduct interactive quality review of technical design to ensure readiness for implementation
-- **Success Criteria**:
-  - Critical issues identified (maximum 3 most important concerns)
-  - Balanced assessment with strengths recognized
-  - Clear GO/NO-GO decision with rationale
-  - Actionable feedback for improvements if needed
+You are a FORK: a fresh subagent with no conversation history. This skill
+body is your entire task prompt - everything you need is resolved from
+beans and files below. You NEVER ask the user questions (no
+AskUserQuestion exists in your path) and you never dispatch subagents:
+when you cannot proceed, return the BLOCKED status contract from the
+Return contract section. The main context that invoked you owns all
+dialogue and the adjudication with the user.
 
-## Execution Steps
+Your job: adversarially review the design document for readiness - not
+perfection, readiness. The design phase already ran its own review gate;
+you are the independent second opinion before the plan gets built.
 
-### Step 1: Gather Context
+## Hard rules
 
-Reuse steering/spec context already available from conversation; load missing context below.
-Select skills for the current task even when steering/spec context is already available:
-- Read `.sdd/specs/{feature}/spec.json` for language and metadata
-- Read `.sdd/specs/{feature}/requirements.md` for requirements
-- Read `.sdd/specs/{feature}/design.md` for design document
-- Core steering context: `product.md`, `tech.md`, `structure.md`
-- Additional steering files only when directly relevant to architecture boundaries, integrations, runtime prerequisites, domain rules, security/performance constraints, or team conventions that affect implementation readiness
-- Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
+1. **Git is read-only.** Bash is limited to the beans CLI and read-only
+   inspection. Nothing in this run stages, commits, pushes, or touches
+   branches: the user reviews and commits.
+2. **This skill writes no beans.** It resolves the active feature by
+   reading beans; never write progress, approval, or blocked state into
+   any document.
+3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
+4. **You review; you do not redesign.** No implementation-level design,
+   no technology research, no silent improvements to design.md. Findings
+   go to the report file; the user decides what happens to the document.
+5. **English output** - fixed; no per-spec language configuration exists.
 
-#### Parallel Research
+## Step 1 - Resolve the active feature
 
-The following research areas are independent and can be executed in parallel:
-1. **Context & rules loading**: Spec documents, core steering, task-relevant extra steering, relevant local agent skills/playbooks, and `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review.md` from this skill's directory for review criteria
-2. **Codebase pattern survey**: Gather existing architecture patterns, naming conventions, and component structure from the codebase to use as reference during review
+Query beans: `beans list --json -t epic -s in-progress`.
 
-After all parallel research completes, synthesize findings for review.
+- **Exactly one** -> that epic is the active feature. Resolve its spec
+  directory from the `Spec path:` line in the bean body
+  (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
+  asking the main context where the feature lives.
+- **None** -> return BLOCKED: no active feature; point to
+  `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
+  (nothing shaped yet).
+- **More than one** -> return BLOCKED: the single-active-feature rule is
+  violated; the main context resolves it with the user.
 
-### Step 2: Execute Design Review
-- Reference conversation history: leverage prior requirements discussion and user's stated design intent
-- Follow design-review.md process: Analysis → Critical Issues → Strengths → GO/NO-GO
-- Limit to 3 most important concerns
-- Engage interactively with user — ask clarifying questions, propose alternatives
-- Use language specified in spec.json for output
+## Step 2 - Load inputs
 
-### Step 3: Decision and Next Steps
-- Clear GO/NO-GO decision with rationale
-- Provide specific actionable next steps (see Next Phase below)
+Read, under the spec directory from Step 1:
 
-## Important Constraints
-- **Quality assurance, not perfection seeking**: Accept acceptable risk
-- **Critical focus only**: Maximum 3 issues, only those significantly impacting success
-- **Conversation-aware**: Leverage discussion history for requirements context and user intent
-- **Interactive approach**: Engage in dialogue, ask clarifying questions, propose alternatives
-- **Balanced assessment**: Recognize both strengths and weaknesses
-- **Actionable feedback**: All suggestions must be implementable
-- **Context Discipline**: Start with core steering and expand only with review-relevant steering or local skills/playbooks selected above
+- `.sdd/specs/<feature>/design.md` - REQUIRED. Missing -> return BLOCKED
+  pointing to `/sdd:spec-design`.
+- `.sdd/specs/<feature>/requirements.md` - REQUIRED, the conformance
+  reference. Missing -> return BLOCKED pointing to
+  `/sdd:spec-requirements`.
+- `.sdd/specs/<feature>/research.md` - when present: the discovery and
+  gap analysis the design claims to build on.
+- `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review.md` - the review
+  criteria and issue format. Its interactive-dialogue step is superseded
+  in fork form: where the rule says engage the designer, you record the
+  finding instead, and the presenting main context takes it to the user.
+- Steering: Glob `.claude/rules/*.md`; read the files that constrain the
+  design's architecture and conventions.
 
-## Tool Guidance
-- **Read first**: Load spec, core steering, relevant local playbooks/agent skills, and rules before review
-- **Grep if needed**: Search codebase for pattern validation or integration checks
-- **Interactive**: Engage with user throughout the review process
+Also survey the codebase enough to check claims: the design asserts
+alignment with existing architecture - Grep/Read the modules it names
+and verify. A design that cites nonexistent structure is a finding, not
+a detail.
 
-## Output Description
-Provide output in the language specified in spec.json with:
+## Step 3 - Review against the criteria
 
-1. **Review Summary**: Brief overview (2-3 sentences) of design quality and readiness
-2. **Critical Issues**: Maximum 3, following design-review.md format
-3. **Design Strengths**: 1-2 positive aspects
-4. **Final Assessment**: GO/NO-GO decision with rationale and next steps
+Verdict per criterion, from design-review.md:
 
-**Format Requirements**:
-- Use Markdown headings for clarity
-- Follow design-review.md output format
-- Keep summary concise
+1. **Existing Architecture Alignment** - integration with real system
+   boundaries, consistency with established patterns, dependency
+   direction, module organization. Verified against the codebase, not
+   the design's self-description.
+2. **Design Consistency & Standards** - naming, error handling,
+   configuration, data modeling uniformity.
+3. **Extensibility & Maintainability** - separation of concerns, single
+   responsibility, testability, appropriate complexity.
+4. **Type Safety & Interface Design** - interface contracts, unsafe
+   patterns, API boundaries, input validation.
 
-## Safety & Fallback
+Plus the cross-cutting checks the criteria assume:
 
-### Error Scenarios
-- **Missing Design**: If design.md doesn't exist, stop with message: "Run `/sdd:spec-design {feature}` first to generate design document"
-- **Design Not Generated**: If design phase not marked as generated in spec.json, warn but proceed with review
-- **Empty Steering Directory**: Warn user that project context is missing and may affect review quality
-- **Language Undefined**: Default to English (`en`) if spec.json doesn't specify language
+- **Requirements coverage**: every requirement ID from requirements.md
+  is addressed by some part of the design. Use IDs exactly as written.
+- **Internal consistency**: diagrams and tables match the prose - every
+  component, boundary, and flow appears in both, identically.
+- **Boundary readiness**: This Spec Owns / Out of Boundary / Allowed
+  Dependencies are concrete enough for a reviewer to later detect
+  violations.
 
-### Next Phase: Task Generation
+Each criterion gets a verdict: `PASS`, `CONCERN` (finding attached), or
+`FAIL` (blocking finding attached). Classify every finding:
 
-**If Design Passes Validation (GO Decision)**:
-- Apply any suggested improvements if agreed
-- Run `/sdd:spec-tasks {feature}` to generate implementation tasks
-- Or `/sdd:spec-tasks {feature} -y` to auto-approve and proceed directly
+- **BLOCKING** - an architectural misalignment, an unaddressed
+  requirement, an internal contradiction, or a gap that materially
+  raises failure risk. Must be resolved before tasks are generated.
+- **MINOR** - real but safe to defer; no correctness risk. These land in
+  the report's minor-findings list for the user to weigh.
 
-**If Design Needs Revision (NO-GO Decision)**:
-- Address critical issues identified in review
-- Re-run `/sdd:spec-design {feature}` with improvements
-- Re-validate with `/sdd:validate-design {feature}`
+Cap BLOCKING findings at the 3 most important, per design-review.md's
+critical-focus rule - and say so when you stopped early. Each finding
+follows the rule's issue format: concern, impact, suggestion,
+traceability (requirement ID), evidence (design.md section).
 
-**Note**: Design validation is recommended but optional. Quality review helps catch issues early.
+## Step 4 - Decide GO/NO-GO
+
+- **GO**: zero BLOCKING findings. The design is ready for task planning
+  with acceptable risk; MINOR findings travel with it.
+- **NO-GO**: any BLOCKING finding. The design needs revision first.
+
+## Step 5 - Write the report
+
+Write `.sdd/specs/<feature>/workspace/design-review.md` (create the
+workspace directory if absent). If the file already exists, APPEND a new
+`# Review Round <K>` section after a `---` separator - earlier rounds
+survive untouched (the workspace is append-only). Structure per round:
+
+- Summary: 2-3 sentences on quality and readiness.
+- Criterion verdicts: one line each (criterion, verdict, one-phrase why).
+- Critical issues (BLOCKING): the rule's issue format.
+- Minor findings: one line each.
+- Strengths: 1-2, to keep the assessment balanced.
+- Final assessment: GO or NO-GO with 1-2 sentences of rationale.
+
+Verify the write by reading the file back.
+
+## Return contract
+
+**To the fork (your final message).** Return exactly this block - the
+caller parses the heading and the `- STATUS:` line mechanically:
+
+```
+## Design Review Summary
+- STATUS: <DONE | BLOCKED>
+- VERDICT: <GO | NO-GO>
+- CRITERIA: <criterion: verdict, one per line - all four>
+- BLOCKING: <one line per blocking finding, or none>
+- MINOR: <count, one line each>
+- PATH: <.sdd/specs/<feature>/workspace/design-review.md, or - when BLOCKED>
+- BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
+```
+
+**To the presenting main context.** You invoked this fork; it cannot ask
+the user anything, so you own the adjudication. On DONE: present the
+verdict, the criterion verdicts, and each BLOCKING finding with its
+impact (the user reads design-review.md in the IDE; do not dump it into
+chat). Then AskUserQuestion:
+
+1. **Accept GO, generate tasks** (Recommended, when VERDICT is GO) -
+   name the next command in a code block:
+   ```
+   /sdd:spec-tasks
+   ```
+   MINOR findings travel as context into the tasks phase.
+2. **Send findings to revision** (when VERDICT is NO-GO, or the user
+   rejects a GO) - the user picks the findings to address; append them
+   under `## Round <K>` in
+   `.sdd/specs/<feature>/workspace/design-edits.md` (create the file if
+   needed; workspace files are append-only), then re-invoke
+   `/sdd:spec-design` - a NEW fork edit-merges the round. Re-run
+   `/sdd:validate-design` afterwards.
+3. **Accept as-is despite findings** - the user explicitly accepts the
+   risk; record that in one line appended to design-review.md, then
+   proceed as in option 1.
+4. **Stop** - the user takes over; the report stays on disk.
+
+On BLOCKED: present the blocker and the named command, then
+AskUserQuestion on how to proceed (resolve via that command / adjust
+inputs / stop).

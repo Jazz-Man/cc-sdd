@@ -189,7 +189,7 @@ AskUserQuestion, confirm-only:
    ```
    /sdd:spec-tasks
    ```
-   Optional first: `/sdd:validate-design` for an interactive quality
+   Optional first: `/sdd:validate-design` for a forked quality
    review of the document.
 2. **Edit** - the user supplies feedback. Append it under
    `## Round <K>` in
