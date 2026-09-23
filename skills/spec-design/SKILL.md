@@ -120,9 +120,7 @@ holds the raw investigation behind it.
 
 Draft in memory against the template. Where this skill and
 `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` conflict, this skill
-wins: the template's "optional for simple additions" mermaid wording is
-superseded, and its missing Considered Alternatives section is supplied
-here - both are mandatory. Keep it unwritten until the review gate
+wins - the rule is general. Keep it unwritten until the review gate
 passes. Mandatory content:
 
 - **Boundary first**: This Spec Owns / Out of Boundary / Allowed
