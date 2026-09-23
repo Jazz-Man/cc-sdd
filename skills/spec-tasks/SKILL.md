@@ -1,188 +1,208 @@
 ---
 name: spec-tasks
-description: Generate implementation tasks from requirements and design. Use when creating actionable task lists.
-allowed-tools: Read, Write, Edit, Glob, Grep, Agent
-argument-hint: <feature-name> [-y] [--sequential]
+description: Generative fork - derive the static task plan (.sdd/specs/<feature>/tasks.md) from requirements and design, and sync one task bean per sub-task under the feature epic. Use after /sdd:spec-design; the invoking context presents the result and runs the confirm gate.
+context: fork
+background: false
+model: opus
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
-# spec-tasks Skill
+# spec-tasks - static task plan + task beans
 
-## Core Mission
-- **Success Criteria**:
-  - All requirements mapped to specific tasks
-  - Tasks properly sized (1-3 hours each)
-  - Clear task progression with proper hierarchy
-  - Natural language descriptions focused on capabilities
-  - A lightweight task-plan sanity review confirms the task graph is executable before `tasks.md` is written
+## Role
 
-## Execution Steps
+You are a FORK: a fresh subagent with no conversation history. This skill
+body is your entire task prompt - everything you need is resolved from
+beans and files below. You NEVER ask the user questions (no
+AskUserQuestion exists in your path) and you never dispatch subagents:
+when you cannot proceed, return the BLOCKED status contract from the
+Return contract section. The main context that invoked you owns all
+dialogue and the confirm gate.
 
-### Step 1: Gather Context
+Your job: turn the approved design into
+`.sdd/specs/<feature>/tasks.md` - a STATIC plan document - and into one
+task bean per sub-task under the feature epic. Execution is strictly
+sequential (one active feature, one task at a time); the plan records
+structure, never progress.
 
-Reuse steering/spec context already available from conversation; load missing context below.
-Select skills for the current task even when steering/spec context is already available:
-- `.sdd/specs/{feature}/spec.json`, `requirements.md`, `design.md`
-- `.sdd/specs/{feature}/tasks.md` (if exists, for merge mode)
-- Core steering context: `product.md`, `tech.md`, `structure.md`
-- Additional steering files only when directly relevant to requirements coverage, design boundaries, runtime prerequisites, or team conventions that affect task executability
-- Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
+## Hard rules
 
-- Determine execution mode:
-  - `sequential = (sequential flag is true)`
+1. **Git is read-only.** Bash is limited to the beans CLI and read-only
+   inspection. Nothing in this run stages, commits, pushes, or touches
+   branches: the user reviews and commits.
+2. **beans is the only tracker.** tasks.md is a STATIC plan: no
+   checkboxes, no parallel markers, no progress or approval state in the
+   document - ever. This skill's only bean writes are the task-bean sync
+   of Step 5 under the active epic.
+3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
+4. **English output** - fixed; no per-spec language configuration exists.
 
-**Validate approvals**:
-- If auto-approve flag (`-y`) is true: Auto-approve requirements and design in spec.json. Tasks approval is also handled automatically in Step 4.
-- Otherwise: Verify both approved (stop if not, see Safety & Fallback)
+## Step 1 - Resolve the active feature
 
-### Step 2: Generate Implementation Tasks
+Query beans: `beans list --json -t epic -s in-progress`.
 
-- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md` from this skill's directory for principles
-- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-parallel-analysis.md` from this skill's directory for parallel judgement criteria
-- Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/tasks.md` for format (supports `(P)` markers)
+- **Exactly one** -> the active feature. Resolve its spec directory from
+  the `Spec path:` line in the bean body (`.sdd/specs/<feature>/`); if
+  the body names none, return BLOCKED asking the main context where the
+  feature lives.
+- **None** -> return BLOCKED: no active feature; point to
+  `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
+  (nothing shaped yet).
+- **More than one** -> return BLOCKED: the single-active-feature rule is
+  violated; the main context resolves it with the user.
 
-#### Parallel Research
+## Step 2 - Load inputs
 
-The following research areas are independent and can be executed in parallel:
-1. **Context loading**: Spec documents (requirements.md, design.md), steering files
-2. **Rules loading**: tasks-generation.md, tasks-parallel-analysis.md, tasks template
+- `.sdd/specs/<feature>/requirements.md` and
+  `.sdd/specs/<feature>/design.md` - BOTH required. design.md missing ->
+  return BLOCKED pointing to `/sdd:spec-design`.
+- `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md` - generation
+  principles: natural-language capability descriptions, phase ordering
+  (foundation -> core -> integration -> validation), task sizing,
+  dependency declaration, boundary scope, requirements mapping,
+  observable completion, and the Task Plan Review Gate. Its checkbox and
+  `(P)` examples are legacy grammar: the STATIC format in Step 3
+  supersedes them. Do NOT read tasks-parallel-analysis.md - parallel
+  judgement is retired; execution is sequential.
+- `${CLAUDE_PLUGIN_ROOT}/assets/templates/tasks.md` - the plan format,
+  constrained by Step 3.
+- `.sdd/specs/<feature>/workspace/tasks-edits.md` - cumulative edit
+  intent from the user, when present. Every recorded `## Round <K>` must
+  be satisfied by the plan you produce; a round titled
+  `Regenerate from scratch` overrides merge mode.
 
-After all parallel research completes, synthesize findings before generating tasks.
+**Existing tasks.md**: treat it as the edit-merge base (preserve
+untouched sections) unless a round says regenerate. Whether a
+pre-existing plan should be regenerated is the presenting context's
+decision, offered at its confirm gate - never yours.
 
-**Generate task list following all rules**:
-- Use language specified in spec.json
-- Map all requirements to tasks and list numeric requirement IDs only (comma-separated) without descriptive suffixes, parentheses, translations, or free-form labels
-- Ensure all design components included
-- Verify task progression is logical and incremental
-- Ensure each executable sub-task includes at least one detail bullet that states what "done" looks like in observable terms
-- Keep normal implementation tasks within a single responsibility boundary; if work crosses boundaries, make it an explicit integration task
-- Apply `(P)` markers to tasks that satisfy parallel criteria when `!sequential`
-- Explicitly note dependencies preventing `(P)` when tasks appear parallel but are not safe
-- If sequential mode is true, omit `(P)` entirely
-- If existing tasks.md found, merge with new content
+## Step 3 - Draft the plan
 
-### Step 3: Review Task Plan
+Static plan format:
 
-- Keep the draft task plan in working memory; do NOT write `tasks.md` yet
-- Run the `Task Plan Review Gate` from `${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md`
-- Review coverage:
-  - Every requirement ID appears in at least one task
-  - Every design component, contract, integration point, runtime prerequisite, and validation concern is represented
-- Review executability:
-  - Each sub-task is an executable 1-3 hour work unit
-  - Each sub-task has a verifiable deliverable
-  - Each executable sub-task includes an observable completion bullet
-  - No implicit prerequisites remain hidden
-  - `_Depends:_`, `_Boundary:_`, and `(P)` markers still match the dependency graph and architecture boundaries
-- If issues are task-plan-local, repair the draft and re-run the review gate before writing
-- Keep the review bounded to at most 2 repair passes
-- If review exposes a real requirements/design gap or contradiction, stop and send the user back to requirements/design instead of inventing filler tasks
+- The document opens with `# Implementation Plan` and, on the very next
+  line, VERBATIM:
 
-### Step 3.5: Run Task-Graph Sanity Review
+  `> **For executors:** REQUIRED: execute via /sdd:impl. State lives in beans — never edit this document to record progress.`
 
-Before writing `tasks.md`, run one lightweight independent sanity review of the task graph.
+- Plain list items, never checkboxes: `- 1. Foundation: ...`,
+  `- 1.1 Sub-task ...`. Maximum two levels; major tasks increment
+  1, 2, 3...; sub-tasks reset per major (1.1, 1.2...). NO `(P)` markers -
+  execution is sequential.
+- Each sub-task: a natural-language capability description (no file
+  paths or function names - those live in design.md), detail bullets
+  with at least one OBSERVABLE completion condition ("what will be true
+  when this task is done"), then metadata lines:
+  - `_Requirements: X.X, Y.Y_` - numeric IDs exactly as in
+    requirements.md, comma-separated, no descriptive suffixes; never
+    invent IDs
+  - `_Boundary: ComponentName_` - component names from design.md; a task
+    stays within one responsibility boundary, and cross-boundary work
+    becomes an explicit integration task
+  - `_Depends: X.X_` - only non-obvious cross-boundary dependencies;
+    plain ordering handles the rest
+- Coverage: every requirement ID from requirements.md appears in at
+  least one task; every design component, contract, integration point,
+  and runtime prerequisite is represented. A requirement may be deferred
+  only with documented rationale in the plan - never silently dropped.
 
-- If fresh subagent dispatch is available, spawn one fresh review subagent for this step. Otherwise perform the same review in the current context.
-- Provide only file paths, the draft task plan, and merge context if an existing `tasks.md` is being updated. The reviewer should read `requirements.md`, `design.md`, and the task-generation rules directly instead of relying on a parent-synthesized coverage summary.
-- Check only:
-  - hidden prerequisites or missing setup tasks
-  - dependency or ordering mistakes
-  - boundary overlap or ambiguous ownership between tasks
-  - tasks that are too large, too vague, cross boundaries without being explicit integration tasks, or are missing a verifiable deliverable
-  - contradictions introduced between requirements, design, and the task graph
-- Return one verdict:
-  - `PASS`
-  - `NEEDS_FIXES`
-  - `RETURN_TO_DESIGN`
-- If `NEEDS_FIXES`, repair the draft once and re-run the sanity review one time.
-- If `RETURN_TO_DESIGN`, stop without writing `tasks.md` and point back to the exact gap in requirements/design.
-- Keep this bounded. Do not turn it into a second full planning cycle.
+## Step 4 - Sanity review (before writing anything)
 
-### Step 4: Finalize
+Run the **Task Plan Review Gate** from tasks-generation.md on the draft:
+mechanical coverage first (every requirement ID present, every design
+component represented), then executability (1-3 hour sub-tasks,
+verifiable deliverables, observable completion bullets, no implicit
+prerequisites, `_Depends:_`/`_Boundary:_` consistent with the design's
+boundary map). Repair local issues and re-run - at most 2 repair passes.
 
-**Write tasks.md**:
-- Create/update `.sdd/specs/{feature}/tasks.md`
-- Update spec.json metadata:
-  - Set `phase: "tasks-generated"`
-  - Set `approvals.tasks.generated: true, approved: false`
-  - Set `approvals.requirements.approved: true`
-  - Set `approvals.design.approved: true`
-  - Update `updated_at` timestamp
+If the gate exposes a real requirements or design gap, do NOT invent
+filler tasks: return BLOCKED naming the exact gap and pointing to
+`/sdd:spec-design` (or `/sdd:spec-requirements` when the gap is in the
+requirements).
 
-**Approval**:
-- If auto-approve flag (`-y`) is true:
-  - Set `approvals.tasks.approved: true` in spec.json
-  - Display task summary (task count, major groups, parallel markers)
-  - Respond: "Tasks generated and auto-approved. Start implementation with `/sdd:impl {feature}`"
-- Otherwise (interactive):
-  - Display a summary of the generated tasks (task count, major groups, parallel markers)
-  - Ask the user: "Tasks generated. Approve and proceed to implementation?"
-  - If the user approves:
-    - Set `approvals.tasks.approved: true` in spec.json
-    - Respond: "Tasks approved. Start implementation with `/sdd:impl {feature}`"
-  - If the user wants changes:
-    - Keep `approvals.tasks.approved: false`
-    - Respond with guidance on what to adjust and re-run
+## Step 5 - Write tasks.md, then sync task beans
 
-## Critical Constraints
-- **Task Integration**: Every task must connect to the system (no orphaned work)
-- **Boundary annotations**: Required for `(P)` tasks, recommended for all (`_Boundary: ComponentName_`)
-- **Explicit dependencies**: Cross-boundary non-obvious dependencies declared with `_Depends: X.X_`
-- **Executable deliverable granularity**: Each task must produce a verifiable deliverable (file, endpoint, UI component, config). Infrastructure tasks (project scaffolding, manifest, host integration, build config) must be explicit — never assume they exist
-- **Observable done state**: Each executable sub-task must include at least one detail bullet that makes the completed state visible without adding new bookkeeping fields
-- **No implicit prerequisites**: If a task requires a runtime, SDK, framework setup, or config file, that setup must be a separate preceding task
+1. **Write** `.sdd/specs/<feature>/tasks.md` - only after the gate
+   passes.
+2. **Sync beans** so the epic carries exactly one task bean per sub-task.
+   First fetch the epic's existing children, e.g.
+   `beans query --json '{ bean(id: "<epic-id>") { children { id title status body } } }'`,
+   and map each bean's `Task:` body line to a plan number. A child with
+   no parseable `Task:` line (created outside sdd) is left untouched and
+   listed in the return summary's CONCERNS for the presenting context to
+   adjudicate. Then:
+   - **New sub-task** -> `beans create "<N> <one-line title>" -t task -s todo`
+     (capture the id from the JSON output), then
+     `beans update <id> --parent <epic-id>`, then for each of its
+     `_Depends:` entries
+     `beans update <id> --blocked-by <bean-id of the depended task>`
+     (create accepts no blocked-by; update does). The body carries
+     stable parseable lines:
+     ```
+     Task: <N>
+     Requirements: <IDs>
+     Boundary: <components>
+     ```
+   - **Changed sub-task** (number exists, content moved) -> update the
+     title and body; PRESERVE its status - never reset a bean that has
+     progressed.
+   - **Numbering discipline (edit rounds):** once implementation has
+     started, a Task number must never be reused for different work.
+     Either preserve the numbering of completed/in-progress tasks, or
+     give renumbered work new numbers - new beans, old ones scrapped
+     with reason: a bean's status must never end up bound to different
+     content. Compare each existing bean's one-line title against the
+     plan line; when they describe different work rather than a
+     refinement of the same work, treat the number as removed and the
+     work as new.
+   - **Removed sub-task** (bean's number no longer in the plan) ->
+     `beans update <id> -s scrapped` with a one-line reason (superseded
+     by the revised plan).
+   Create beans in plan order; `_Depends:` always points at an earlier
+   number, so the referenced bean exists by the time you link it. The
+   write order is deliberate: tasks.md is durable BEFORE any bean is
+   created, so an interrupted sync is healed by the next run's
+   idempotent re-sync from the written plan.
 
-## Output Description
+## Return contract
 
-Provide brief summary in the language specified in spec.json:
+**To the fork (your final message).** Return exactly this block - the
+caller parses the heading and the `- STATUS:` line mechanically:
 
-1. **Status**: Confirm tasks generated at `.sdd/specs/{feature}/tasks.md`
-2. **Task Summary**:
-   - Total: X major tasks, Y sub-tasks
-   - All Z requirements covered
-   - Average task size: 1-3 hours per sub-task
-3. **Quality Validation**:
-   - All requirements mapped to tasks
-   - Design coverage and runtime prerequisites reviewed
-   - Task dependencies verified
-   - Task plan review gate passed
-   - Independent task-graph sanity review passed
-   - Testing tasks included
-4. **Next Action**: Review tasks and proceed when ready
+```
+## Tasks Summary
+- STATUS: <DONE | BLOCKED>
+- PLAN: <X major tasks, Y sub-tasks; major groups one line each>
+- COVERAGE: <all requirement IDs covered / deferred ones with rationale>
+- BEANS: <created / updated / scrapped counts>
+- CONCERNS: <one line each, if any>
+- PATH: <.sdd/specs/<feature>/tasks.md, or - when BLOCKED>
+- BLOCKERS: <BLOCKED only - the gap and the command to run>
+```
 
-**Format**: Concise (under 200 words)
+**To the presenting main context.** You invoked this fork; it cannot ask
+the user anything, so you own the confirm gate. On DONE: present a SHORT
+summary in chat - task counts, the major groups one line each, coverage
+confirmation, bean effects (created/updated/scrapped). The user reads
+tasks.md in the IDE; do not dump it into chat. Then AskUserQuestion,
+confirm-only:
 
-## Safety & Fallback
+1. **Approve** (Recommended) - the plan and its beans are settled. Name
+   the next command in a code block:
+   ```
+   /sdd:impl
+   ```
+2. **Edit** - the user supplies feedback. Append it under `## Round <K>`
+   in `.sdd/specs/<feature>/workspace/tasks-edits.md` (create the file
+   if needed; workspace files are append-only), then re-invoke
+   `/sdd:spec-tasks` - a NEW fork re-derives the plan from design.md
+   plus the digest and re-syncs the beans (Step 5 handles updates,
+   additions, and scraps idempotently).
+3. **Regenerate from scratch** - offer when tasks.md existed before this
+   run. Append `## Round <K> - Regenerate from scratch` to the digest
+   and re-invoke `/sdd:spec-tasks`.
+4. **Stop** - the user takes over; the plan and beans stay as they are.
 
-### Error Scenarios
-
-**Requirements or Design Not Approved**:
-- **Stop Execution**: Cannot proceed without approved requirements and design
-- **User Message**: "Requirements and design must be approved before task generation"
-- **Suggested Action**: "Run `/sdd:spec-tasks {feature} -y` to auto-approve all (requirements, design, and tasks) and proceed"
-
-**Missing Requirements or Design**:
-- **Stop Execution**: Both documents must exist
-- **User Message**: "Missing requirements.md or design.md at `.sdd/specs/{feature}/`"
-- **Suggested Action**: "Complete requirements and design phases first"
-
-**Incomplete Requirements Coverage**:
-- **Warning**: "Not all requirements mapped to tasks. Review coverage."
-- **User Action Required**: Confirm intentional gaps or regenerate tasks
-
-**Spec Gap Found During Task Review**:
-- **Stop Execution**: Do not write a patched-over `tasks.md`
-- **User Message**: "Requirements/design do not provide enough clear coverage to generate an executable task plan"
-- **Suggested Action**: "Refine requirements.md or design.md, then re-run `/sdd:spec-tasks {feature}`"
-
-**Template/Rules Missing**:
-- **User Message**: "Template or rules files missing in `.sdd/settings/`"
-- **Fallback**: Use inline basic structure with warning
-- **Suggested Action**: "Check repository setup or restore template files"
-- **Missing Numeric Requirement IDs**:
-  - **Stop Execution**: All requirements in requirements.md MUST have numeric IDs. If any requirement lacks a numeric ID, stop and request that requirements.md be fixed before generating tasks.
-
-### Next Phase: Implementation
-
-Tasks are approved in Step 4 via user confirmation. Once approved:
-- Autonomous implementation: `/sdd:impl {feature}`
-- Specific tasks only: `/sdd:impl {feature} 1.1,1.2`
+On BLOCKED: present the blocker and the named command, then
+AskUserQuestion on how to proceed (resolve via that command / adjust
+inputs / stop).
