@@ -1,50 +1,109 @@
 ---
 name: spec-init
-description: Initialize a new specification with detailed project description
-allowed-tools: Bash, Read, Write, Glob, AskUserQuestion
-argument-hint: <project-description>
+description: Birth a new feature - the only skill that creates one. Guards the single-active-feature rule, creates .sdd/specs/<name>/ and the in-progress epic bean that records the spec path, then names the next command.
+allowed-tools: Bash, Glob, Read, AskUserQuestion
+argument-hint: <feature-name-or-description>
 ---
 
-# Spec Initialization
+# spec-init - feature birth
 
-<instructions>
-## Core Task
-Generate a unique feature name from the project description ($ARGUMENTS) and initialize the specification structure.
+## Role
 
-## Execution Steps
-1. **Check for Brief**: If `.sdd/specs/{feature-name}/brief.md` exists (created by `/sdd:discovery`), read it. The brief contains problem, approach, scope, and constraints from the discovery session. Use this to pre-fill the project description and skip clarification questions that the brief already answers.
-2. **Clarify Intent**: The Project Description in requirements.md must contain three elements: (a) who has the problem, (b) current situation, (c) what should change. If a brief.md exists and covers these, skip to step 3. Otherwise, ask the user to clarify before proceeding. Ask as many questions as needed; do not fill in gaps with your own assumptions.
-3. **Check Uniqueness**: Verify `.sdd/specs/` for naming conflicts. If the directory already exists with only `brief.md` (no `spec.json`), use that directory (discovery created it).
-4. **Create Directory**: `.sdd/specs/[feature-name]/` (skip if already exists from discovery)
-5. **Initialize Files Using Templates**:
-   - Read `${CLAUDE_PLUGIN_ROOT}/assets/templates/requirements-init.md`
-   - Replace each named placeholder in the template by its name (placeholders use double-brace syntax in the template file):
-     - FEATURE_NAME → generated feature name
-     - TIMESTAMP → current ISO 8601 timestamp
-     - PROJECT_DESCRIPTION → from brief.md if available, otherwise $ARGUMENTS
-     - LANG_CODE → language code (detect from user's input language, default to `en`)
-   - Write `spec.json` and `requirements.md` to spec directory
+You run INLINE in the main conversation. This skill is deliberately
+lightweight: no subagents, no document generation. It collects the
+feature name and description, guards the single-active-feature rule,
+creates the spec directory and the epic bean, records where the feature
+lives, and hands off. Requirements, design, and tasks are produced by
+their own skills.
 
-## Important Constraints
-- Do NOT generate requirements, design, or tasks. This skill only creates spec.json and requirements.md.
-</instructions>
+Exactly one feature is active at any time (spec 5.5). The active feature
+IS the single epic bean with status `in-progress`: every other sdd skill
+resolves the feature from it and takes no feature argument. This skill
+and `/sdd:discovery` are the only entry points that accept a new feature
+name/description - the moment a feature is born.
 
-## Output Description
-Provide output in the language specified in `spec.json` with the following structure:
+## Hard rules
 
-1. **Generated Feature Name**: `feature-name` format with 1-2 sentence rationale
-2. **Project Summary**: Brief summary (1 sentence)
-3. **Created Files**: Bullet list with full paths
-4. **Next Step**: Command block showing `/sdd:spec-requirements <feature-name>`
+1. **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and
+   read-only inspection. Nothing in this skill stages, commits, pushes,
+   or touches branches: the user reviews and commits.
+2. **beans is the only tracker.** Never write progress, approval, or
+   blocked state into documents. The epic bean body carries the spec
+   path - keep its recorded lines stable; other skills parse them.
+3. **AskUserQuestion, always.** Every choice-point gets explanation in
+   chat prose first, then the structured question (recommended option
+   first, labeled, when you have one).
 
-**Format Requirements**:
-- Use Markdown headings (##, ###)
-- Wrap commands in code blocks
-- Keep total output concise (under 250 words)
-- Use clear, professional language per `spec.json.language`
+## Step 1 - Collect name and description
 
-## Safety & Fallback
-- **Ambiguous Feature Name**: If feature name generation is unclear, propose 2-3 options and ask user to select
-- **Template Missing**: If template files don't exist in `${CLAUDE_PLUGIN_ROOT}/assets/templates/`, report error with specific missing file path and suggest checking repository setup
-- **Directory Conflict**: If feature name already exists, append numeric suffix (e.g., `feature-name-2`) and notify user of automatic conflict resolution
-- **Write Failure**: Report error with specific path and suggest checking permissions or disk space
+- With `$ARGUMENTS`: derive a kebab-case feature name and a one-line
+  description from them.
+- Without arguments, or when the name is ambiguous: ask via
+  AskUserQuestion, offering 2-3 candidate kebab-case names as options
+  when you can derive them (the user can always answer freely).
+
+Uniqueness: if `.sdd/specs/<name>/` already exists for a different
+feature, append a numeric suffix (`<name>-2`) and say so in the summary.
+
+## Step 2 - Guard the single active feature
+
+Query beans: `beans list --json -t epic -s in-progress`.
+
+- **None** -> Step 3.
+- **One or more** -> refuse to birth a new feature while one is active
+  (spec 5.5). Explain the situation in prose, then ask ONE question per
+  in-progress epic via AskUserQuestion:
+  1. **Complete it** - you run the beans updates:
+     `beans update <epic-id> -s completed` with a short
+     `## Summary of Changes` appended per the global beans guide, and
+     the same status change for the epic's incomplete task beans.
+  2. **Scrap it** - cancellation: append a one-line reason, then
+     `beans update <epic-id> -s scrapped` and the same for its
+     incomplete task beans. Completing or scrapping also unblocks any
+     follow-up epics queued `--blocked-by` this one.
+  3. **Stop** - abort the run; the user resolves beans manually.
+  Any "stop" ends the skill; otherwise re-check and continue to Step 3
+  once no in-progress epic remains.
+
+## Step 3 - Create the feature
+
+1. **Directory**: `mkdir -p .sdd/specs/<name>/`.
+2. **Epic bean - activate or create, never duplicate**: discovery queues
+   follow-up features as `todo` epic beans. List epics
+   (`beans list --json -t epic`), normalize the feature name and every
+   epic title to a kebab-case slug (lowercase; non-alphanumeric runs
+   become a single `-`), and compare on the slug:
+   - **Exactly one match** (status `todo` or `draft`) -> activate it:
+     `beans update <id> -s in-progress`.
+   - **Zero or multiple matches** -> never silently create a possible
+     duplicate. Show the candidate epics (the matches, or all queued
+     `todo`/`draft` epics when none matched) in prose, then
+     AskUserQuestion: pick the epic that IS this feature / create a new
+     epic after all (`beans create "<name>" -t epic -s in-progress`).
+3. **Record in the epic bean body** (append; stable lines - later skills
+   parse them):
+   ```
+   Spec path: .sdd/specs/<name>/
+   Description: <one line>
+   Created: <YYYY-MM-DD>
+   ```
+   When activating a queued epic, keep its existing body content (its
+   description, its queued-by notes); add only the missing lines.
+
+## Step 4 - Summary and handoff
+
+A SHORT summary:
+
+- **Feature**: `<name>` - the one-line description
+- **Spec directory**: `.sdd/specs/<name>/`
+- **Epic bean**: `<bean-id>`
+
+Then the next command in a code block:
+
+```
+/sdd:spec-requirements
+```
+
+The next skill resolves the feature from the in-progress epic - no
+argument. Do not run it yourself; the user drives the cycle one command
+at a time.
