@@ -1,105 +1,150 @@
 ---
 name: validate-gap
-description: Analyze implementation gap between requirements and existing codebase. Use when planning integration with existing systems.
-allowed-tools: Read, Write, Grep, Glob, WebSearch, WebFetch
-argument-hint: <feature-name>
+description: Generative fork - analyze the gap between the active feature's requirements and the existing codebase, writing findings with quoted evidence to research.md and returning a gap-list with an implementation-approach recommendation. Use for brownfield features, after requirements, before or during design.
+context: fork
+background: false
+model: opus
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
-# validate-gap Skill
+# validate-gap - requirements vs existing codebase
 
 ## Role
-You are a specialized skill for analyzing the implementation gap between requirements and existing codebase to inform implementation strategy.
 
-## Core Mission
-- **Mission**: Analyze the gap between requirements and existing codebase to inform implementation strategy
-- **Success Criteria**:
-  - Comprehensive understanding of existing codebase patterns and components
-  - Clear identification of missing capabilities and integration challenges
-  - Multiple viable implementation approaches evaluated
-  - Technical research needs identified for design phase
+You are a FORK: a fresh subagent with no conversation history. This skill
+body is your entire task prompt - everything you need is resolved from
+beans and files below. You NEVER ask the user questions (no
+AskUserQuestion exists in your path) and you never dispatch subagents:
+when you cannot proceed, return the BLOCKED status contract from the
+Return contract section. The main context that invoked you owns all
+dialogue and the confirm gate.
 
-## Execution Steps
+Your job: measure the distance between what the requirements demand and
+what the codebase already provides, and write it down as evidence-backed
+findings - the gap-list and approach recommendation that design decisions
+rest on.
 
-### Step 1: Gather Context
+## Hard rules
 
-Reuse steering/spec context already available from conversation; load missing context below.
-Select skills for the current task even when steering/spec context is already available:
-- Read `.sdd/specs/{feature}/spec.json` for language and metadata
-- Read `.sdd/specs/{feature}/requirements.md` for requirements
-- Core steering context: `product.md`, `tech.md`, `structure.md`
-- Additional steering files only when directly relevant to the feature's domain rules, integrations, runtime prerequisites, compliance/security constraints, or existing product boundaries
-- Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
+1. **Git is read-only.** Bash is limited to the beans CLI and read-only
+   inspection. Nothing in this run stages, commits, pushes, or touches
+   branches: the user reviews and commits.
+2. **This skill writes no beans.** It resolves the active feature by
+   reading beans; never write progress, approval, or blocked state into
+   any document.
+3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
+4. **Quoted evidence or it did not happen.** Every finding about the
+   codebase cites `file:line` and quotes the relevant snippet verbatim.
+   Every gap states the requirement it threatens, by its exact ID.
+5. **Information over decisions.** You produce analysis, options, and a
+   recommendation - the design phase (with the user) makes the choice.
+6. **English output** - fixed; no per-spec language configuration exists.
 
-### Step 2: Read Analysis Guidelines
-- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/gap-analysis.md` from this skill's directory for comprehensive analysis framework
+## Step 1 - Resolve the active feature
 
-### Step 3: Execute Gap Analysis
+Query beans: `beans list --json -t epic -s in-progress`.
 
-#### Parallel Research
+- **Exactly one** -> that epic is the active feature. Resolve its spec
+  directory from the `Spec path:` line in the bean body
+  (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
+  asking the main context where the feature lives.
+- **None** -> return BLOCKED: no active feature; point to
+  `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
+  (nothing shaped yet).
+- **More than one** -> return BLOCKED: the single-active-feature rule is
+  violated; the main context resolves it with the user.
 
-The following research areas are independent and can be executed in parallel:
-1. **Codebase analysis**: Existing implementations, architecture patterns, integration points, extension possibilities (using Grep/Glob/Read)
-2. **External dependency research**: Dependency compatibility, version constraints, known integration challenges (using WebSearch/WebFetch when needed)
-3. **Context loading**: Requirements, core steering, task-relevant extra steering, relevant local agent skills/playbooks, and gap-analysis rules
+## Step 2 - Load inputs
 
-After all parallel research completes, synthesize findings for gap analysis.
+Read, under the spec directory from Step 1:
 
-- Follow gap-analysis.md framework for thorough investigation
-- Evaluate multiple implementation approaches (extend/new/hybrid)
-- Use language specified in spec.json for output
+- `.sdd/specs/<feature>/requirements.md` - REQUIRED. Missing -> return
+  BLOCKED pointing to `/sdd:spec-requirements`.
+- `.sdd/specs/<feature>/research.md` - prior discovery output, when
+  present: read it, extend it, never overwrite it.
+- `${CLAUDE_PLUGIN_ROOT}/assets/rules/gap-analysis.md` - the analysis
+  framework (current state, feasibility, approach options, effort/risk)
+  and its output checklist. Follow it.
+- Steering: Glob `.claude/rules/*.md`; read the files relevant to the
+  feature's domain, integrations, and constraints.
 
-### Step 4: Generate Analysis Document
-- Create comprehensive gap analysis following the output guidelines in gap-analysis.md
-- Present multiple viable options with trade-offs
-- Flag areas requiring further research
+## Step 3 - Survey the existing codebase
 
-### Step 5: Write Gap Analysis to Disk
+Map what already exists against what the requirements need:
 
-**Write the gap analysis to disk so it survives session boundaries and can be referenced during design phase.**
+- **Assets**: Grep/Glob/Read for domain-related files, modules, reusable
+  components, and directory layout. Quote the decisive snippets.
+- **Conventions**: naming, layering, dependency direction, testing
+  approach - as observed in code, not assumed.
+- **Integration surfaces**: data models, API clients, auth mechanisms -
+  the seams this feature must plug into.
+- **External dependencies**: WebSearch/WebFetch for compatibility,
+  version constraints, and known integration pitfalls of every external
+  library the requirements imply. Record versions and constraints.
 
-- Use the Write tool to save the gap analysis to `.sdd/specs/{feature}/research.md`
-- If the file already exists, append the new analysis (separated by a horizontal rule `---`) rather than overwriting previous research
-- Verify the file was written by reading it back
+Every claim above carries `file:line` evidence or a URL. "Looks like"
+without a citation is a Research Needed item, not a finding.
 
-## Important Constraints
-- **Information over Decisions**: Provide analysis and options, not final implementation choices
-- **Multiple Options**: Present viable alternatives when applicable
-- **Thorough Investigation**: Use tools to deeply understand existing codebase
-- **Explicit Gaps**: Clearly flag areas needing research or investigation
-- **Context Discipline**: Start with core steering and expand only with analysis-relevant steering or local skills/playbooks selected above
+## Step 4 - Analyze the gap
 
-## Tool Guidance
-- **Read first**: Load spec, core steering, relevant local playbooks/agent skills, and rules before analysis
-- **Grep extensively**: Search codebase for patterns, conventions, and integration points
-- **WebSearch/WebFetch**: Research external dependencies and best practices when needed
-- **Write last**: Generate analysis only after complete investigation
+Apply the gap-analysis framework:
 
-## Output Description
-Provide output in the language specified in spec.json with:
+1. **Requirement-to-Asset map**: each requirement ID -> the existing
+   asset that partially satisfies it, tagged `Missing` / `Unknown` /
+   `Constraint`. Unknowns are recorded as Research Needed items - deep
+   research belongs to the design phase.
+2. **Approach options**: Extend existing components / create new
+   components / hybrid - each with concrete integration points, trade
+   offs, and what it means for the specific files surveyed in Step 3.
+3. **Effort (S/M/L/XL) and risk (High/Medium/Low)**, one-line
+   justification each.
+4. **Recommendation**: one preferred approach and the research items to
+   carry into design. A recommendation is not a decision.
 
-1. **Analysis Summary**: Brief overview (3-5 bullets) of scope, challenges, and recommendations
-2. **Document Status**: Confirm analysis approach used
-3. **Next Steps**: Guide user on proceeding to design phase
+## Step 5 - Write research.md
 
-**Format Requirements**:
-- Use Markdown headings for clarity
-- Keep summary concise (under 300 words)
-- Detailed analysis follows gap-analysis.md output guidelines
+Write `.sdd/specs/<feature>/research.md`. If the file already exists
+(prior discovery or a previous run), APPEND your analysis as a new
+`## Gap Analysis - <date>` section after a `---` separator - earlier
+content survives untouched. Follow the gap-analysis rule's output
+checklist for the section's structure. Verify the write by reading the
+file back.
 
-## Safety & Fallback
+## Return contract
 
-### Error Scenarios
-- **Missing Requirements**: If requirements.md doesn't exist, stop with message: "Run `/sdd:spec-requirements {feature}` first to generate requirements"
-- **Requirements Not Approved**: If requirements not approved, warn user but proceed (gap analysis can inform requirement revisions)
-- **Empty Steering Directory**: Warn user that project context is missing and may affect analysis quality
-- **Complex Integration Unclear**: Flag for comprehensive research in design phase rather than blocking
-- **Language Undefined**: Default to English (`en`) if spec.json doesn't specify language
+**To the fork (your final message).** Return exactly this block - the
+caller parses the heading and the `- STATUS:` line mechanically:
 
-### Next Phase: Design Generation
+```
+## Gap Analysis Summary
+- STATUS: <DONE | BLOCKED>
+- GAPS: <one line per gap: requirement ID, Missing/Unknown/Constraint, one-phrase impact>
+- APPROACHES: <one line per approach, marking the recommended one>
+- EFFORT_RISK: <S/M/L/XL and High/Medium/Low with one-line justification>
+- RESEARCH_NEEDED: <one line each, if any>
+- CONCERNS: <one line each, if any>
+- PATH: <.sdd/specs/<feature>/research.md, or - when BLOCKED>
+- BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
+```
 
-**If Gap Analysis Complete**:
-- Review gap analysis insights
-- Run `/sdd:spec-design {feature}` to create technical design document
-- Or `/sdd:spec-design {feature} -y` to auto-approve requirements and proceed directly
+**To the presenting main context.** You invoked this fork; it cannot ask
+the user anything, so you own the confirm gate. On DONE: present a SHORT
+summary in chat - the gap-list, the approaches with the recommended one,
+effort/risk, and the research.md path (the user reads the file in the
+IDE; do not dump it into chat). Then AskUserQuestion, confirm-only:
 
-**Note**: Gap analysis is optional but recommended for brownfield projects to inform design decisions.
+1. **Proceed to design** (Recommended) - the analysis is settled; name
+   the next command in a code block:
+   ```
+   /sdd:spec-design
+   ```
+2. **Re-run with focus** - the user names an area to dig into further.
+   Append their focus note as a `## Follow-up Focus` section to
+   research.md, then re-invoke `/sdd:validate-gap`: the fork reads the
+   existing file (Step 2), investigates the focus, and appends a new
+   dated analysis section.
+3. **Stop** - the user takes over; the analysis stays on disk.
+
+On BLOCKED: present the blocker and the named command, then
+AskUserQuestion on how to proceed (resolve via that command / adjust
+inputs / stop).

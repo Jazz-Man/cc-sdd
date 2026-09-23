@@ -11,6 +11,11 @@ argument-hint: <claim-type> <claim>
 
 This skill prevents false completion claims. A task, fix, or feature is only complete when supported by fresh evidence that matches the scope of the claim.
 
+This is the protocol the impl orchestrator applies at its verification
+gate before completing any task bean, and that validate-impl applies to
+a `FEATURE_GO` claim before returning GO. It also stands alone for ad-hoc
+use whenever a completion claim needs checking.
+
 ## When to Use
 
 - Before saying a task is complete
@@ -31,7 +36,7 @@ Provide:
   - `FIX`
   - `TEST_OR_BUILD`
   - `FEATURE_GO`
-- Validation commands discovered by the controller
+- Validation commands discovered by the orchestrator
 - Fresh command output and exit codes
 - Relevant task IDs, requirement IDs, and design refs where applicable
 - For feature-level claims:
@@ -52,7 +57,7 @@ Also return:
 - Evidence used
 - Scope/evidence mismatch, if any
 
-Use the language specified in `spec.json`.
+Output in English.
 
 ## Gate Function
 
@@ -116,7 +121,7 @@ Return `NOT_VERIFIED` when:
 | “Tests passed earlier” | Fresh evidence only. |
 | “Build should be fine because lint passed” | Lint does not prove build success. |
 | “Tests passed and build succeeded, so it must run” | Type erasure, module loading, native ABI, and boot-time config issues can still fail at runtime. |
-| “The feature is done because all tasks are checked off” | `FEATURE_GO` also requires coverage, integration, and design alignment. |
+| “The feature is done because all task beans are completed” | `FEATURE_GO` also requires coverage, integration, and design alignment. |
 
 ## Output Format
 

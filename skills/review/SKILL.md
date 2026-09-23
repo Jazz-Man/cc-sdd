@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review a task implementation against approved specs, task boundaries, and verification evidence. Use after an implementer finishes a task, after remediation, or before accepting a task as complete.
+description: Adversarial task-local review protocol - verify an implementation is real, complete, bounded, spec-aligned, and backed by mechanical evidence. Use after an implementer finishes a task, after remediation, or before accepting a task as complete.
 allowed-tools: Read, Bash, Grep, Glob
 argument-hint: <task-id>
 ---
@@ -11,6 +11,13 @@ argument-hint: <task-id>
 
 This skill performs task-local adversarial review. It verifies that the implementation is real, complete, bounded, aligned with approved requirements and design, and supported by mechanical verification evidence.
 
+This is the protocol the impl orchestrator's task-reviewer role implements
+(`skills/impl/templates/task-reviewer-prompt.md`): the template is the
+single source of truth for the dispatch contract, and where the two
+differ, the template's verdict block wins. This document carries the
+full checklist and stands alone for ad-hoc use - reviewing a change by
+hand, or any context where no orchestrator dispatch exists.
+
 Boundary terminology continuity:
 - discovery identifies `Boundary Candidates`
 - design fixes `Boundary Commitments`
@@ -19,9 +26,9 @@ Boundary terminology continuity:
 
 ## When to Use
 
-- After an implementer reports `READY_FOR_REVIEW`
-- After remediation for a rejected review
-- Before marking a task `[x]`
+- After an implementer returns `DONE` or `DONE_WITH_CONCERNS`
+- After a remediation round for a rejected review
+- Before the orchestrator completes the task bean in beans
 - Before accepting a task into feature-level validation
 
 Do not use this skill to invent missing requirements or silently reinterpret the spec.
@@ -35,23 +42,9 @@ Provide:
 - Spec file paths (`requirements.md`, `design.md`, optionally `tasks.md`)
 - The implementer's status report
 - The task `_Boundary:_` scope constraints
-- Validation commands discovered by the controller
+- Validation commands discovered by the orchestrator
 - Relevant steering excerpts when applicable
 - Relevant `## Implementation Notes` entries when applicable
-
-## Outputs
-
-Return one of:
-- `APPROVED`
-- `REJECTED`
-
-Also return:
-- Mechanical results
-- Findings with severity
-- Required remediation
-- One-sentence summary
-
-Use the language specified in `spec.json`.
 
 ## First Action
 
@@ -67,7 +60,7 @@ The main review question is not just "does it work?" but "does it stay inside th
 Run these checks and use the result as primary signal.
 
 ### 1. Regression Safety
-- Run the project's canonical test suite using the validation commands discovered by the controller.
+- Run the project's canonical test suite using the validation commands discovered by the orchestrator.
 - If tests fail, reject.
 
 ### 2. No Residual Placeholder Markers
@@ -124,13 +117,19 @@ Run these checks and use the result as primary signal.
 ### 12. Error Handling
 - Confirm relevant failure paths are handled and not silently swallowed.
 
-## Severity Model
+## Finding Classification
 
-Use:
-- `Critical` for broken functionality, invalid verification, data loss, security risk, or major scope violation
-- `Important` for required fixes before acceptance
-- `Suggestion` for non-blocking improvements
-- `FYI` for informational notes
+Every finding is exactly one of:
+
+- **BLOCKING** - must be fixed before the task is accepted: broken
+  functionality, spec non-conformance, boundary violation, invalid or
+  missing verification evidence, data loss, or security risk.
+- **MINOR** - real but safe to defer with no correctness risk:
+  non-blocking improvements and informational notes.
+
+The verdict is `APPROVED` only when there are zero BLOCKING findings.
+MINOR findings never affect the verdict and never enter the fix loop -
+they land in the parking lot, to surface at feature finish.
 
 ## Stop / Escalate
 
@@ -152,6 +151,13 @@ Escalate instead of papering over the issue when:
 
 ## Output Format
 
+End the review with exactly one verdict block in this shape (it extends
+the task-reviewer template's verdict block: `REMEDIATION` and the extra
+mechanical sub-lines are ad-hoc additions; the template at
+`skills/impl/templates/task-reviewer-prompt.md` remains the single
+source of truth. The orchestrator parses the heading and the
+`- VERDICT:` line mechanically):
+
 ```md
 ## Review Verdict
 - VERDICT: APPROVED | REJECTED
@@ -165,7 +171,14 @@ Escalate instead of papering over the issue when:
   - Boundary audit: CLEAN | <spillover / hidden dependency findings>
   - RED phase: VERIFIED | MISSING | N/A
 - FINDINGS:
-  1. <specific finding with exact files/spec refs>
+  1. [BLOCKING] <specific finding with exact files/spec refs and required remediation>
+  2. [MINOR] <finding>
+- PARKING_LOT: <one line per MINOR finding, written to outlive this review>
 - REMEDIATION: <mandatory if REJECTED>
 - SUMMARY: <one sentence>
 ```
+
+With no findings, FINDINGS and PARKING_LOT read `none`. Output in
+English. Never approve an incomplete review: if an input is missing or
+unreadable, return REJECTED with the missing input as a BLOCKING finding
+and how to restore it.
