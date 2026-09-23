@@ -71,9 +71,10 @@ cc-sdd/                            plugin name: sdd
 ├── assets/
 │   ├── rules/                    12 shared rule files (ported verbatim except the
 │                                                                 placeholder/language strip in wave 3)
-│   └── templates/                5 document templates: requirements.md,
-│                                 requirements-init.md, design.md, tasks.md, research.md
-│                                 (init.json dies with spec.json)
+│   └── templates/                4 document templates: requirements.md,
+│                                 requirements-init.md, design.md, research.md
+│                                 (init.json died with spec.json; tasks.md died with
+│                                 Revision 4 — tasks live in bean bodies only)
 ├── CLAUDE.md                     development context for THIS repo only
 ├── README.md                     human-facing, fork scope
 └── docs/guides/                  English survivors, updated
@@ -245,9 +246,6 @@ in parallel. Consequences:
 │   ├── specs/<feature>/
 │   │   ├── requirements.md      EARS-format requirements
 │   │   ├── design.md            includes High-Level Architecture + mermaid diagram
-│   │   ├── tasks.md             STATIC plan document — numbering, requirement
-│   │   │                        mapping, boundaries, dependencies; header contract:
-│   │   │                        "REQUIRED: execute via /sdd:impl"; NO live checkboxes
 │   │   ├── research.md          (validate-gap output, when used)
 │   │   └── workspace/           execution artifacts, append-only:
 │   │                            task-N-brief.md, task-N-report.md,
@@ -271,7 +269,8 @@ in parallel. Consequences:
   `## Summary of Changes`; concern notes appended to bean bodies
 
 **Deleted state**: `spec.json` (all fields — `phase`, `approvals`, `updated_at`,
-`ready_for_implementation`, `language`), tasks.md checkbox lifecycle, roadmap.md
+`ready_for_implementation`, `language`), the entire tasks.md file (Revision 4 — task
+plans live in bean bodies), roadmap.md
 checkboxes, `_Blocked:_` inline annotations (blocked state lives in beans).
 
 **Division of concerns**: state = beans; artifacts = files in the feature workspace.
@@ -402,3 +401,26 @@ behavioral:
    in the four-part format.
 5. README/docs describe the fork; everything is English; `.zed/` and
    `.github/workflows/` are byte-identical to before the migration.
+
+## Revision 4 (2026-09-23) — tasks live in beans only
+
+User decision (E2E observation): the tasks FILE — original cc-sdd's tracker and its
+token/bottleneck burden — has no reason to exist once task details can live in bean
+bodies. Overrides, authoritatively:
+
+- §6.1: `tasks.md` is DELETED from the feature layout. The spec dir holds
+  requirements.md, design.md, research.md, brief.md (workstream), workspace/.
+- §4.2/§9: `/sdd:spec-tasks` SURVIVES, reworked: a generative fork (opus) that reads
+  requirements + design + the tasks-generation rule and creates task beans
+  DIRECTLY — bodies carry number, title, description, detail bullets with the
+  observable completion condition, `_Requirements:`, `_Boundary:`; dependencies via
+  `--blocked-by`; idempotent re-sync with the numbering discipline; confirm gate on
+  the bean list in the presenting context. No file write, no header contract line.
+- §5.2: the implementer brief is built from the task bean's body (number,
+  description, details, requirements, boundary) plus file path patterns
+  (design.md/requirements.md read by the subagent) — not extracted from any file.
+- §5.5/flow: the user iterates requirements/design freely, generates tasks when
+  ready, then invokes `/sdd:impl` separately (impl Step 0: epic without task beans
+  → stop with a pointer to `/sdd:spec-tasks`).
+- The executor header contract ("REQUIRED: execute via /sdd:impl") is retired —
+  impl is the only executor and resolves from beans.
