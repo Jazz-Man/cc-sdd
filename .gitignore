@@ -36,17 +36,6 @@ venv/
 *.temp
 *.log
 
-# Build outputs
-dist/
-build/
-*.egg-info/
-
-# Dependencies
-package-lock.json
-yarn.lock
-
-# Exceptions for CI reproducibility
-!tools/cc-sdd/package-lock.json
 
 # Environment variables
 .env
@@ -72,24 +61,5 @@ coverage/
 *.zip
 *.rar
 
-# Project specific
-BLOG.md
-docs/cc-sdd/
-docs/kiro/prompt/
-docs/kiro/
-# .kiro/
-# Agent configurations
-.claude/agents/
-.claude/hooks/
-.claude/commands/utils/
-.claude/
-.codex/
-.cursor/
-.gemini/
-# GEMINI.md
-# AGENTS.md
-
-# Local dev tooling (not part of the project)
-.entire/
 # superpowers SDD execution workspace
 .superpowers/
