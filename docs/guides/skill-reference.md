@@ -1,190 +1,279 @@
 # Skill Reference
 
-> 📖 **日本語ガイドはこちら:** [スキルリファレンス (日本語)](ja/skill-reference.md)
+Reference for the 14 skills of the `sdd` plugin. Every skill is invoked as
+`/sdd:<name>`. This guide describes each skill's purpose and its key contracts —
+what it takes, what it writes, what it refuses to do. The `SKILL.md` files under
+`skills/` are the source of truth; where your memory of a skill and its file
+disagree, trust the file.
 
-Reference for the skills-mode workflow in cc-sdd. Use this guide when you installed a skills-mode agent such as `--claude-skills`, `--codex-skills`, `--cursor-skills`, `--copilot-skills`, `--windsurf-skills`, `--opencode-skills`, `--gemini-skills`, or `--antigravity`.
+## Three interaction patterns
 
-If you are using legacy `/kiro:*` commands, use the [Command Reference](command-reference.md) instead.
+Skills come in three shapes. Knowing which one you are talking to explains most
+of their behavior:
 
-## Start Here
+1. **Inline interactive** (`discovery`, `spec-init`, `spec-requirements`,
+   `init`, `steering`) — runs in the main conversation, talks to you directly,
+   dispatches subagents only for heavy research or drafting.
+2. **Generative fork** (`spec-design`, `spec-tasks`, `validate-gap`,
+   `validate-design`, `validate-impl`) — a fresh subagent with no conversation
+   history; the skill body is its entire task prompt. It never asks questions:
+   when it cannot proceed it returns a `BLOCKED` status contract, and the main
+   context that invoked it owns the dialogue with you. Frontmatter pins
+   `context: fork`, `background: false`, `model: opus`.
+3. **Orchestrator** (`impl`) — inline in the main conversation, owns the loop
+   and the user gates, and dispatches all execution to subagents via five
+   prompt templates.
 
-Use this table when you are deciding which skill to run first.
+`review`, `debug`, and `verify-completion` are protocol documents: normally
+applied by dispatched subagents inside `/sdd:impl`, but each stands alone for
+ad-hoc use.
 
-| You want to... | Start with | Typical next step |
-| --- | --- | --- |
-| Route a new request | `/kiro-discovery` | `kiro-spec-init`, `kiro-spec-batch`, or direct implementation |
-| Create one new spec | `/kiro-spec-init` | `/kiro-spec-requirements` |
-| Create many specs from one initiative | `/kiro-spec-batch` | Review generated specs, then `/kiro-impl` on the approved one(s) |
-| Implement approved tasks | `/kiro-impl` | `/kiro-validate-impl` |
-| Validate feature integration | `/kiro-validate-impl` | Fix findings or report `GO` / `NO-GO` / `MANUAL_VERIFY_REQUIRED` |
-| Capture project memory | `/kiro-steering` or `/kiro-steering-custom` | Start or resume spec work |
+## The skill table
 
-## Workflow Skills
+| Skill | Purpose |
+|---|---|
+| `/sdd:init` | write the user-owned `.claude/rules/sdd.md` from the plugin default |
+| `/sdd:discovery` | entry point: research and route new work; writes `.sdd/brief.md` |
+| `/sdd:spec-init` | birth a feature: spec directory + in-progress epic bean |
+| `/sdd:spec-requirements` | interview the user, dispatch the EARS draft (opus) |
+| `/sdd:spec-design` | fork: research the feature and write `design.md` |
+| `/sdd:spec-tasks` | fork: static task plan + one task bean per sub-task |
+| `/sdd:impl` | orchestrator: subagent implement/review, stop-per-task |
+| `/sdd:review` | adversarial task-local review protocol |
+| `/sdd:debug` | root-cause-first debug protocol |
+| `/sdd:verify-completion` | fresh-evidence gate for completion claims |
+| `/sdd:validate-gap` | requirements vs codebase gap analysis (`research.md`) |
+| `/sdd:validate-design` | design quality review, verdict per criterion |
+| `/sdd:validate-impl` | feature-level GO/NO-GO gate |
+| `/sdd:steering` | manage `.claude/rules/` in the target project |
 
-### `/kiro-discovery`
+Contracts every skill shares, regardless of shape:
 
-Use when you have new work but do not yet know whether it should become one spec, multiple specs, or no spec at all.
+- **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and read-only
+  inspection. Nothing stages, commits, pushes, or touches branches — you review
+  and commit at every stop.
+- **beans is the only tracker.** No skill writes progress, approvals, or
+  checkbox flips into documents.
+- **AskUserQuestion, always** (where the skill talks to you at all): prose
+  explanation first, then the structured question.
+- **Paths, never contents.** Dispatch prompts carry file paths and patterns,
+  never pasted file contents.
 
-- What it does:
-  - routes the request
-  - refines scope
-  - writes `brief.md` and, when needed, `roadmap.md`
-  - suggests the next command and stops
-- Typical outcomes:
-  - extend an existing spec
-  - implement directly with no spec
-  - create one new spec
-  - decompose into multiple specs
+## Workflow skills
 
-### `/kiro-spec-batch`
+### `/sdd:init`
 
-Use when discovery or a roadmap already tells you the work should be split into multiple specs.
+Writes `<project>/.claude/rules/sdd.md` — the sdd workflow rules, taken
+verbatim from the plugin's default workflow map (stripped of its hook-injection
+wrappers). Once the file exists, the SessionStart hook stays silent and your
+file takes precedence over the plugin default, even if it lags behind a newer
+plugin version.
 
-- What it does:
-  - creates multiple specs in parallel
-  - keeps cross-spec consistency
-  - prepares a roadmap-shaped backlog instead of one oversized spec
-- Typical next step:
-  - review the generated specs
-  - continue with the approved spec(s)
+Contracts: refuses to overwrite an existing file — offers a read-only diff
+instead. Writes nothing but the stripped map: no session briefing, no appended
+content. User-invoked; it will not fire on its own.
 
-### `/kiro-impl`
+### `/sdd:discovery`
 
-Use when `tasks.md` is approved and you want to execute implementation.
+The entry point for new work. Researches your idea against the codebase (one
+general-purpose survey subagent when the idea touches an existing codebase),
+the workstream brief, beans state, and steering files, then routes it via
+AskUserQuestion:
 
-- Modes:
-  - autonomous mode: no task args, one task per iteration, fresh implementer + reviewer + debugger
-  - manual mode: task args provided, TDD in main context with review gate
-- Guarantees:
-  - reviewer approval before completion
-  - `kiro-verify-completion` before success claims
-  - bounded remediation and debug loops
+1. **Extend an existing spec** — the request lives inside a spec's boundary
+2. **No spec needed** — answered or done directly in the main chat
+3. **Single new feature** — one spec through the full cycle
+4. **Multi-spec initiative** — a milestone with a strictly sequential epic
+   chain
 
-### `/kiro-validate-impl`
+A mixed decomposition appears as its own option when it fits. Clarification is
+one question at a time, only what research did not answer.
 
-Use after implementation when you need feature-level validation across tasks.
+Contracts: writes `.sdd/brief.md` before ending (intent, scope, decisions, open
+questions, and a queue snapshot — beans stays the source of truth for the
+queue). Follow-up features discovered while another is active are queued as
+`todo` epics with `--blocked-by`, never started alongside it. Ends by naming
+the next command in a code block — it does not run the next command itself.
 
-- What it checks:
-  - integration across tasks
-  - requirements coverage
-  - design alignment
-  - full-suite evidence
-- Possible outcomes:
-  - `GO`
-  - `NO-GO`
-  - `MANUAL_VERIFY_REQUIRED`
+### `/sdd:spec-init`
 
-## Supporting Skills
+Births a feature — the only skill that creates one. Deliberately lightweight:
+no subagents, no document generation.
 
-These are real skills, but many users meet them indirectly through `/kiro-impl`.
+Contracts: guards the single-active-feature rule — while an `in-progress` epic
+exists it refuses and asks (one question per epic) whether to complete it,
+scrap it, or stop. Creates `.sdd/specs/<name>/` and activates a matching queued
+epic or creates a new one (`in-progress`), never duplicating. Records stable
+lines in the epic body (`Spec path:`, `Description:`, `Created:`) that later
+skills parse. Ends with a short summary and the next command:
+`/sdd:spec-requirements` — no argument, the next skill resolves the feature
+from beans.
 
-### `kiro-review`
+### `/sdd:spec-requirements`
 
-Task-local adversarial review protocol.
+Shapes the requirements for the active feature. Interviews you one question at
+a time, then dispatches an opus subagent that drafts `requirements.md` in EARS
+format from a Q&A digest.
 
-- Used by:
-  - reviewer subagents in autonomous mode
-  - manual-mode review gate
-- Checks:
-  - spec compliance
-  - boundary fit
-  - mechanical verification
-  - RED-phase evidence where required
+Contracts: everything the drafter needs is written to
+`workspace/qa-digest.md` before dispatch — the dispatch prompt carries paths,
+never transcript. The drafter applies the requirements review gate and returns
+a short summary contract; it never asks you questions. The skill writes no
+beans (its document is the artifact) and finishes with a confirm-only review.
 
-### `kiro-debug`
+### `/sdd:spec-design`
 
-Root-cause-first debug protocol.
+Fork. Researches the feature (classified discovery — full or light depending
+on novelty) and writes `design.md`: boundary-first architecture, considered
+alternatives with trade-offs and a recommendation, a mermaid diagram.
 
-- Used when:
-  - implementer is blocked
-  - reviewer rejection loops do not converge
-  - validation uncovers a deeper issue
-- Returns:
-  - `ROOT_CAUSE`
-  - `CATEGORY`
-  - `FIX_PLAN`
-  - `NEXT_ACTION`
+Contracts: options, not silent picks — architecturally significant choices are
+presented as 2–3 approaches. Consistency discipline, not brevity: length is
+fine; diagrams and tables matching the prose 100% is the hard requirement.
+Writes no beans; blocked means the `BLOCKED` contract, not a question.
 
-### `kiro-verify-completion`
+### `/sdd:spec-tasks`
 
-Fresh-evidence gate before success claims.
+Fork. Turns the approved design into `tasks.md` — a STATIC plan document:
+numbering, requirement mapping, `_Boundary:_` and `_Depends:_` annotations —
+and syncs one task bean per sub-task under the feature epic, cross-task
+dependencies as `--blocked-by` relations.
 
-- Used before:
-  - marking tasks complete
-  - saying a fix works
-  - reporting feature success
-- Returns:
-  - `VERIFIED`
-  - `NOT_VERIFIED`
-  - `MANUAL_VERIFY_REQUIRED`
+Contracts: no checkboxes, no parallel markers, no progress or approval state
+in the document, ever. Execution is strictly sequential; the plan records
+structure, never progress.
 
-## Inside `/kiro-impl`: Dispatch and Iteration
+### `/sdd:impl`
 
-Most of the "what is a subagent here?" question lives inside `/kiro-impl`. Unlike the legacy `--claude-agent` install target, skills mode does not rely on pre-defined subagent files under `.claude/agents/kiro/`. Implementation dispatch is owned by the skill itself.
+The execution orchestrator. See the next section.
 
-### Dynamic dispatch, not static agent files
+## Inside `/sdd:impl`
 
-- There is no `tdd-task-implementer.md` or similar file under `.claude/agents/`.
-- `/kiro-impl` spawns fresh execution contexts on demand through each platform's native subagent primitive (for example, Claude Code's Task tool), using prompt templates kept under the skill.
-- This is what lets the same `/kiro-impl` skill work across Claude Code, Codex, Cursor, Copilot, Windsurf, OpenCode, Gemini CLI, and Antigravity without maintaining a separate agent file per platform.
+`/sdd:impl` runs inline and owns the loop, the beans state, the workspace
+files, and every interaction with you. It never implements or reviews code
+itself. Execution goes to subagents (general-purpose type; the role defined by
+five prompt templates kept in the skill's `templates/` directory):
 
-### Per-task role trio
+| Template | Role | Model |
+|---|---|---|
+| `implementer-prompt.md` | implement one task from its brief | sonnet |
+| `task-reviewer-prompt.md` | adversarial review of a task's package | opus |
+| `re-review-prompt.md` | scoped re-review after a fix round | opus |
+| `code-reviewer-prompt.md` | whole-branch review at feature finish | opus |
+| `debugger-prompt.md` | root-cause investigation of a failure | opus |
 
-Each task may involve up to three roles dispatched by `/kiro-impl`:
+The task cycle:
 
-- **Implementer** — fresh execution context that builds a Task Brief from the spec, then implements with TDD (RED → GREEN under the Feature Flag Protocol).
-- **Reviewer** — independent pass that runs `git diff`, greps for TODOs, runs the test suite, and checks task-boundary compliance.
-- **Debugger** — triggered when the implementer is BLOCKED, or when the reviewer rejects after 2 remediation rounds. Investigates root causes in a clean context (with web search), produces a fix plan, and hands off to a new implementer. Max 2 debug rounds per task.
+1. **Resolve state from beans** — every cycle, including after a "continue".
+   Active feature = the `in-progress` epic; task queue from the epic's task
+   beans with blocked-by relations; lowest-numbered actionable task (an
+   `in-progress` task resumes first). Task beans carrying an unresolved
+   `## Blocker` note are reported, not auto-selected.
+2. **Prepare** — baseline the working tree, discover the repo's validation
+   commands, mark the task `in-progress`, write
+   `workspace/task-<N>-brief.md`.
+3. **Implement** — dispatch the implementer; parse its status contract
+   (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
+4. **Review** — build `workspace/review-package-<N>.md` (scoped diff vs HEAD;
+   agents never commit, so the working tree is always the task's full change
+   set) and dispatch the task-reviewer. Verdict: `APPROVED` or `REJECTED` with
+   blocking/minor-marked findings. Minor findings park in
+   `workspace/notes.md` and never enter the fix loop.
+5. **Fix loop, max 5 rounds** — rounds 1–3 resume the same implementer
+   (sonnet); rounds 4–5 dispatch a fresh one with the model raised to opus.
+   Every round gets a scoped re-review of only the changed files. A dispute
+   that repeats two rounds running escalates to you instead of burning rounds.
+6. **Blocked path** — fresh opus debugger applying the debug protocol, max 2
+   rounds. Still stuck: the task bean gets a `## Blocker` note (root cause,
+   rounds, date) and the failure escalates.
+7. **Verification gate** — the orchestrator itself re-runs the task-relevant
+   validation commands. Reported success is not evidence; only fresh output
+   and exit codes count. `NOT_VERIFIED` re-enters the fix loop under the same
+   counter.
+8. **Record state** — append the report to the workspace, concerns to the task
+   bean, learnings to `notes.md`, complete the task bean with a short summary.
+9. **STOP** — short report (task ID, status, verdict, verification result,
+   optionally one line of test results), concerns in the four-part escalation
+   format, then AskUserQuestion: continue / revise this task / escalate to
+   plan change / abort feature.
 
-These three roles correspond to the three supporting skills above (`kiro-review`, `kiro-debug`, `kiro-verify-completion`). The dispatch is dynamic — no file under `.claude/agents/` needs to exist.
+At feature finish: a whole-branch review (committed diff since the feature
+branch diverged from the default branch, plus the uncommitted remainder) and
+the `validate-impl` GO/NO-GO gate, sharing 3 remediation rounds between them.
+Learnings from earlier tasks propagate forward via `workspace/notes.md`.
 
-### Learnings propagation
+Resume semantics: every cycle re-derives state from beans. An interrupted run
+is indistinguishable from a fresh one; the workspace is append-only.
 
-When a task reveals cross-cutting insights (for example "better-sqlite3 needs Electron-specific ABI rebuild"), the finding is recorded under `## Implementation Notes` in `tasks.md` and injected into subsequent implementer prompts. This is how later tasks benefit from what earlier tasks discovered.
+## Protocol skills
 
-### 1 task per iteration
+### `/sdd:review`
 
-Each iteration processes a single task. This keeps context hygiene across long autonomous runs, makes `/kiro-impl` safe to re-run after interruption, and bounds the scope of review and debug passes.
+Adversarial task-local review: verifies an implementation is real, complete,
+bounded, spec-aligned, and backed by mechanical evidence — not styled. This is
+the protocol the task-reviewer template implements inside `/sdd:impl`; where
+the two differ, the template's verdict block wins. The document stands alone
+for reviewing a change by hand. Takes a task ID.
 
-## Skills mode vs `--claude-agent`
+Boundary terminology runs through the workflow: discovery identifies Boundary
+Candidates, design fixes Boundary Commitments, tasks constrain with
+`_Boundary:_`, review rejects Boundary Violations.
 
-Skills mode and the legacy `--claude-agent` install target take fundamentally different approaches to subagent work. Both are valid; choose the one that fits your workflow.
+### `/sdd:debug`
 
-| Concern | `--claude-agent` (legacy) | Skills mode |
-| --- | --- | --- |
-| Subagent definitions | Static `.claude/agents/kiro/*.md` files | Prompt templates inside skills, dispatched dynamically |
-| Cross-platform | Claude Code only | 8 platforms |
-| Spec generation (`spec-quick`) | Four-phase Subagent orchestration | Inline `kiro-spec-quick` skill that sequences the four spec skills |
-| Parallel spec batch | Not available | `/kiro-spec-batch` with cross-spec review |
-| Implementation | Manual via `/kiro:spec-impl` | Autonomous or manual via `/kiro-impl` |
-| Review process | Manual or via `validate-impl` | Built-in independent reviewer pass |
-| Debug on failure | Not available | Auto debug pass (max 2 rounds) with web search |
-| Session resume | Start fresh | Safe to re-run after interruption |
-| External dependencies | None | None (native subagent primitive only) |
+Root-cause-first debugging: reproduce, isolate, confirm the root cause, then
+plan the minimal fix — never a guess-first patch generator. The protocol
+behind the debugger dispatch in `/sdd:impl`; also stands alone for hand
+investigation. Takes a failure summary.
 
-For the `--claude-agent` details, see [Claude Code Subagents Workflow](claude-subagents.md).
+### `/sdd:verify-completion`
 
-## Customizing skills-mode dispatch
+The fresh-evidence gate: a claim is only as good as evidence collected after
+the work, matching the claim's scope. Claim types `TASK`, `FIX`,
+`TEST_OR_BUILD`, `FEATURE_GO`; outcomes `VERIFIED`, `NOT_VERIFIED`,
+`MANUAL_VERIFY_REQUIRED`. Applied inline by `/sdd:impl` before completing any
+task bean and by `validate-impl` before returning GO.
 
-Because skills mode generates prompts dynamically, customization works differently than editing `.claude/agents/kiro/*.md` files.
+## Validation skills
 
-1. **Steering documents** — the primary lever. Implementer and reviewer contexts inherit rules from steering, so update `{{KIRO_DIR}}/steering/*.md` for architecture and convention changes.
-2. **Templates and rules** — update `{{KIRO_DIR}}/settings/templates/*.md` and `{{KIRO_DIR}}/settings/rules/*.md` to influence the Task Brief and review criteria.
-3. **Skill files** — advanced users can edit the installed `SKILL.md` files under `.claude/skills/` (or the equivalent per platform) to adjust dispatch behaviour, review gates, or iteration strategy.
+### `/sdd:validate-gap`
 
-## Skills vs Commands
+Fork. Measures the distance between the active feature's requirements and the
+existing codebase: findings with quoted evidence (every claim cites
+`file:line` with the snippet verbatim, every gap names the requirement ID it
+threatens), written to `research.md`, plus a gap-list and an
+implementation-approach recommendation. For brownfield features — after
+requirements, before or during design. Produces information, not decisions:
+the design phase (with you) makes the choice.
 
-| Area | Skills mode | Legacy commands |
-| --- | --- | --- |
-| New-work entry point | `/kiro-discovery` | none |
-| Multi-spec creation | `/kiro-spec-batch` | none |
-| Implementation | `/kiro-impl` | `/kiro:spec-impl` |
-| Integration validation | `/kiro-validate-impl` | `/kiro:validate-impl` |
-| Review/debug/completion gates | explicit skills | embedded in command flow or external process |
+### `/sdd:validate-design`
 
-## Recommended Reading Order
+Fork. Quality-reviews `design.md` against four review criteria and writes the
+verdict-per-criterion report to `workspace/design-review.md`, returning
+GO/NO-GO with blocking and minor findings. The independent second opinion
+after the design phase's own review gate, before the plan gets built. Reviews;
+does not redesign — findings go to the report, you decide what happens to the
+document.
 
-1. [Spec-Driven Development Workflow](spec-driven.md)
-2. This skill reference
-3. [Command Reference](command-reference.md) only if you need legacy mode
+### `/sdd:validate-impl`
 
+Fork. The feature-level GO/NO-GO gate: reads completion state from the
+feature's task beans and runs integration, coverage, design-alignment, and
+boundary checks with fresh evidence — catching what only becomes visible when
+completed tasks are viewed together. Entered two ways: standalone via
+`/sdd:validate-impl`, or dispatched by `/sdd:impl` at feature finish. Runs
+every check itself; returns the verdict with remediation.
+
+## `/sdd:steering`
+
+Manages `.claude/rules/` in the target project (local) and `~/.claude/rules/`
+(global): bootstrap the core rules from the codebase, sync drifted rules,
+create domain or topic rules, edit existing ones. One skill, four modes, two
+scopes; local rules are conflict-checked against global ones. Every change is
+drafted, checked, and shown for approval before anything is written.
+
+## Reading order
+
+1. [Spec-Driven Workflow](spec-driven.md) — the phase-by-phase walkthrough
+2. This reference
+3. [Why sdd?](why-cc-sdd.md) — the design rationale
