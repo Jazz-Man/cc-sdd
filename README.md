@@ -1,209 +1,229 @@
-# cc-sdd: Long-running spec-driven implementation for AI coding agents
+# sdd — Kiro-style spec-driven development for Claude Code
 
-<!-- npm badges -->
-[![npm version](https://img.shields.io/npm/v/cc-sdd?logo=npm)](https://www.npmjs.com/package/cc-sdd?activeTab=readme)
-[![install size](https://packagephobia.com/badge?p=cc-sdd)](https://packagephobia.com/result?p=cc-sdd)
-[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
+`sdd` is a prompt-only Claude Code plugin. It runs a spec-driven workflow —
+discovery, requirements, design, task plan, implementation — where every skill is
+invoked as `/sdd:<name>` and all heavy execution happens in subagents, so the main
+conversation stays a place for decisions rather than file dumps.
 
-<div align="center" style="font-size: 1.1rem; margin-bottom: 1rem;"><sub>
-Package README: <a href="./tools/cc-sdd/README.md">English</a> | <a href="./tools/cc-sdd/README_ja.md">日本語</a> | <a href="./tools/cc-sdd/README_zh-TW.md">繁體中文</a>
-</sub></div>
+It borrows the document discipline from Kiro's spec methodology (EARS-format
+requirements, design docs with mermaid diagrams, boundary-annotated task plans)
+and the execution discipline from subagent-driven development (fresh implementer
+and reviewer per task, status contracts, bounded fix and debug loops, hard stops
+where a human must decide).
 
-## Turn approved specs into long-running autonomous implementation
+Honest scope: this is a personal plugin, written for one user's daily workflow.
+It is English-only, loaded locally via `--plugin-dir`, and not published to any
+marketplace. If it works for someone else, good; it makes no claim of general
+support.
 
-One command installs an agentic SDLC workflow as Agent Skills: discovery, requirements, design, tasks, and autonomous implementation with per-task independent review. Works across 8 AI coding agents, with the same 17-skill set on each.
+## Getting started
 
-👻 **Kiro-inspired.** Similar spec-driven, agentic SDLC style as Kiro IDE. Existing Kiro specs remain compatible and portable.
-
-## What's new in v3.0
-
-cc-sdd v3.0 is a rework around Agent Skills and long-running autonomous implementation.
-
-- **`/kiro-discovery` as the new entry point.** Discovery routes new work into one of: extend an existing spec, implement directly with no spec, create one new spec, decompose into multiple specs, or mixed decomposition. It writes `brief.md` and, when needed, `roadmap.md`, so you can resume a workstream without re-explaining scope.
-- **`/kiro-impl` for long-running autonomous implementation.** Each task gets a fresh implementer running TDD (RED → GREEN) behind a feature flag, an independent reviewer, and an auto-debug pass that investigates root causes in a clean context when the implementer is blocked or the reviewer rejects twice. Learnings from earlier tasks propagate forward via `## Implementation Notes` in `tasks.md`. 1 task per iteration, safe to re-run after interruption.
-- **Boundary-first spec discipline.** `design.md` now includes a File Structure Plan that drives task boundaries. Tasks carry `_Boundary:_` and `_Depends:_` annotations. Review and validation look for boundary violations, not just style issues.
-- **`/kiro-spec-batch` for multi-spec initiatives.** Turn a roadmap into multiple specs in parallel, with cross-spec review to catch contradictions, duplicated responsibilities, and interface mismatches.
-- **Agent Skills across 8 coding agents.** 17 skills per install, loaded on demand (progressive disclosure). Claude Code and Codex are stable; Cursor, Copilot, Windsurf, OpenCode, Gemini CLI, and Antigravity are in beta. No external dependencies; subagents are spawned through each platform's native primitive.
-
-Full skills-mode workflow and `/kiro-impl` internals: [Skill Reference](docs/guides/skill-reference.md).
-
-Upgrading from v1.x or v2.x? See the [Migration Guide](docs/guides/migration-guide.md#5-v2x-to-v30).
-
-## Why cc-sdd?
-
-cc-sdd treats the spec as a contract between parts of the system, not a master command document handed to the agent. Code remains the source of truth. Specs make the boundaries between parts of the code explicit so humans and agents can work in parallel without constant synchronization.
-
-The bet: explicit contracts at the right granularity let AI-driven development at team scale move faster, not slower. Agents write the spec, humans approve the contract at phase gates, code is what ships.
-
-Boundaries are not overhead. They are what lets you move freely inside while protecting the outside.
-
-Full rationale, trade-offs, and when-to-use / when-not-to-use: [Why cc-sdd? A philosophy note](docs/guides/why-cc-sdd.md).
-
-## Quick Start
+From the plugin checkout:
 
 ```bash
-cd your-project
-npx cc-sdd@latest
+claude --plugin-dir /path/to/cc-sdd
 ```
 
-The default installs **Claude Code Skills** with English docs. To pick another agent or language:
+Inside a running session, `/reload-plugins` picks up edits to skill texts. Run
+`claude plugin validate .` in the checkout to confirm the plugin is well-formed.
 
-```bash
-npx cc-sdd@latest --codex-skills --lang ja      # Codex, Japanese
-npx cc-sdd@latest --cursor-skills --lang zh-TW  # Cursor IDE, Traditional Chinese
+Skills appear as `/sdd:<name>` (for example `/sdd:discovery`). On session start,
+a hook injects the workflow map so the session knows the phase flow and the hard
+rules without loading any skill body — see [Bootstrap](#bootstrap).
+
+## The workflow
+
+One command per phase, each ending in a confirm gate before the next. The user
+drives the cycle; there is no chain skill that runs everything in one go.
+
+```
+/sdd:discovery → /sdd:spec-init → /sdd:spec-requirements → /sdd:spec-design → /sdd:spec-tasks → /sdd:impl
 ```
 
-Supports 8 AI coding agents (Claude Code and Codex stable; Cursor, Copilot, Windsurf, OpenCode, Gemini CLI, and Antigravity in beta) and 14 languages. See [Supported Agents](#supported-agents) for the full list.
+- **discovery** researches the idea against the codebase, the workstream brief,
+  and beans state, then routes it: extend an existing spec, no spec needed
+  (answered directly in chat), one new feature, or a sequential multi-spec
+  initiative. Writes `.sdd/brief.md`.
+- **spec-init** births the feature: creates `.sdd/specs/<feature>/` and the epic
+  bean that the rest of the workflow resolves the feature from.
+- **spec-requirements** interviews the user one question at a time, then
+  dispatches an opus subagent that drafts `requirements.md` in EARS format.
+- **spec-design** runs as a fork (fresh subagent): researches the feature and
+  writes `design.md` — boundary-first architecture, considered alternatives,
+  mermaid diagram.
+- **spec-tasks** runs as a fork: derives the static task plan `tasks.md` and
+  creates one task bean per sub-task, with cross-task dependencies in beans.
+- **impl** executes the plan one task at a time (see below), stopping after
+  every task.
 
-Then, in your agent:
+When a phase ends, its result is presented with a confirm-only question that
+also names the next command. Clarifying questions live in discovery and
+requirements; design and tasks are review-and-confirm.
 
-```bash
-/kiro-discovery <idea>
+Quick one-off work never enters this pipeline — discovery can route it to "no
+spec needed" and it happens in the main chat.
+
+## Single active feature
+
+Exactly one feature is active at any time: the single epic bean with status
+`in-progress`. Every skill except `spec-init` and `discovery` resolves the
+feature from beans and takes no feature argument. `spec-init` refuses to birth a
+new feature while one is in progress (it offers to complete or scrap the current
+one first). A follow-up feature discovered mid-work is queued as a `todo` epic
+blocked by the active one and starts only after the current feature completes —
+or instead of it, if the current one is cancelled.
+
+Multi-spec initiatives follow the same rule: a milestone bean with a strictly
+sequential chain of epics. Nothing ever runs in parallel.
+
+## State and artifacts
+
+Two stores, strictly separated:
+
+- **State lives in beans.** Feature = epic bean, task = task bean,
+  initiative = milestone bean. Progress, blockers, dependencies — all in beans.
+  Nothing ever writes progress, approvals, or checkbox flips into documents.
+  Resume means querying beans, never re-parsing documents.
+- **Artifacts live in files**, under `.sdd/` in the target project:
+
+```
+.sdd/
+├── brief.md                      workstream narrative (discovery output)
+└── specs/<feature>/
+    ├── requirements.md           EARS-format requirements
+    ├── design.md                 architecture + mermaid
+    ├── tasks.md                  STATIC plan — structure, never progress
+    ├── research.md               validate-gap output, when used
+    └── workspace/                append-only execution record:
+                                   task briefs, reports, review packages, notes.md
 ```
 
-Not sure where to start? Start with `kiro-discovery`. It routes your request and tells you what command to run next.
+`tasks.md` is a static plan document: numbering, requirement mapping,
+boundaries, dependencies. Its checkboxes are never flipped by anything — the
+task beans carry the lifecycle.
 
-### Common workflows
+## Stop-per-task: the user holds git
 
-| You want to... | Skills mode |
+After every implementation task, `/sdd:impl` stops. The user reviews the diff,
+runs what they want to run, and commits. Agents never stage, commit, push, or
+touch branches — git is read-only for them, enforced by the skill texts and the
+user's hooks. The stop report is deliberately short: task ID, final status,
+review verdict, verification result, and optionally one line of test results.
+No diff summaries or file lists — the user watches changes live in the IDE.
+
+Continuing is an explicit choice (via a structured question), as is revising the
+task, escalating to a plan change, or aborting the feature.
+
+## Models
+
+Pinned in the skill texts, never the agent's choice:
+
+| Work | Model |
 |---|---|
-| Start a new feature or product-sized idea | `kiro-discovery` → `kiro-spec-init` → `kiro-spec-requirements` → `kiro-spec-design` → `kiro-spec-tasks` → `kiro-impl` |
-| Extend an existing system | `kiro-steering` → `kiro-discovery` or `kiro-spec-init` → optional `kiro-validate-gap` → `kiro-spec-design` → `kiro-spec-tasks` → `kiro-impl` |
-| Break down a large initiative | `kiro-discovery` → `kiro-spec-batch` |
-| Implement a small change with no spec | `kiro-discovery` → direct implementation |
+| Requirements, design, and tasks generation | opus |
+| All reviews and validations (task review, re-review, whole-branch review, validate-*) | opus |
+| Implementation | sonnet |
+| Implementation in fix-loop rounds 4–5 and post-debug retries | opus |
+| Debugger | opus |
 
-Legacy `/kiro:*` command modes are still available (`--claude`, `--cursor`, etc.) but are deprecated. See the [Migration Guide](docs/guides/migration-guide.md) for the upgrade path.
+## Interaction rules
 
-For larger approved task sets, run `kiro-impl` to start autonomous implementation with per-task subagent spawn, independent review, and auto-debug on failure.
+- **Every question or choice-point goes through AskUserQuestion.** Detailed
+  explanation first in chat prose (approaches, trade-offs), then the structured
+  question with the recommended option first and labeled. A plain-text "which do
+  you prefer?" ending is not part of the workflow.
+- **Subagents never ask the user directly.** They return status contracts
+  (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`); the main context
+  formulates the question.
+- **No blind decisions.** Any concern or deviation from the plan escalates in a
+  four-part format:
+  1. Per plan: what the plan specified
+  2. Actual: what happened
+  3. Why it matters: the consequence
+  4. Options: accept as-is / fix now / change the plan / abort
 
-## See It In Action
+  The user decides. Cancellation is a first-class outcome: aborting marks the
+  epic and its task beans scrapped, and the branch (created and deleted by the
+  user) carries the whole feature away.
 
-Example: build a new Photo Albums feature.
+## The 14 skills
 
-```bash
-/kiro-discovery Photo albums with upload, tagging, and sharing
-# discovery writes brief.md (and roadmap.md when multi-spec) and suggests the next command
-/kiro-spec-init photo-albums
-/kiro-spec-requirements photo-albums
-/kiro-spec-design photo-albums
-/kiro-spec-tasks photo-albums
-/kiro-impl photo-albums
-# autonomous: fresh implementer, independent reviewer, and auto-debug per task
-```
+| Skill | What it does |
+|---|---|
+| `/sdd:init` | write the user-owned `.claude/rules/sdd.md` from the plugin default |
+| `/sdd:discovery` | entry point: research and route new work; writes `.sdd/brief.md` |
+| `/sdd:spec-init` | birth a feature: spec directory + in-progress epic bean |
+| `/sdd:spec-requirements` | interview the user, dispatch the EARS draft (opus) |
+| `/sdd:spec-design` | fork: research the feature and write `design.md` |
+| `/sdd:spec-tasks` | fork: static task plan + one task bean per sub-task |
+| `/sdd:impl` | orchestrator: subagent implement/review, stop-per-task |
+| `/sdd:review` | adversarial task-local review protocol |
+| `/sdd:debug` | root-cause-first debug protocol |
+| `/sdd:verify-completion` | fresh-evidence gate for completion claims |
+| `/sdd:validate-gap` | requirements vs codebase gap analysis (`research.md`) |
+| `/sdd:validate-design` | design quality review, verdict per criterion |
+| `/sdd:validate-impl` | feature-level GO/NO-GO gate |
+| `/sdd:steering` | manage `.claude/rules/` in the target project |
 
-Typical spec outputs (under 10 minutes):
+## Bootstrap
 
-- `requirements.md`: EARS-format requirements with acceptance criteria.
-- `design.md`: architecture with Mermaid diagrams and a File Structure Plan.
-- `tasks.md`: implementation tasks with boundaries and dependency annotations.
+A SessionStart hook (matcher `startup|clear|compact`) checks whether
+`.claude/rules/sdd.md` exists in the target project:
 
-Then `/kiro-impl` runs the tasks autonomously with TDD (RED → GREEN) behind feature flags, an independent reviewer pass, and auto-debug on failure.
+- **Missing** — the plugin's default workflow map is injected as session
+  context, wrapped so dispatched subagents ignore it. The session knows the
+  phase flow and hard rules without any skill being invoked.
+- **Present** — the hook stays silent. The user's file always wins, even if it
+  lags behind a newer plugin version. Precedence is by design.
 
-![Example: design.md System Flow](assets/design-system_flow.png)
+`/sdd:init` writes that file once, from the plugin default. If it already
+exists, the skill refuses to overwrite and offers a read-only diff instead.
+The hook also runs `beans prime` on session start and before compaction so the
+tracker's context survives context compression.
 
-## Supported Agents
+## How it executes
 
-All 8 skills variants ship the same 17-skill set. The difference is how much real-world usage each platform integration has seen.
+`/sdd:impl` runs inline in the main conversation as an orchestrator. It never
+writes code itself — it owns the loop, the beans state, and the user gates, and
+dispatches five roles via prompt templates kept in the skill
+(`implementer`, `task-reviewer`, `re-review`, `code-reviewer`, `debugger`):
 
-| Agent | Skills mode | Stability | Legacy mode |
-|---|---|---|---|
-| **Claude Code** | `--claude-skills` | Stable | `--claude` / `--claude-agent` (deprecated) |
-| **Codex** | `--codex-skills` | Stable | `--codex` (blocked) |
-| **Cursor IDE** | `--cursor-skills` | Beta | `--cursor` (deprecated) |
-| **GitHub Copilot** | `--copilot-skills` | Beta | `--copilot` (deprecated) |
-| **Windsurf IDE** | `--windsurf-skills` | Beta | `--windsurf` (deprecated) |
-| **OpenCode** | `--opencode-skills` | Beta | `--opencode` / `--opencode-agent` (deprecated) |
-| **Gemini CLI** | `--gemini-skills` | Beta | `--gemini` (deprecated) |
-| **Antigravity** | `--antigravity` | Beta (experimental) | — |
-| **Qwen Code** | — | — | `--qwen` |
+1. Resolve state from beans (every cycle, including after "continue") — active
+   feature, task queue, blocked-by relations. Nothing depends on session
+   memory; an interrupted run is indistinguishable from a fresh one.
+2. Write the task brief, dispatch a sonnet implementer, parse its status
+   contract.
+3. Build a scoped review package (working-tree diff vs HEAD, since agents never
+   commit) and dispatch an opus task-reviewer applying the review protocol.
+4. **Fix loop, max 5 rounds**: rounds 1–3 resume the same implementer; rounds
+   4–5 dispatch a fresh one with the model raised to opus. Each round gets a
+   scoped re-review of only the changed files. Minor findings never enter the
+   loop — they park in `notes.md` and surface at feature finish.
+5. **Blocked path**: a fresh opus debugger (root-cause-first, max 2 rounds).
+   Still stuck → the task is marked blocked in beans with the root cause and
+   escalated to the user.
+6. **Verification gate**: before any completion claim, the validation commands
+   are re-run by the orchestrator itself — reported success from the implementer
+   is not evidence; only fresh output and exit codes count.
+7. **STOP** — short report, concerns in the four-part format, AskUserQuestion.
 
-"Beta" does not mean "missing features", the 17 skills and templates are identical across all 8 platforms. It means the platform integration (subagent spawn behavior, ergonomics, `SKILL.md` loading) has had less real-world usage than Claude Code and Codex, and edge cases may still surface. Please [report issues](https://github.com/gotalab/cc-sdd/issues) if you hit any.
-
-## Advanced Installation
-
-### Skills mode (recommended)
-
-```bash
-npx cc-sdd@latest                     # Claude Code Skills (default)
-npx cc-sdd@latest --claude-skills     # Claude Code Skills
-npx cc-sdd@latest --codex-skills      # Codex Skills
-npx cc-sdd@latest --cursor-skills     # Cursor IDE Skills (beta)
-npx cc-sdd@latest --copilot-skills    # GitHub Copilot Skills (beta)
-npx cc-sdd@latest --windsurf-skills   # Windsurf IDE Skills (beta)
-npx cc-sdd@latest --opencode-skills   # OpenCode Skills (beta)
-npx cc-sdd@latest --gemini-skills     # Gemini CLI Skills (beta)
-npx cc-sdd@latest --antigravity       # Antigravity Skills (beta, experimental)
-```
-
-### Legacy modes (deprecated)
-
-```bash
-npx cc-sdd@latest --claude         # Claude Code commands (use --claude-skills)
-npx cc-sdd@latest --claude-agent   # Claude Code subagents (use --claude-skills)
-npx cc-sdd@latest --cursor         # Cursor IDE commands (use --cursor-skills)
-npx cc-sdd@latest --copilot        # GitHub Copilot prompts (use --copilot-skills)
-npx cc-sdd@latest --windsurf       # Windsurf IDE workflows (use --windsurf-skills)
-npx cc-sdd@latest --opencode       # OpenCode commands (use --opencode-skills)
-npx cc-sdd@latest --opencode-agent # OpenCode subagents (use --opencode-skills)
-npx cc-sdd@latest --gemini         # Gemini CLI commands (use --gemini-skills)
-npx cc-sdd@latest --codex          # Codex (blocked, use --codex-skills)
-npx cc-sdd@latest --qwen           # Qwen Code
-```
-
-### Language
-
-```bash
-npx cc-sdd@latest --lang ja        # Japanese
-npx cc-sdd@latest --lang zh-TW     # Traditional Chinese
-npx cc-sdd@latest --lang es        # Spanish
-# Supports: en, ja, zh-TW, zh, es, pt, de, fr, ru, it, ko, ar, el, vi
-```
-
-### Advanced options
-
-```bash
-# Preview changes before applying
-npx cc-sdd@latest --dry-run
-
-# Custom specs directory
-npx cc-sdd@latest --kiro-dir docs
-```
-
-## Customization
-
-Edit templates and rules in `{{KIRO_DIR}}/settings/` to match your team's workflow.
-
-- `templates/`: document structure for requirements, design, tasks.
-- `rules/`: AI generation principles and judgment criteria.
-
-Common use cases: PRD-style requirements, API and database schemas, approval gates, JIRA integration, domain-specific standards.
-
-[Customization Guide](docs/guides/customization-guide.md) has practical examples with copy-paste snippets.
+At feature finish: a whole-branch review (committed diff since the feature
+branch diverged from the default branch, plus the uncommitted remainder) and
+the `validate-impl` GO/NO-GO gate, sharing a budget of 3 remediation rounds.
+Learnings from earlier tasks propagate forward via `workspace/notes.md`.
 
 ## Documentation
 
-| Guide | What you will learn | Links |
-|---|---|---|
-| **Skill Reference** | Skills-mode workflow, supporting skills, `/kiro-impl` subagent flow, Skills vs `--claude-agent` | [English](docs/guides/skill-reference.md) \| [日本語](docs/guides/ja/skill-reference.md) |
-| **Command Reference** | Legacy `/kiro:*` commands with detailed usage, parameters, and examples | [English](docs/guides/command-reference.md) \| [日本語](docs/guides/ja/command-reference.md) |
-| **Customization Guide** | Practical examples: PRD requirements, frontend/backend designs, JIRA integration | [English](docs/guides/customization-guide.md) \| [日本語](docs/guides/ja/customization-guide.md) |
-| **Spec-Driven Guide** | Complete workflow methodology from requirements to implementation | [English](docs/guides/spec-driven.md) \| [日本語](docs/guides/ja/spec-driven.md) |
-| **Why cc-sdd?** | Design rationale, trade-offs, when the tool fits and when it does not | [English](docs/guides/why-cc-sdd.md) \| [日本語](docs/guides/ja/why-cc-sdd.md) |
-| **Claude Subagents** | Legacy `--claude-agent` install target and its spec-quick subagent flow | [English](docs/guides/claude-subagents.md) \| [日本語](docs/guides/ja/claude-subagents.md) |
-| **Migration Guide** | Upgrading from v1.x / v2.x | [English](docs/guides/migration-guide.md) \| [日本語](docs/guides/ja/migration-guide.md) |
+| Guide | Contents |
+|---|---|
+| [Skill Reference](docs/guides/skill-reference.md) | all 14 skills: invocation, purpose, key contracts |
+| [Spec-Driven Workflow](docs/guides/spec-driven.md) | the phase-by-phase walkthrough |
+| [Why sdd?](docs/guides/why-cc-sdd.md) | design rationale and trade-offs |
 
-## Related resources
-
-**Articles & presentations**
-
-- [Kiroの仕様書駆動開発プロセスをClaude Codeで徹底的に再現した](https://zenn.dev/gotalab/articles/3db0621ce3d6d2) (Zenn, Japanese)
-- [Claude Codeは仕様駆動の夢を見ない](https://speakerdeck.com/gotalab555/claude-codehashi-yang-qu-dong-nomeng-wojian-nai) (Speaker Deck, Japanese)
-
-**External resources**
-
-- [Kiro IDE](https://kiro.dev): enhanced spec management and team collaboration.
-- [Kiro's Spec Methodology](https://kiro.dev/docs/specs/): the original spec-driven development methodology.
+The conversion's own spec and task plan live in `docs/superpowers/` — this
+repository was migrated from the multi-agent `cc-sdd` toolkit, and that
+directory records how.
 
 ## License
 
-MIT License
+MIT — see [LICENSE](LICENSE).

@@ -1,76 +1,131 @@
-# Why cc-sdd? A philosophy note
+# Why sdd? A design note
 
-> English | [日本語](ja/why-cc-sdd.md)
+This is the long answer to "why does this plugin exist and what trade-off is it
+making". The [README](../../README.md) is the faster path if you just want to
+use it. Come here for the reasoning.
 
-This is the long version of "why does cc-sdd exist and what trade-off is it making". If you just want to install and try it, the project [README](../../README.md) is the faster path. Come here when you want to understand the design rationale.
+Some history that frames the choices: `sdd` started as a fork of `cc-sdd`, a
+multi-agent toolkit distributed through npm that installed the same skill set
+onto eight different coding agents. The structure survived the conversion —
+phase gates, EARS requirements, design documents, task discipline. Everything
+else was rebuilt around one user working in Claude Code: the installer is gone,
+the multi-agent surface is gone, and execution follows the subagent-driven
+model instead.
 
 ## The short version
 
-cc-sdd treats the spec as a contract between parts of the system, not a master command document to be handed to the agent. Code remains the source of truth. Specs make the contracts between parts of the code explicit, so humans and agents can work in parallel without constant synchronization.
+The spec is a contract between parts of the system, not a master command
+document handed to an agent. Code remains the source of truth. Specs exist to
+make the boundaries between parts explicit, so work can proceed without
+constant re-synchronization — and so every generated line traces back to
+something a human approved.
 
-The bet is simple. Explicit contracts at the right granularity let AI-driven development at team scale move faster, not slower. Boundaries are not overhead. They are what lets you move freely inside while protecting the outside.
+Five commitments carry that:
 
-## Specification vs Design
+1. **Structured, Kiro-style documents.** Requirements in EARS format, designs
+   with considered alternatives and diagrams, a static task plan with
+   boundaries — not walls of text. The structure is what makes a spec
+   reviewable at a gate.
+2. **Subagent-first execution.** The main conversation is for decisions.
+   Implementation, review, and debugging run in fresh subagents that return
+   status contracts — keeping contexts clean over long runs and giving every
+   task an independent reviewer rather than the author grading their own work.
+3. **beans as the only tracker.** State (progress, blockers, dependencies)
+   lives in the issue tracker, artifacts in files. No checkbox-flipping in
+   documents, no re-parsing prose to figure out what is done. Resume is a
+   query.
+4. **Pinned models.** Generation, review, and validation run on opus;
+   implementation on sonnet, raised to opus only when a fix loop escalates.
+   This is encoded in the skill texts, not left to an agent's judgment —
+   model choice is a cost and quality decision the user already made.
+5. **Stop-per-task user control.** After every task, the run stops: the user
+   reviews the diff, tests, and commits. Agents never touch git. Autonomy is
+   bounded by gates that a human actually passes through.
 
-It helps to separate two things that often get collapsed together.
+## Specification vs design
 
-- **Specification**: the contract, the boundary, the pre-conditions a piece of work must respect.
-- **Design**: the free exploration space *inside* that contract. Components, interfaces, implementation decisions.
+Two things often get collapsed that shouldn't be:
 
-cc-sdd treats this distinction as first-class:
+- **Specification** — the contract: the boundary, the preconditions, what a
+  piece of work must respect. In sdd: `requirements.md`, the boundary
+  commitments in `design.md`, the `_Boundary:_`/`_Depends:_` annotations in
+  `tasks.md`.
+- **Design** — the free exploration space inside that contract: components,
+  interfaces, implementation decisions. In sdd: the internals of `design.md`
+  and everything an implementer does within a task's boundary.
 
-- `requirements.md`, the File Structure Plan, and boundary annotations (`_Boundary:_`, `_Depends:_`) define the **specification**, the contract that must be respected.
-- `design.md` internals, `tasks.md` sequencing, and the implementation inside each task are the **design**, free territory for the agent, bounded by the contract.
+The human reviews and approves at the specification layer; the agent is free
+inside the design layer. This split is what keeps review load sane — you
+audit boundaries and contracts, not line-by-line behavior — while still
+auditing the final diff against the approved contract at every stop.
 
-The human reviews and approves at the specification layer. The agent is free inside the design layer.
+## Why this matters with agents specifically
 
-## How cc-sdd thinks about speed
+Agents are fast. They will generate thousands of lines across multiple
+modules in one session. The bottleneck is not capability; it is coordination
+and trust — and for a single user, trust is the whole problem.
 
-The usual assumption about specs is that they slow you down. cc-sdd is built on the opposite assumption: explicit contracts at the right granularity make AI-driven development at team scale faster, not slower. Four things follow from that stance.
+When an agent changes module A and module B and nothing written says what the
+contract between them is, breakage surfaces late and review becomes
+archaeology. Explicit boundaries are the decades-old answer to this in large
+engineering teams; sdd applies the same principle to agent-authored work for
+one person. Inside a boundary the agent refactors and iterates freely; across
+boundaries there is a contract, so nothing silently breaks when something
+moves.
 
-### Right-sized specs, not monolithic plans
+Two failure modes of long agent runs get specific treatment:
 
-A spec should be small enough to ship as a unit in hours or days. When a piece of work is too big for one spec, `/kiro-discovery` decomposes it and `/kiro-spec-batch` creates multiple specs in parallel. You ship, you learn from that slice, you move to the next one, instead of committing to one large plan up front.
+- **Context rot.** Long sessions drift; an agent that has read everything
+  remembers badly. sdd's answer is fresh contexts per concern (forked
+  generation, per-task implementers and reviewers, a debugger that receives
+  evidence rather than history) plus state on disk — beans and files — so
+  nothing depends on session memory.
+- **Self-grading.** An agent that both writes and judges its own work tends
+  to approve it. Independent review passes — a different context applying an
+  adversarial protocol, and verification gates that re-run commands instead
+  of trusting reports — are structural, not optional.
 
-### Federated ownership
+## What was deliberately left out
 
-Each spec has its own scope and owners. Cross-spec review catches inconsistencies between specs, so work coordinates through explicit contracts rather than through a central authority holding a master plan.
+The upstream toolkit optimized for breadth: eight agents, fourteen languages,
+npm distribution, parallel spec batches, multi-agent claims. This fork
+optimizes for depth on one workflow, which meant deleting:
 
-### Continuous mechanical verification
+- **Parallel work.** One active feature, one task at a time, strictly
+  sequential initiative chains. Parallelism multiplies coordination cost —
+  exactly the thing the specs exist to control — and one user cannot review
+  two streams at once anyway.
+- **Installer and configuration.** The repository is the plugin, loaded with
+  `--plugin-dir`. Paths under `.sdd/` are fixed. There is nothing to
+  configure, which is also why there is nothing to configure wrong.
+- **Quick/one-shot spec modes.** A full cycle per feature, phase by phase.
+  Small work does not enter the pipeline at all — discovery says "no spec
+  needed" and it happens in the chat.
 
-Contracts are checked by tests, linting, the independent reviewer pass, boundary checks, and `/kiro-validate-impl` throughout the work, not at a single integration step at the end.
+## When sdd fits
 
-### Agents write the spec, humans review the contract
+- The work is a feature or an initiative too large to hold in your head but
+  small enough to ship as a unit in days — medium grain.
+- You want to audit agent-generated code back to an approved contract, not
+  read every line cold.
+- You want long runs that stay correct when interrupted — state on disk,
+  fresh contexts, bounded loops.
+- You prefer deciding at gates over steering continuously.
 
-Every phase is agent-driven. You do not author `requirements.md`, `design.md`, or `tasks.md` yourself. You will still read them at phase gates, and that review is not free. But your review is focused on contract decisions (are the boundaries right, are the responsibilities scoped correctly, are the dependencies honest), not on line-by-line behavior. At task completion, you then review the actual `git diff` against that approved contract. Phase-gate review exists so contract problems surface at review time instead of at integration time.
+## When it does not fit
 
-## Why this matters with AI agents specifically
+- One-off fixes and small changes — the overhead is real; use the main chat
+  (discovery will tell you the same).
+- Throwaway prototypes where writing down boundaries buys nothing.
+- Work you want to hand to an agent unattended with no review rhythm — the
+  stop points are the point.
 
-Agents are fast. They will happily generate thousands of lines of code in parallel, across multiple modules, in a single session. The bottleneck is not capability. It is coordination.
-
-When an agent changes module A in one spec and module B in another, and nobody has written down what the contract between A and B is, you get silent breakage that only surfaces later. This is the same pain large engineering teams have been solving for decades with explicit interfaces, contract tests, and modular boundaries. cc-sdd applies those principles to agent-authored work.
-
-Inside a boundary, you are free to refactor, invent, and iterate. Across boundaries, you have contracts, so nobody else's work silently breaks when you move.
-
-## When cc-sdd is the right tool
-
-- Your work decomposes into multiple specs shipped at medium grain. Not one monolith, not individual line changes.
-- Multiple humans, agents, or streams are touching the codebase, and "did your change break mine?" is starting to cost real time.
-- You want to ship in small vertical slices and learn from each before committing to the next.
-- You need to audit any line of agent-generated code back to an approved contract.
-
-## When you do not need cc-sdd
-
-- Solo work that fits in a single agent session.
-- Prototype or throwaway code where writing down boundaries is overkill.
-- Work where "vibe coding" is genuinely faster than making the contract explicit.
-
-Even inside cc-sdd, `/kiro-discovery` can legitimately return *"no spec needed, implement directly"* as a valid route. cc-sdd is not trying to put a formal spec around every change, only the ones where the contract between parts of the system actually earns its cost.
-
-> If the discipline feels like overhead, your specs are probably too big. Break them smaller.
+> If the discipline feels like overhead, the spec is probably too big. Break
+> it smaller.
 
 ## See also
 
-- [Spec-Driven Development Workflow](spec-driven.md): how the ideas here are implemented as an end-to-end workflow in cc-sdd.
-- [Skill Reference](skill-reference.md): the skills-mode surface, including `/kiro-impl` dispatch internals.
-- [Migration Guide](migration-guide.md): if you are coming from cc-sdd v1.x or v2.x.
+- [Spec-Driven Workflow](spec-driven.md) — how the ideas here run phase by
+  phase
+- [Skill Reference](skill-reference.md) — the 14 skills and their contracts
+- [README](../../README.md) — the plugin overview
