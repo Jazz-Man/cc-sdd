@@ -1,19 +1,19 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ ! -f \"$CLAUDE_PROJECT_DIR/.claude/rules/sdd.md\" ]; then cat \"${CLAUDE_PLUGIN_ROOT:?unset}/assets/workflow-map.md\"; fi"
-          }
-        ]
-      },
-      { "hooks": [{ "type": "command", "command": "beans prime" }] }
-    ],
-    "PreCompact": [
-      { "hooks": [{ "type": "command", "command": "beans prime" }] }
-    ]
-  }
+	"hooks": {
+		"SessionStart": [
+			{
+				"matcher": "startup|clear|compact",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "if [ ! -f \"$CLAUDE_PROJECT_DIR/.claude/rules/sdd.md\" ]; then cat \"${CLAUDE_PLUGIN_ROOT:?unset}/assets/workflow-map.md\"; fi"
+					}
+				]
+			},
+			{ "hooks": [{ "type": "command", "command": "beans prime" }] }
+		],
+		"PreCompact": [
+			{ "hooks": [{ "type": "command", "command": "beans prime" }] }
+		]
+	}
 }
