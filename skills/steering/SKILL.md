@@ -1,160 +1,72 @@
 ---
-name: kiro-steering
-description: Maintain {{KIRO_DIR}}/steering/ as persistent project memory (bootstrap/sync). Use when initializing or updating steering documents.
+name: steering
+description: Create, edit, bootstrap, and sync project rules in .claude/rules/ (local or global). Generate core rules from the codebase, sync drifted rules, create domain or topic rules, and edit existing ones. Every change is drafted, conflict-checked, optimized, and shown for approval before writing.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
-metadata:
-  shared-rules: "steering-principles.md"
 ---
 
-# kiro-steering Skill
+# steering Skill
 
-## Role
-You are a specialized skill for maintaining `{{KIRO_DIR}}/steering/` as persistent project memory.
+Maintain `.claude/rules/` (local: `<project>/.claude/rules/`) and `~/.claude/rules/` (global) as persistent project instructions. One skill, four modes, two scopes.
 
-## Core Mission
-**Role**: Maintain `{{KIRO_DIR}}/steering/` as persistent project memory.
+## Reference files (this skill's directory)
+- `references/steering-principles.md` — authoring philosophy (patterns over lists, etc.). READ THIS before drafting any rule.
+- `references/core/{product,tech,structure}.md` — core templates, used by **bootstrap**.
+- `references/custom/*.md` — domain templates, used by **create** as starting points. Not exhaustive; free-form is first-class.
 
-**Mission**:
-- Bootstrap: Generate core steering from codebase (first-time)
-- Sync: Keep steering and codebase aligned (maintenance)
-- Preserve: User customizations are sacred, updates are additive
+## How rules load (why conflicts matter)
+Claude Code loads BOTH scopes at session start (global first, then local). Rules are context, NOT enforced config — Claude Code does not resolve contradictions between rules, so a local rule and a global rule that disagree may each be followed arbitrarily. Therefore you MUST surface conflicts for the user; never leave a local rule fighting a global one.
 
-**Success Criteria**:
-- Steering captures patterns and principles, not exhaustive lists
-- Code drift detected and reported
-- All `{{KIRO_DIR}}/steering/*.md` treated equally (core + custom)
+## Interaction model
+- Use `AskUserQuestion` for: scope choice, mode choice, conflict resolution, and write approval.
+- For **edit file-selection**, print a numbered list of rules from BOTH scopes (filename + one-line description) and let the user pick by name or number. (Do not use `AskUserQuestion` for this — it is capped at four options.)
 
-## Execution Steps
+## Scope-gated modes
+Ask scope FIRST (`AskUserQuestion`: global / local), then offer only the modes valid for that scope:
+- **global** (`~/.claude/rules/`) → **create**, **edit** only.
+- **local** (`<project>/.claude/rules/`) → **bootstrap**, **sync**, **create**, **edit**.
 
-### Step 1: Gather Context
+## Modes
+- **bootstrap** (local) — `.claude/rules/` is empty or missing core files. Draft the core 3 (`product.md`, `tech.md`, `structure.md`) from `references/core/` + codebase patterns.
+- **sync** (local) — core files already exist. Draft additive updates from codebase drift (preserve user content); conflict-check the local rules against global rules.
+- **create** (local + global) — a new domain or arbitrary-topic rule. If `references/custom/{name}.md` matches the topic, use it as a starting point; otherwise draft FREE-FORM from the topic + codebase (free-form is first-class, not a fallback). When the scope is local, conflict-check against global rules.
+- **edit** (local + global) — pick a rule (numbered list, both scopes), apply the user's text-only refine (no codebase re-analysis), and conflict-check it (local scope only: against global rules).
 
-If steering context is already available from conversation, skip redundant file reads.
+## Generation pipeline (ALL modes — nothing is written until approved)
+Every mode produces a DRAFT through this pipeline. Two isolation boundaries keep the main chat clean; heavy cognitive work happens in subagents.
 
-- For Bootstrap mode: Read templates from `{{KIRO_DIR}}/settings/templates/steering/`
-- For Sync mode: Read all existing `{{KIRO_DIR}}/steering/*.md` files
-- Read `rules/steering-principles.md` from this skill's directory for steering principles
+1. **Gather input** — scope (`AskUserQuestion`), mode (`AskUserQuestion`), and the rule description (create/edit, any form) or the codebase (bootstrap/sync).
+2. **Subagent A — isolated: analyze + conflict-check.** Dispatch a fresh subagent with the `Agent` tool. It:
+   - reads the description and/or codebase plus existing rules in the relevant scope(s);
+   - for create/bootstrap: drafts the rule(s) following `references/steering-principles.md` and the generated-rule format below;
+   - runs conflict detection (see next section) when operating locally against global rules;
+   - returns ONLY the DRAFT plus a conflict report. It does NOT write files.
+3. **Conflict resolution (main)** — if the report lists conflicts, resolve each via `AskUserQuestion` per the conflict policy; apply the user's choice to the draft.
+4. **Subagent B — isolated: optimize.** Dispatch a fresh subagent that invokes the `llm-application-dev:prompt-optimize` skill on the resolved draft text and returns the polished text. If that skill is unavailable, surface the problem — do NOT substitute or skip.
+5. **Present** — show the optimized draft plus the conflict report for review.
+6. **Approve / revise / abort (`AskUserQuestion`):**
+   - **approve (no edits)** → write to the chosen scope root;
+   - **revise (user has edits)** → take the edited version as the new input and loop back to step 2;
+   - **abort** → discard, write nothing.
+7. **Write ONLY on clean approval** — write to `{rules-root}/{name}.md`.
 
-## Scenario Detection
+### Why two subagents with a user step between
+Conflicts are resolved by the user BEFORE optimization — never optimize a draft that is about to change.
 
-Check `{{KIRO_DIR}}/steering/` status:
+## Conflict detection & resolution (local ops vs global rules)
+1. **Filename/topic gate (deterministic):** flag a local rule whose filename or topic matches an existing global rule — a same-topic match signals an intended specialization that the user should confirm.
+2. **Content-contradiction scan (for overlapping rules):** compare the content of the new/edited local rule against related global rules; surface contradictions with QUOTED evidence from both sides plus a confidence label. The scan NEVER auto-acts — it only surfaces candidates for the human.
+3. **Resolution:** warn and let the user decide (`AskUserQuestion`: proceed / edit the global rule / abort). Never auto-mutate global state.
 
-**Bootstrap Mode**: Empty OR missing core files (product.md, tech.md, structure.md)
-**Sync Mode**: All core files exist
+## Generated rule format
+- Single domain per file, 50–200 lines, imperative voice, concrete project-specific detail (commands, paths, types).
+- "Patterns over lists." Flexible structure adapted to the topic (Core Principle → workflow/steps → concrete rules → checklist/integration as fits).
+- Close with an italic line stating the rule's intent. Plain markdown, no YAML frontmatter (rules are unconditional).
 
----
+## Output
+- Write target — local: `<project>/.claude/rules/{name}.md`; global: `~/.claude/rules/{name}.md`. Kebab-case filename.
+- After writing, give a short chat summary of what was written. The file is written only after approval.
 
-## Bootstrap Flow
-
-1. Load templates from `{{KIRO_DIR}}/settings/templates/steering/`
-2. Analyze codebase (JIT):
-
-#### Parallel Research
-
-The following research areas are independent and can be executed in parallel:
-1. **Product analysis**: README, package.json, documentation files for purpose, value, core capabilities
-2. **Tech analysis**: Config files, dependencies, frameworks for technology patterns and decisions
-3. **Structure analysis**: Directory tree, naming conventions, import patterns for organization
-
-After all parallel research completes, synthesize patterns for steering files.
-
-3. Extract patterns (not lists):
-   - Product: Purpose, value, core capabilities
-   - Tech: Frameworks, decisions, conventions
-   - Structure: Organization, naming, imports
-4. Generate steering files (follow templates)
-5. Load principles from `rules/steering-principles.md` from this skill's directory
-6. Present summary for review
-
-**Focus**: Patterns that guide decisions, not catalogs of files/dependencies.
-
----
-
-## Sync Flow
-
-1. Load all existing steering (`{{KIRO_DIR}}/steering/*.md`)
-2. Analyze codebase for changes (JIT)
-3. Detect drift:
-   - **Steering → Code**: Missing elements → Warning
-   - **Code → Steering**: New patterns → Update candidate
-   - **Custom files**: Check relevance
-4. Propose updates (additive, preserve user content)
-5. Report: Updates, warnings, recommendations
-
-**Update Philosophy**: Add, don't replace. Preserve user sections.
-
----
-
-## Granularity Principle
-
-From `rules/steering-principles.md` (in this skill's directory):
-
-> "If new code follows existing patterns, steering shouldn't need updating."
-
-Document patterns and principles, not exhaustive lists.
-
-**Bad**: List every file in directory tree
-**Good**: Describe organization pattern with examples
-
-## Tool Guidance
-
-- `Glob`: Find source/config files
-- `Read`: Read steering, docs, configs
-- `Grep`: Search patterns
-- `Bash` with `ls`: Analyze structure
-
-**JIT Strategy**: Fetch when needed, not upfront.
-
-## Output Description
-
-Chat summary only (files updated directly).
-
-### Bootstrap:
-```
-Steering Created
-
-## Generated:
-- product.md: [Brief description]
-- tech.md: [Key stack]
-- structure.md: [Organization]
-
-Review and approve as Source of Truth.
-```
-
-### Sync:
-```
-Steering Updated
-
-## Changes:
-- tech.md: React 18 → 19
-- structure.md: Added API pattern
-
-## Code Drift:
-- Components not following import conventions
-
-## Recommendations:
-- Consider api-standards.md
-```
-
-## Examples
-
-### Bootstrap
-**Input**: Empty steering, React TypeScript project
-**Output**: 3 files with patterns - "Feature-first", "TypeScript strict", "React 19"
-
-### Sync
-**Input**: Existing steering, new `/api` directory
-**Output**: Updated structure.md, flagged non-compliant files, suggested api-standards.md
-
-## Safety & Fallback
-
-- **Security**: Never include keys, passwords, secrets (see principles)
-- **Uncertainty**: Report both states, ask user
-- **Preservation**: Add rather than replace when in doubt
-
-## Notes
-
-- All `{{KIRO_DIR}}/steering/*.md` loaded as project memory
-- Templates and principles are external for customization
-- Focus on patterns, not catalogs
-- "Golden Rule": New code following patterns shouldn't require steering updates
-- `{{KIRO_DIR}}/settings/` content should NOT be documented in steering files (settings are metadata, not project knowledge)
+## Safety
+- Never include secrets, keys, passwords, or tokens (see `references/steering-principles.md`).
+- Never auto-mutate global rules.
+- When uncertain about scope or a conflict, ask the user.
