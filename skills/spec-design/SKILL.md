@@ -1,203 +1,208 @@
 ---
 name: spec-design
-description: Generate comprehensive technical design translating requirements (WHAT) into architecture (HOW) with discovery process. Use when creating architecture from requirements.
-allowed-tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Agent
-argument-hint: <feature-name> [-y]
+description: Generative fork - research the active feature (discovery by classification) and write design.md with boundary-first architecture, considered alternatives with trade-offs, and a mermaid diagram. Use after /sdd:spec-requirements; the invoking context presents the result and runs the confirm gate.
+context: fork
+background: false
+model: opus
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
-# spec-design Skill
+# spec-design - design the HOW
 
-## Core Mission
-- **Success Criteria**:
-  - All requirements mapped to technical components with clear interfaces
-  - The design makes responsibility boundaries explicit enough to guide task generation and review
-  - Appropriate architecture discovery and research completed
-  - Design aligns with steering context and existing patterns
-  - Visual diagrams included for complex architectures
+## Role
 
-## Execution Steps
+You are a FORK: a fresh subagent with no conversation history. This skill
+body is your entire task prompt - everything you need is resolved from
+beans and files below. You NEVER ask the user questions (no
+AskUserQuestion exists in your path) and you never dispatch subagents:
+when you cannot proceed, return the BLOCKED status contract from the
+Return contract section. The main context that invoked you owns all
+dialogue and the confirm gate.
 
-### Step 1: Gather Context
+Your job: research the feature (classified discovery), then draft, review,
+and write `.sdd/specs/<feature>/design.md` - the HOW to the requirements'
+WHAT.
 
-Reuse steering/spec context already available from conversation; load missing context below.
-Select skills for the current task even when steering/spec context is already available:
-- `.sdd/specs/{feature}/spec.json`, `requirements.md`, `design.md` (if exists)
-- `.sdd/specs/{feature}/research.md` (if exists, contains gap analysis from `/sdd:validate-gap`)
-- Core steering context: `product.md`, `tech.md`, `structure.md`
-- Additional steering files only when directly relevant to requirement coverage, architecture boundaries, integrations, runtime prerequisites, security/performance constraints, or team conventions that affect implementation readiness
-- Use explicitly requested skills and task-relevant local skills/playbooks, including design, accessibility, and UX. Select by description and read only needed guidance, even for small tasks; preserve required checks and host/project rules.
-- Consult relevant domain skills even when building by hand without adopting a new library.
-- `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` for document structure
-- Read `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-principles.md` from this skill's directory for design principles
-- `${CLAUDE_PLUGIN_ROOT}/assets/templates/research.md` for discovery log structure
+## Hard rules
 
-**Validate requirements approval**:
-- If auto-approve flag is true: Auto-approve requirements in spec.json
-- Otherwise: Verify approval status (stop if unapproved, see Safety & Fallback)
+1. **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and
+   read-only inspection. Nothing in this run stages, commits, pushes, or
+   touches branches: the user reviews and commits.
+2. **This skill writes no beans.** It resolves the active feature by
+   reading beans; task-bean lifecycle belongs to `/sdd:spec-tasks`. Never
+   write progress, approval, or blocked state into any document.
+3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
+4. **Options, not silent picks.** Architecturally significant choices are
+   presented as 2-3 approaches with trade-offs and a recommendation -
+   never selected silently.
+5. **Consistency discipline, not brevity.** Length is fine when the task
+   needs it; the hard requirement is that diagrams and tables match the
+   prose 100%, and the prose stays faithful to the requirements and to
+   what research found.
+6. **English output** - fixed; no per-spec language configuration exists.
 
-### Step 2: Discovery & Analysis
+## Step 1 - Resolve the active feature
 
-**Critical: This phase ensures design is based on complete, accurate information.**
+Query beans: `beans list --json -t epic -s in-progress`.
 
-1. **Classify Feature Type**:
-   - **New Feature** (greenfield) → Full discovery required
-   - **Extension** (existing system) → Integration-focused discovery
-   - **Simple Addition** (CRUD/UI) → Minimal or no discovery
-   - **Complex Integration** → Comprehensive analysis required
+- **Exactly one** -> that epic is the active feature. Resolve its spec
+  directory from the `Spec path:` line in the bean body
+  (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
+  asking the main context where the feature lives.
+- **None** -> return BLOCKED: no active feature; point to
+  `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
+  (nothing shaped yet).
+- **More than one** -> return BLOCKED: the single-active-feature rule is
+  violated; the main context resolves it with the user.
 
-2. **Execute Appropriate Discovery Process**:
+## Step 2 - Load inputs
 
-   **For Complex/New Features**:
-   - Read and execute `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-full.md` from this skill's directory
-   - Conduct thorough research using WebSearch/WebFetch:
-     - Latest architectural patterns and best practices
-     - External dependency verification (APIs, libraries, versions, compatibility)
-     - Official documentation, migration guides, known issues
-     - Performance benchmarks and security considerations
+Read, under the spec directory from Step 1:
 
-   **For Extensions**:
-   - Read and execute `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-light.md` from this skill's directory
-   - Focus on integration points, existing patterns, compatibility
-   - Use Grep to analyze existing codebase patterns
+- `.sdd/specs/<feature>/requirements.md` - REQUIRED. Missing -> return
+  BLOCKED pointing to `/sdd:spec-requirements`.
+- `.sdd/specs/<feature>/workspace/qa-digest.md` and `.sdd/brief.md` -
+  interview intent and workstream narrative, when present.
+- `.sdd/specs/<feature>/research.md` - prior discovery or validate-gap
+  output, when present.
+- Steering: Glob `.claude/rules/*.md`; read the files relevant to the
+  feature's architecture, conventions, and constraints.
+- `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-principles.md` - design
+  rules (boundary first, type safety, visual communication).
+- `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` - document
+  structure.
+- `${CLAUDE_PLUGIN_ROOT}/assets/templates/research.md` - discovery log
+  structure.
 
-   **For Simple Additions**:
-   - Skip formal discovery, quick pattern check only
+**Existing design.md** (`.sdd/specs/<feature>/design.md` present): treat
+it as the edit-merge base - improve and extend it, do not rewrite
+untouched sections - unless an edit round below says otherwise.
 
-#### Parallel Research (subagent dispatch)
+**Edit rounds**: if `.sdd/specs/<feature>/workspace/design-edits.md`
+exists, it holds cumulative edit intent from the user. Every recorded
+`## Round <K>` must be satisfied by the document you produce. A round
+titled `Regenerate from scratch` overrides the edit-merge base: rewrite
+fully. Append nothing to the digest yourself.
 
-The following research areas are independent and can be dispatched as **subagents** via the Agent tool. The agent should decide the optimal decomposition based on feature complexity — split, merge, add, or skip subagents as needed. Each subagent returns a **findings summary** (not raw data) to keep the main context clean for synthesis.
+## Step 3 - Classify the feature and run discovery
 
-**Typical research areas** (adjust as appropriate):
-- **Codebase analysis**: Existing architecture patterns, integration points, code conventions (using Grep/Glob)
-- **External research**: Dependencies, APIs, latest best practices (using WebSearch/WebFetch)
-- **Context loading** (usually main context): Steering files, design principles, discovery rules, templates
+Classify from the epic description, requirements, brief, and codebase:
 
-For simple additions, skip subagent dispatch entirely and do a quick pattern check in main context.
+1. **New Feature** (greenfield) -> read and execute
+   `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-full.md`.
+2. **Extension** (extends an existing system) -> read and execute
+   `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-discovery-light.md`;
+   escalate to full discovery when its own escalation criteria fire.
+3. **Simple Addition** (CRUD/UI-level change) -> skip formal discovery;
+   do a quick pattern check of the surrounding code only.
 
-After all findings return, synthesize in main context before proceeding.
+Research discipline:
 
-3. **Retain Discovery Findings for Step 3**:
-   - External API contracts and constraints
-   - Technology decisions with rationale
-   - Existing patterns to follow or extend
-   - Integration points and dependencies
-   - Identified risks and mitigation strategies
-   - Boundary candidates, out-of-boundary decisions, and likely revalidation triggers
+- **Codebase**: prefer LSP tools where they exist in your context
+  (definitions, references, type info); fall back to Grep/Glob. Map the
+  existing patterns, integration points, and boundaries the design must
+  respect.
+- **External**: WebSearch/WebFetch for dependencies, current
+  documentation, version compatibility, and known issues. Verify every
+  external API or library the design will rely on; record API contracts
+  and constraints for the research log.
 
-4. **Persist Findings to Research Log**:
-   - Create or update `.sdd/specs/{feature}/research.md` using the shared template
-   - Summarize discovery scope and key findings
-   - Record investigations with sources and implications
-   - Document architecture pattern evaluation, design decisions, and risks
-   - If `research.md` already exists, briefly record consulted skills and the guidance used in its existing research notes.
-   - Use the language specified in spec.json when writing or updating `research.md`
+## Step 4 - Synthesize and log
 
-### Step 3: Synthesis
+Apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-synthesis.md` to the
+full discovery picture - generalization, build-vs-adopt, simplification.
+Persist findings: create or update `.sdd/specs/<feature>/research.md`
+per its template - key findings, evaluated options, decisions with
+rationale, risks. The design document stays self-contained; research.md
+holds the raw investigation behind it.
 
-**Apply design synthesis to discovery findings before writing.**
+## Step 5 - Draft the design
 
-- Read and apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-synthesis.md` from this skill's directory
-- This step requires the full picture from discovery findings — execute in main context, not in a subagent
-- Record synthesis outcomes (generalizations found, build-vs-adopt decisions, simplifications) in `research.md`
+Draft in memory against the template. Where this skill and
+`${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` conflict, this skill
+wins: the template's "optional for simple additions" mermaid wording is
+superseded, and its missing Considered Alternatives section is supplied
+here - both are mandatory. Keep it unwritten until the review gate
+passes. Mandatory content:
 
-### Step 4: Generate Design Draft
+- **Boundary first**: This Spec Owns / Out of Boundary / Allowed
+  Dependencies / Revalidation Triggers - concrete enough that reviewers
+  can later detect boundary violations.
+- **Considered Alternatives section**: 2-3 approaches with trade-offs
+  and a recommendation. Rejected alternatives and their reasons stay
+  visible in the document; deeper evaluation lives in research.md.
+- **High-Level Architecture with a mermaid diagram** - mandatory at
+  every complexity level, pure Mermaid syntax. The diagram must match
+  the prose 100%: every component, boundary, and data flow appears in
+  both, identically.
+- **File Structure Plan**: concrete file paths, one clear responsibility
+  per file - this section directly drives task `_Boundary:_` annotations
+  and implementation briefs.
+- **Technology Stack table** and **Testing Strategy** derived from the
+  requirements' acceptance criteria, not generic patterns.
+- **Requirements traceability**: every numeric requirement ID from
+  requirements.md mapped to the components, contracts, or flows that
+  realize it. Use IDs exactly as written; never invent or relabel them.
 
-1. **Generate Design Draft**:
-   - **Follow specs/design.md template structure and generation instructions strictly**
-   - **Boundary-first requirement**: Before expanding supporting sections, make the boundary explicit. The draft must clearly define what this spec owns, what it does not own, which dependencies are allowed, and what changes would require downstream revalidation.
-   - **Integrate all discovery findings and synthesis outcomes**: Use researched information (APIs, patterns, technologies) and synthesis decisions (generalizations, build-vs-adopt, simplifications) throughout component definitions, architecture decisions, and integration points
-   - **File Structure Plan** (required): Populate the File Structure Plan section with concrete file paths and responsibilities. Analyze the codebase to determine which files need to be created vs. modified. Each file must have one clear responsibility. This section directly drives task `_Boundary:_` annotations and implementation Task Briefs — vague file structures produce vague implementations.
-   - **Testing Strategy**: Derive test items from requirements' acceptance criteria, not generic patterns. Each test item should reference specific components and behaviors from this design. E2E paths must map to the critical user flows identified in requirements. Avoid vague entries like "test login works" -- instead specify what is being verified and why it matters.
-   - If existing design.md found in Step 1, use it as reference context (merge mode)
-   - Apply design rules: Type Safety, Visual Communication, Formal Tone
-   - Use language specified in spec.json
-   - Keep this as a draft until the review gate passes; do not write `design.md` yet
+## Step 6 - Review gate
 
-### Step 5: Review Design Draft
+Read and apply
+`${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` to the draft:
+mechanical checks first (requirement ID coverage, boundary sections
+populated, file structure populated, no orphan components), then
+judgment (architecture readiness, boundary readiness, executability).
+Repair local issues and re-run the gate - at most 2 repair passes.
 
-- Read and apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` from this skill's directory
-- Verify requirements coverage, architecture readiness, and implementation executability before finalizing the design
-- If issues are local to the draft, repair the design and review again
-- Keep the review bounded to at most 2 repair passes
-- If the draft exposes a real requirements/design gap, stop and return to requirements clarification instead of papering over it in `design.md`
+If the gate exposes a real requirements gap or ambiguity, do NOT write a
+patched-over design: return BLOCKED naming the exact gap and pointing
+back to `/sdd:spec-requirements`.
 
-### Step 6: Finalize Design Document
+## Step 7 - Write and return
 
-1. **Write Final Design**:
-   - Write `.sdd/specs/{feature}/design.md` only after the design review gate passes
-   - Write research.md with discovery findings and synthesis outcomes (if not already written)
+Write `.sdd/specs/<feature>/design.md` (and research.md, Step 4) only
+after the gate passes, then return the summary block.
 
-2. **Update Metadata** in spec.json:
+## Return contract
 
-   - Set `phase: "design-generated"`
-   - Set `approvals.design.generated: true, approved: false`
-   - Set `approvals.requirements.approved: true`
-   - Update `updated_at` timestamp
+**To the fork (your final message).** Return exactly this block - the
+caller parses the heading and the `- STATUS:` line mechanically:
 
-## Critical Constraints
- - **Type Safety**:
-   - Enforce strong typing aligned with the project's technology stack.
-   - For statically typed languages, define explicit types/interfaces and avoid unsafe casts.
-   - For TypeScript, never use `any`; prefer precise types and generics.
-   - For dynamically typed languages, provide type hints/annotations where available (e.g., Python type hints) and validate inputs at boundaries.
-   - Document public interfaces and contracts clearly to ensure cross-component type safety.
-- **Requirements Traceability IDs**: Use numeric requirement IDs only (e.g. "1.1", "1.2", "3.1", "3.3") exactly as defined in requirements.md. Do not invent new IDs or use alphabetic labels.
+```
+## Design Summary
+- STATUS: <DONE | BLOCKED>
+- DISCOVERY: <full | light | skipped - one line on what was researched>
+- APPROACHES: <one line per approach considered, marking the recommended one>
+- CONCERNS: <one line each, if any>
+- PATH: <.sdd/specs/<feature>/design.md, or - when BLOCKED>
+- BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
+```
 
-## Output Description
+**To the presenting main context.** You invoked this fork; it cannot ask
+the user anything, so you own the confirm gate. On DONE: present a SHORT
+summary in chat - discovery type, the approaches considered with the
+recommended one, boundary highlights, concerns, and the document path
+(the user reads design.md in the IDE; do not dump it into chat). Then
+AskUserQuestion, confirm-only:
 
-**Command execution output** (separate from design.md content):
+1. **Approve** (Recommended) - the design is settled. Name the next
+   command in a code block:
+   ```
+   /sdd:spec-tasks
+   ```
+   Optional first: `/sdd:validate-design` for an interactive quality
+   review of the document.
+2. **Edit** - the user supplies feedback. Append it under
+   `## Round <K>` in
+   `.sdd/specs/<feature>/workspace/design-edits.md` (create the file if
+   needed; workspace files are append-only), then re-invoke
+   `/sdd:spec-design` - a NEW fork reads the digest plus the existing
+   document and edit-merges. Edit rounds are user-driven with no fixed
+   cap, but each round must carry concrete feedback.
+3. **Regenerate from scratch** - offer when design.md existed before
+   this run. Append `## Round <K> - Regenerate from scratch` to the
+   digest and re-invoke `/sdd:spec-design`.
+4. **Stop** - the user takes over; the document stays on disk.
 
-Provide brief summary in the language specified in spec.json:
-
-1. **Status**: Confirm design document generated at `.sdd/specs/{feature}/design.md`
-2. **Discovery Type**: Which discovery process was executed (full/light/minimal)
-3. **Key Findings**: 2-3 critical insights from discovery that shaped the design
-4. **Review Gate**: Confirm the design review gate passed
-5. **Next Action**: Approval workflow guidance (see Safety & Fallback)
-6. **Research Log**: Confirm `research.md` updated with latest decisions
-
-**Format**: Concise Markdown (under 200 words) - this is the command output, NOT the design document itself
-
-**Note**: The actual design document follows `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` structure.
-
-## Safety & Fallback
-
-### Error Scenarios
-
-**Requirements Not Approved**:
-- **Stop Execution**: Cannot proceed without approved requirements
-- **User Message**: "Requirements not yet approved. Approval required before design generation."
-- **Suggested Action**: "Run `/sdd:spec-design {feature} -y` to auto-approve requirements and proceed"
-
-**Missing Requirements**:
-- **Stop Execution**: Requirements document must exist
-- **User Message**: "No requirements.md found at `.sdd/specs/{feature}/requirements.md`"
-- **Suggested Action**: "Run `/sdd:spec-requirements {feature}` to generate requirements first"
-
-**Template Missing**:
-- **User Message**: "Template file missing at `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md`"
-- **Suggested Action**: "Check repository setup or restore template file"
-- **Fallback**: Use inline basic structure with warning
-
-**Steering Context Missing**:
-- **Warning**: "Steering directory empty or missing - design may not align with project standards"
-- **Proceed**: Continue with generation but note limitation in output
-
-**Invalid Requirement IDs**:
-  - **Stop Execution**: If requirements.md is missing numeric IDs or uses non-numeric headings (for example, "Requirement A"), stop and instruct the user to fix requirements.md before continuing.
-
-**Spec Gap Found During Design Review**:
-- **Stop Execution**: Do not write a patched-over `design.md`
-- **User Message**: "Design review found a real spec gap or ambiguity that must be resolved before design can be finalized."
-- **Suggested Action**: Clarify or fix `requirements.md`, then re-run `/sdd:spec-design {feature}`
-
-### Next Phase: Task Generation
-
-**If Design Approved**:
-- **Optional**: Run `/sdd:validate-design {feature}` for interactive quality review
-- Run `/sdd:spec-tasks {feature}` to generate implementation tasks
-- Or `/sdd:spec-tasks {feature} -y` to auto-approve and proceed directly
-
-**If Modifications Needed**:
-- Provide feedback and re-run `/sdd:spec-design {feature}`
-- Existing design used as reference (merge mode)
+On BLOCKED: present the blocker and the named command, then
+AskUserQuestion on how to proceed (resolve via that command / adjust
+inputs / stop).
