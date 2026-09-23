@@ -635,11 +635,19 @@ Run (probe): the ONE remaining inline→forked composition is impl invoking
             "command": "if [ ! -f \"$CLAUDE_PROJECT_DIR/.claude/rules/sdd.md\" ]; then cat \"${CLAUDE_PLUGIN_ROOT:?unset}/assets/workflow-map.md\"; fi"
           }
         ]
-      }
+      },
+      { "hooks": [{ "type": "command", "command": "beans prime" }] }
+    ],
+    "PreCompact": [
+      { "hooks": [{ "type": "command", "command": "beans prime" }] }
     ]
   }
 }
 ```
+
+(The `beans prime` entries are user-added post-review: the plugin self-supplies the
+beans agent guide every session and before compaction; the user's global hooks carry
+the same today and will be removed in favor of the plugin's once it is stable.)
 
 - [ ] **Step 3: `skills/init/SKILL.md`:** frontmatter (`name: init`,
   `disable-model-invocation: true` — user-invoked only); body: write
@@ -684,7 +692,11 @@ Run (probe): the ONE remaining inline→forked composition is impl invoking
   hook-blocker-safe grep forms (Task 15 pattern); `claude plugin validate .` clean;
   `claude -p --plugin-dir . "Reply with the exact list of your available /sdd:
   skills"` returns the 14 names. Untouched proof: `git status --porcelain .zed
-  .github` → empty.
+  .github` → empty. Strip-coupling pin (Task-14 review): the map's first three
+  lines must still match the init skill's strip anchors — `head -3
+  assets/workflow-map.md` shows SUBAGENT-STOP/blank/fence and `grep -c
+  '^<EXTREMELY_IMPORTANT>$' assets/workflow-map.md` = 1 (a wording change without
+  updating the sed patterns would leak wrappers into user rules files).
 - [ ] **Step 2: E2E dry run (spec §10.5)** in a scratch project. Setup first: ask
   the USER to initialize the scratch repo and record an initial snapshot (agents
   don't — read-only git; the review-package step needs a HEAD to diff against).
