@@ -58,6 +58,18 @@ List the kinds of changes that should force dependent specs or consumers to re-c
 - Dependency direction changes
 - Startup/runtime prerequisite changes
 
+## Considered Alternatives
+
+Mandatory: present the 2-3 approaches considered for the architecturally significant decisions, with trade-offs, and mark the recommended one. Rejected alternatives and their reasons stay visible here; deeper evaluation lives in `research.md`.
+
+Repeat this block per approach:
+
+### Alternative: [name]
+- **Approach**: One-line description of how it works
+- **Strengths**: What it does well for this feature
+- **Trade-offs / Risks**: What it costs or endangers
+- **Verdict**: Recommended / Rejected — one-line reason
+
 ## Architecture
 
 > Reference detailed discovery notes in `research.md` only for background; keep design.md self-contained for reviewers by capturing all decisions and contracts here.
@@ -72,7 +84,15 @@ When modifying existing systems:
 - Technical debt addressed or worked around
 
 ### Architecture Pattern & Boundary Map
-**RECOMMENDED**: Include Mermaid diagram showing the chosen architecture pattern and system boundaries (required for complex features, optional for simple additions)
+**REQUIRED**: Include a mermaid diagram showing the chosen architecture pattern and system boundaries — mandatory at every complexity level, never optional. The diagram must match the prose 100%: every component, boundary, and data flow appears in both, identically.
+
+```mermaid
+graph TB
+    Client --> ApiGateway
+    ApiGateway --> ServiceA
+    ApiGateway --> ServiceB
+    ServiceA --> Database
+```
 
 **Architecture Integration**:
 - Selected pattern: [name and brief rationale]

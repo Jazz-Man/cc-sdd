@@ -50,7 +50,8 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
 - Skills may NOT flip task checkboxes or write progress/approval state — beans
   is the only tracker (spec §6).
 - Do not duplicate the global beans guide in skill texts; one-line references only.
-- Keep double-brace placeholders out of skills; assets templates own them.
+- No double-brace placeholders anywhere — templates are instruction-style
+  documents the fork skills fill by writing content.
 
 ## Verification
 
