@@ -28,7 +28,6 @@ skills/                         one directory per skill, bare names
   validate-design/              interactive design quality review
   validate-impl/                feature-level GO/NO-GO validation
   steering/                     manages .claude/rules/ in target projects
-                                (global skill integration; legacy text rewrite pending Task 13)
 assets/                         shared content referenced by skills
   rules/                        rule files (EARS format, review gates, …)
   templates/                    document templates (requirements, design, tasks, …)
@@ -62,8 +61,6 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
   settings-directory convention, and old skill names carrying the Kiro prefix.
   Exact patterns and the full battery (checkbox-flip, git-write, beans-duplication) are
   in `docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md` §10.
-  Mid-conversion exception: `skills/steering/` still holds legacy references until
-  its rewrite task lands; the battery re-runs after that task with no exclusions.
 - After content changes to skills or assets, re-run the greps and
   `claude plugin validate .` before claiming done.
 
