@@ -1,262 +1,296 @@
 ---
 name: discovery
-description: Entry point for new work. Determines the best action path or work decomposition (update existing spec, create new spec, mixed decomposition, or no spec needed) and refines ideas through structured dialogue.
+description: Entry point for new work. Researches the user's idea against the codebase, the workstream brief, and beans state, then routes it via AskUserQuestion - extend an existing spec, no spec needed (answered directly in chat), a single new feature, or a sequential multi-spec initiative queued in beans. Writes .sdd/brief.md.
 disable-model-invocation: true
-allowed-tools: Read, Write, Glob, Grep, Agent, WebSearch, WebFetch, AskUserQuestion
+allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 argument-hint: <idea-or-request>
 ---
 
-# discovery Skill
+# discovery - route the work
 
-## Core Mission
-- **Success Criteria**:
-  - Correct action path or work decomposition identified based on existing project state
-  - User's intent clarified through questions, not assumptions
-  - Output is an actionable next step (not just a description)
+## Role
 
-## Execution Steps
+You run INLINE in the main conversation. You are the entry point of the
+sdd workflow: the user brings an idea or request, you research enough
+to route it honestly, the user picks the route, you record the outcome.
+You do not write requirements, designs, or task plans - downstream
+skills own those. Your outputs are a routing decision, beans queue
+entries when the route needs them, and `.sdd/brief.md`.
 
-### Step 1: Lightweight Scan
+Exactly one feature is active at any time: the single epic bean with
+status `in-progress`. This skill and `/sdd:spec-init` are the only
+entry points that accept a new feature name; every other skill resolves
+the feature from beans.
 
-Gather **only metadata** to determine the action path. Do NOT read full file contents yet.
+## Hard rules
 
-- **Specs inventory**: Glob `.sdd/specs/*/spec.json`, read each spec.json for `name`, `phase` fields and `approvals` status. Note feature names and their current status.
-- **Steering existence**: Check which files exist in `.sdd/steering/` (product.md, tech.md, structure.md, roadmap.md). Do NOT read their contents yet.
-- **Roadmap check**: If `.sdd/steering/roadmap.md` exists, read it. This contains project-level context (approach, scope, constraints, spec list) from a previous discovery session. Use it to restore project context.
-- **Top-level structure**: List the project root directory to note key directories and files. Do NOT recurse into subdirectories.
+1. **Git is read-only.** Bash is limited to the beans CLI and read-only
+   inspection. Nothing in this skill stages, commits, pushes, or touches
+   branches: the user reviews and commits.
+2. **beans is the only tracker.** Queue state lives in beans via
+   `--blocked-by` - never in documents. `.sdd/brief.md` carries the
+   narrative; its queue section is a rendered snapshot, never a source
+   of truth, and never checkbox state. Otherwise beans usage follows
+   the global beans guide.
+3. **AskUserQuestion, always - prose first.** Every routing decision is
+   preceded by the analysis in chat prose (what research found, which
+   routes fit, the trade-offs), then asked as a structured question
+   (recommended option first, labeled).
+4. **Sequential, never parallel.** Feature work proceeds one feature at
+   a time. New specs queue as `todo` epics chained with `--blocked-by`;
+   you never create a wave of simultaneously runnable epics, and no new
+   spec starts while another feature is active.
+5. **No spec is a legitimate outcome.** Answering or doing the work
+   directly in the main chat is a first-class route, not a failure of
+   discovery.
+6. **State on disk, not chat.** Update `.sdd/brief.md` before ending
+   the run; conversation text does not survive session boundaries.
 
-This step should consume minimal context. If `specs/` is empty and no steering exists, note "greenfield project" and move to Step 2.
+## Step 1 - Load state
 
-### Step 2: Determine Action Path
+Read only what routing needs. If `.sdd/` is empty and no epics exist,
+note "greenfield" and skip the adjacency checks.
 
-Based on the user's request and the metadata from Step 1, determine which path applies:
+- **beans**: `beans list --json -t epic -s in-progress` (the active
+  feature, if any), `beans list --json -t epic -s todo` (queued
+  follow-ups), `beans list --json -t milestone` (existing initiatives).
+  Note ids and titles.
+- **Workstream brief**: `.sdd/brief.md` when present - prior intent,
+  decisions, and queue. You are resuming it, not starting over.
+- **Specs inventory**: Glob `.sdd/specs/*/` and note the feature names.
+  Read a spec's `requirements.md` boundary sections only when the idea
+  is plausibly adjacent to that spec.
+- **Steering**: Glob `.claude/rules/*.md`; read the files plausibly
+  relevant to the idea for goals and constraints.
+- **Project surface**: list the project root; do not recurse.
 
-**Path A: Existing spec covers this**
-- The request is an extension, enhancement, or fix within an existing spec's domain
-- Every meaningful part of the request fits that same spec boundary
-- Any remaining small follow-up work can be handled directly without creating a new spec
-- Skip remaining steps
+## Step 2 - Research what routing needs
 
-**Path B: No spec needed**
-- The request is a bug fix, config change, simple refactor, or trivial addition
-- No meaningful part of the request needs a new or updated spec boundary
-- The request does not need to update an existing spec either
-- Skip remaining steps
+Routing claims must rest on evidence: which specs exist, what the code
+already does, what the idea actually touches.
 
-**Path C: New single-scope feature**
-- The request is new, doesn't overlap with existing specs, and fits in one spec
+- **Codebase survey via subagent**: when the idea touches an existing
+  codebase, dispatch ONE general-purpose agent and let the summary -
+  not the raw exploration - enter the main context:
 
-**Path D: Multi-scope decomposition needed**
-- The request spans multiple domains or would produce 20+ tasks in a single spec
+  ```
+  Agent(
+    description: "Survey codebase for <idea>",
+    subagent_type: general-purpose,
+    prompt: Survey this codebase against the following idea:
+      "<one line>". Prefer LSP tools where available; fall back to
+      Grep/Glob. Return ONLY a summary (under 150 lines): (1) tech
+      stack and conventions, (2) module layout, (3) existing behavior
+      the idea touches, (4) which parts read as extensions of existing
+      modules vs genuinely new boundaries, (5) specs under .sdd/specs/
+      adjacent to the idea, if any. No file dumps.
+  )
+  ```
 
-**Path E: Mixed decomposition**
-- The request contains a mix of: existing spec extensions, one or more new spec candidates, and optional direct-implementation work
-- Use this path only when at least one genuinely new spec boundary is needed
+- **Skip the dispatch** when the request is small or Step 1 already
+  answers it - trivial fixes, config changes, questions.
+- **External research via subagent**: only when routing itself depends
+  on it (is this even buildable with library X?) - same dispatch shape,
+  WebSearch/WebFetch inside the subagent; raw search results never
+  enter the main context.
+- Technical approach selection with trade-offs is NOT yours: it belongs
+  to `/sdd:spec-design`. You research to route, not to architect.
 
-For Path C/D/E, present the determined path (or mixed decomposition) to the user and confirm before proceeding.
-For Path A/B, recommend the next action and stop.
+## Step 3 - Clarify the idea
 
-### Step 3: Deep Context Loading
+Ask ONE question at a time via AskUserQuestion - 2-4 concrete options
+when you can derive them, free text always possible. Boundary-first
+priorities:
 
-**Only for Path C, D, and E.** Now load the context needed for discovery.
+1. Who has the problem, and what pain does it cause?
+2. What should be true when this is done?
+3. Natural responsibility seams - where could this split so parts can
+   proceed independently?
+4. What is explicitly NOT owned, even if related?
+5. Constraints - technology, compatibility, timeline?
 
-**In main context** (essential for dialogue with user):
-- **Steering documents**: Read product.md and tech.md (if they exist) for project goals, constraints, and tech stack
-- **Relevant specs**: If the request is adjacent to an existing spec, read that spec's requirements.md to understand boundaries and avoid overlap
+Ask only what Steps 1-2 did not answer; skip every question the brief,
+the epic description, or steering settles. Stop when you can state the
+idea's boundary in two or three sentences. Detailed requirements
+shaping belongs to `/sdd:spec-requirements`.
 
-**Delegate to subagent via Agent tool** (keeps exploration out of main context):
-- **Codebase exploration**: Dispatch a subagent to explore the codebase and return a structured summary. Example prompt: "Explore this project's codebase. Summarize: (1) tech stack and frameworks, (2) directory structure and key modules, (3) patterns and conventions used, (4) areas relevant to [user's request]. Return a summary under 200 lines."
-- The subagent uses Read/Glob/Grep to explore, then returns findings. Only the summary enters the main context.
-- For Path D/E, also ask the subagent to identify natural domain boundaries, existing module separation, and which areas look like existing-spec extensions vs new boundaries.
-- Skip subagent dispatch for small/obvious requests where the top-level directory listing from Step 1 is sufficient.
+## Step 4 - Present the routing decision
 
-**Context budget**: Keep total content loaded into main context under ~500 lines. The subagent handles the heavy exploration.
+Write the analysis in chat prose FIRST:
 
-### Step 4: Understand the Idea
+- The idea in one or two sentences, per the clarifications
+- What research found: adjacent specs, codebase reality, constraints
+- Each route that fits, with its trade-off - what it buys, what it
+  costs, what it delays
+- **When an active feature exists, say so explicitly in the prose and
+  in the question**: any new feature is queued behind the active epic
+  and starts only after it completes - or replaces it if it is
+  cancelled. New work never begins alongside the active feature.
 
-Ask clarifying questions **sequentially** (not all at once), prioritizing boundary discovery over feature detail:
+Then ask via AskUserQuestion. Offer only the routes that genuinely fit,
+at most 4 options (the tool's limit), recommended first and labeled:
 
-1. **Who and why**: Who has the problem? What pain does it cause?
-2. **Desired outcome**: What should be true when this is done?
-3. **Boundary candidates**: What are the natural responsibility seams in this work? Where could this be split so implementation can proceed independently?
-4. **Out of boundary**: What should this spec explicitly NOT own, even if related?
-5. **Existing vs new**: Which parts seem like extensions to existing specs, and which parts look like genuinely new boundaries?
-6. **Upstream / downstream**: What existing systems, specs, or components does this depend on? What future work is likely to depend on this?
-7. **Constraints**: Are there technology, timeline, or compatibility constraints?
+1. **Extend `<spec>`** - the request lives inside an existing spec's
+   boundary. No new spec, fastest to absorb; the spec grows and its
+   boundary can blur.
+2. **No spec needed** - answer or do it directly in the main chat.
+   Fastest; no artifacts, no review gates, no beans trace.
+3. **Single new feature `<name>`** - one new spec through the full sdd
+   cycle. Full discipline for one boundary; heaviest process per unit
+   of work.
+4. **Multi-spec initiative** - several features under a milestone,
+   queued strictly one after another. Right when the seams are real;
+   slowest to first value, and parallel it will never be.
 
-Ask only questions whose answers you cannot infer from the context already loaded. Skip questions that steering documents already answer. If the user already provided a clear description, skip to Step 5.
-The goal is NOT to assign final owners yet. The goal is to discover the cleanest responsibility boundaries that can later become specs, tasks, and review scopes.
+A **mixed** decomposition (extensions plus new specs plus direct items)
+appears as its own option when it fits; its description carries the
+breakdown, the prose above carries the detail. When the idea matches an
+already-queued epic, offer **Start the queued `<feature>`** instead of
+a fresh single-feature option.
 
-### Step 5: Propose Approaches
+## Step 5 - Execute the chosen route
 
-Propose **2-3 concrete approaches** with trade-offs:
+### No spec needed
 
-For each approach:
-- **Approach name**: One-line summary
-- **How it works**: 2-3 sentences on the technical approach
-- **Pros**: What makes this approach good
-- **Cons**: What are the risks or downsides
-- **Scope estimate**: Rough complexity (small / medium / large)
+Answer the question or do the small work right here in the
+conversation; this skill ends when that is done. Record the decision
+and its rationale in `.sdd/brief.md`, create no beans, name no next
+command.
 
-If technical research is needed (unfamiliar framework, library evaluation), dispatch a subagent via Agent tool. Example prompt: "Research [topic]: compare options, check latest versions, note known issues. Return a summary of findings with recommendation." The subagent uses WebSearch/WebFetch and returns a concise summary. Raw search results never enter the main context.
+### Extend an existing spec
 
-Recommend one approach and explain why.
+Create no beans. Record in `.sdd/brief.md` which spec and why. The
+next command depends on beans state:
 
-**After the user selects an approach**, dispatch a subagent to verify viability before proceeding to Step 6. Example prompt: "Verify the viability of this technical approach: [chosen tech stack / key libraries]. Check: (1) Are these technologies still actively maintained? (2) Any license incompatibilities (e.g., GPL contamination)? (3) Do the components actually work together for [use case]? (4) Any known showstoppers (critical bugs, security vulnerabilities, platform limitations)? Return only issues found, or 'No issues found' if everything checks out."
+- The extended feature IS the active epic -> `/sdd:spec-requirements`
+  (its existing-document gate merges the change intent).
+- Otherwise -> `/sdd:spec-init "<feature>"`: it finds the feature's
+  existing epic by name and re-activates it, guarding on any active
+  feature first.
 
-If the viability check reveals issues, present them to the user and revisit the approach selection. If no issues, proceed to Step 6.
+### Single new feature
 
-### Step 6: Refine and Confirm
+- **No epic in progress**: do not create the epic - `/sdd:spec-init`
+  births it. Record the feature name, one-line description, and
+  rationale in `.sdd/brief.md`.
+- **An epic is in progress**: this is a follow-up. Queue it - never
+  start it alongside the active feature:
 
-- Address user's questions or concerns about the approaches
-- Narrow scope if needed: favor smaller, deliverable increments and cleaner responsibility seams
-- For Path D/E: propose work decomposition with dependency ordering
-  - Each new boundary-worthy feature = one spec
-  - Existing spec extensions are explicitly listed with their target spec
-  - Truly small direct-implementation items are listed separately instead of being forced into a spec
-  - Dependencies between specs/workstreams are explicit
-  - Consider vertical slices (end-to-end value) vs horizontal layers (one layer at a time) based on the project needs
-- Confirm the final direction
+  ```bash
+  beans create "<name>" -t epic -d "<one-line description>" -s todo
+  beans update <new-epic-id> --blocked-by <active-epic-id> \
+    --body-append "Queued as follow-up behind <active-epic-id> (<YYYY-MM-DD>)."
+  ```
 
-### Step 7: Write Files to Disk
+  It starts only after the active feature completes - or replaces it
+  if that one is cancelled; `/sdd:spec-init` offers exactly that
+  choice when the user comes to birth it.
 
-**CRITICAL: You MUST use the Write tool to create these files BEFORE suggesting any next command. Conversation text does not survive session boundaries. If you skip this step, all discovery analysis is lost when the session ends.**
+### Multi-spec initiative
 
-**For Path C (single spec)**:
+1. Propose the decomposition in prose: each feature's seam in one line,
+   the order, and why this order. Confirm via AskUserQuestion (adjust
+   the list / adjust the order / proceed) BEFORE creating any beans.
+2. Create the milestone, then the epics - one chain, strictly
+   sequential:
 
-Use the Write tool to create `.sdd/specs/<feature-name>/brief.md` with this structure:
+   ```bash
+   beans create "<initiative title>" -t milestone \
+     -d "<intent one-liner>" -s todo
 
+   # per feature, in order:
+   beans create "<feature>" -t epic -d "<one-line description>" -s todo
+
+   # then link each epic:
+   beans update <epic-id> --parent <milestone-id> \
+     --body-append "Queued under <milestone-id> (<YYYY-MM-DD>)."
+   # ...plus --blocked-by <previous-epic-id> for every epic after
+   # the first
+   ```
+
+   - The FIRST epic gets no `--blocked-by` - unless an epic is
+     in progress (then `--blocked-by <active-epic-id>`) or the user
+     stated earlier work that must land first.
+   - Each next epic is blocked by its predecessor and nothing else.
+     Exactly one epic of the chain is ever runnable at a time. If the
+     user asks for two specs in parallel, that is the
+     single-active-feature rule talking - keep the chain linear.
+3. Append the intent and links to the milestone body:
+
+   ```
+   Intent: <one line>
+   Brief: .sdd/brief.md
+   Queue: <epic-1> -> <epic-2> -> <epic-3> (strictly sequential)
+   ```
+
+### Mixed
+
+Execute each leg under its own rule above: extensions recorded (next
+command per target), new specs queued as the sequential epic chain,
+direct items recorded in `.sdd/brief.md` with no beans. The next
+command is whichever leg comes first in the agreed order - usually the
+chain's first feature.
+
+## Step 6 - Write `.sdd/brief.md`
+
+The single resume document. Write it BEFORE the closing summary. When
+it already covers this workstream, update it in place; when a new
+initiative begins and the file holds an earlier one, add a new dated
+section on top and leave prior content untouched below.
+
+```markdown
+# Workstream Brief
+
+## <Initiative or feature title> (<YYYY-MM-DD>)
+
+### Intent
+<who has the problem, what changes when done - two or three sentences>
+
+### Scope
+- **In**: <what this workstream includes>
+- **Out**: <what it explicitly excludes>
+
+### Decisions
+<each decision with its rationale: route taken, boundaries drawn,
+order chosen - and the alternatives rejected>
+
+### Open Questions
+<unresolved items, each with where it will be resolved:
+requirements interview, design, a later initiative>
+
+### Queue
+<rendered snapshot only - beans is the source of truth; plain ordered
+lines, never checkboxes>
+1. <epic-id> - <feature> - todo
+2. <epic-id> - <feature> - blocked by 1
 ```
-# Brief: <feature-name>
 
-## Problem
-[who has the problem, what pain it causes]
+## Step 7 - Close
 
-## Current State
-[what exists today, what's the gap]
+A SHORT summary:
 
-## Desired Outcome
-[what should be true when done]
+- **Route**: <chosen route, one line>
+- **Beans**: <milestone/epic ids created or queued, if any>
+- **Brief**: `.sdd/brief.md`
 
-## Approach
-[chosen approach and why]
+Then name the next command for the chosen route in a code block:
 
-## Scope
-- **In**: [what this feature includes]
-- **Out**: [what's explicitly excluded]
+- Single new feature or multi-spec initiative (no active feature):
+  ```
+  /sdd:spec-init "<first feature>"
+  ```
+- Extend, feature active:
+  ```
+  /sdd:spec-requirements
+  ```
+- Extend, feature not active:
+  ```
+  /sdd:spec-init "<feature>"
+  ```
+- Queued follow-up behind an active feature: name
+  `/sdd:spec-init "<feature>"` and say it will refuse until the active
+  feature is completed or scrapped - by design.
+- No spec needed: no command - the work happened here.
 
-## Boundary Candidates
-- [responsibility seam 1]
-- [responsibility seam 2]
-
-## Out of Boundary
-- [explicit non-goals this spec does not own]
-
-## Upstream / Downstream
-- **Upstream**: [existing systems/specs this depends on]
-- **Downstream**: [likely consumers or follow-on specs]
-
-## Existing Spec Touchpoints
-- **Extends**: [existing spec(s) this work updates, if any]
-- **Adjacent**: [neighbor specs or modules to avoid overlapping]
-
-## Constraints
-[technology, compatibility, or other constraints]
-```
-
-**For Path D (multi-spec decomposition)**:
-
-Use the Write tool to create:
-- `.sdd/steering/roadmap.md`
-- `.sdd/specs/<feature>/brief.md` for every feature listed under `## Specs (dependency order)`
-
-Use this roadmap structure:
-
-```
-# Roadmap
-
-## Overview
-[Project goal and chosen approach -- 1-2 paragraphs]
-
-## Approach Decision
-- **Chosen**: [approach name and summary]
-- **Why**: [key reasoning]
-- **Rejected alternatives**: [what was considered and why it was rejected]
-
-## Scope
-- **In**: [what the overall project includes]
-- **Out**: [what is explicitly excluded]
-
-## Constraints
-[technology, compatibility, timeline, or other project-wide constraints]
-
-## Boundary Strategy
-- **Why this split**: [why these spec boundaries improve independence]
-- **Shared seams to watch**: [cross-spec boundaries needing careful review]
-
-## Specs (dependency order)
-- [ ] feature-a -- [one-line description]. Dependencies: none
-- [ ] feature-b -- [one-line description]. Dependencies: feature-a
-- [ ] feature-c -- [one-line description]. Dependencies: feature-a, feature-b
-```
-
-Then create `.sdd/specs/<feature>/brief.md` for **every** feature listed under `## Specs (dependency order)` using the Path C brief format. This enables parallel spec creation via `/sdd:spec-batch`.
-
-**For Path E (mixed decomposition)**:
-
-Use the same roadmap structure as Path D, plus these additional sections:
-
-```
-## Existing Spec Updates
-- [ ] existing-feature-a -- [one-line description of the extension]. Dependencies: none
-- [ ] existing-feature-b -- [one-line description of the extension]. Dependencies: feature-a
-
-## Direct Implementation Candidates
-- [ ] small-item-a -- [why this stays direct implementation]
-- [ ] small-item-b -- [why this stays direct implementation]
-
-## Specs (dependency order)
-- [ ] new-feature-a -- [one-line description]. Dependencies: none
-- [ ] new-feature-b -- [one-line description]. Dependencies: new-feature-a
-```
-
-Path E rules:
-- Keep `## Specs (dependency order)` reserved for **new specs only** so `/sdd:spec-batch` can still parse it unchanged
-- Record existing-spec extensions under `## Existing Spec Updates`
-- Record true no-spec work under `## Direct Implementation Candidates`
-- Create `brief.md` only for the **new specs** listed under `## Specs (dependency order)`
-
-**Re-entry (roadmap.md already exists)**:
-Use the Write tool to create the next new spec's brief.md. Update roadmap.md with Write tool if scope/ordering changed, preserving completed items and prior phases.
-
-After writing, verify the files exist by reading them back.
-
-### Step 8: Suggest Next Steps
-
-Suggest the next command and stop. Do NOT automatically run downstream spec generation from this skill.
-
-- Path A: `/sdd:spec-requirements {feature}` to update the existing spec
-- Path B: Recommend direct implementation without creating a spec
-- Path C: Default to `/sdd:spec-init <feature-name>`
-  - Optional fast path: `/sdd:spec-quick <feature-name>` when the user explicitly wants to continue immediately
-- Path D: Default to `/sdd:spec-batch` (creates all specs in parallel based on roadmap.md dependency order)
-  - Optional cautious path: `/sdd:spec-init <first-feature-name>` when the user wants to validate the first slice before batching the rest
-- Path E: Choose the next command based on the new-spec portion of the decomposition
-  - If there is exactly one new spec: `/sdd:spec-init <new-feature-name>`
-  - If there are multiple new specs: `/sdd:spec-batch`
-  - Also note which existing specs should be revisited with `/sdd:spec-requirements <feature>`
-- Re-entry: `/sdd:spec-init <next-feature-name>` or `/sdd:spec-batch` if multiple specs remain
-
-If the decomposition contains only existing-spec updates plus direct implementation candidates, do NOT use Path E. Prefer Path A when one existing spec is the clear home, or recommend the existing-spec update plus direct implementation work without creating roadmap entries.
-
-## Critical Constraints
-- **Files on disk are the source of continuity**: For Path C/D/E, create brief.md and roadmap.md as needed before suggesting the next command. Do NOT leave discovery results only in conversation text.
-
-## Safety & Fallback
-
-**Roadmap Already Exists (re-entry)**:
-- Read roadmap.md to restore project context before asking questions
-- Determine next spec based on completed specs' status
-- Write brief.md for the next spec only (just-in-time)
-- Update roadmap.md if scope/ordering changed based on implementation experience
-- Append new specs as a new phase if the request expands the project, don't overwrite existing content
+Do not run the next command yourself; the user drives the cycle one
+command at a time.
