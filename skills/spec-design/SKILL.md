@@ -27,9 +27,11 @@ WHAT.
 1. **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and
    read-only inspection. Nothing in this run stages, commits, pushes, or
    touches branches: the user reviews and commits.
-2. **This skill writes no beans.** It resolves the active feature by
-   reading beans; task-bean lifecycle belongs to `/sdd:spec-tasks`. Never
-   write progress, approval, or blocked state into any document.
+2. **The fork writes no beans.** It resolves the active feature by
+   reading beans; the design phase-gate completion belongs to the
+   presenting main context (Return contract), and task-bean lifecycle
+   belongs to `/sdd:spec-tasks`. Never write progress, approval, or
+   blocked state into any document.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **Options, not silent picks.** Architecturally significant choices are
    presented as 2-3 approaches with trade-offs and a recommendation -
@@ -54,7 +56,39 @@ Query beans: `beans list --json -t epic -s in-progress`.
 - **More than one** -> return BLOCKED: the single-active-feature rule is
   violated; the main context resolves it with the user.
 
-## Step 2 - Load inputs
+## Step 2 - Phase-gate check
+
+> **Gate:** the design phase runs only after the requirements phase is
+> approved. If the `Phase — requirements` bean is not `completed`, STOP -
+> return BLOCKED naming `/sdd:spec-requirements`.
+
+Query the epic's children once:
+`beans query --json '{ bean(id: "<epic-id>") { children { id title status tags blockedByIds } } }'`
+(the resolved relation `blockedBy` is broken in beans v0.4.2 - always
+read `blockedByIds`). Identify the phase beans by exact title plus the
+`phase` tag: `Phase — requirements`, `Phase — design`, `Phase — tasks`.
+
+- **No `Phase — requirements` bean under the epic** -> return BLOCKED:
+  the epic predates phase gates; the main context resolves the missing
+  gate beans with the user (spec-init creates them at feature birth).
+- **`Phase — requirements` not `completed`** -> the gate above: BLOCKED
+  naming `/sdd:spec-requirements`.
+- **`Phase — design` already `completed`** -> re-entry into an approved
+  phase (spec Revision 5): return BLOCKED stating the re-entry and that
+  the main context must escalate (reopen the phase, then re-invoke; or
+  stop). Never rewrite an approved design silently - the tasks phase
+  gates on this bean.
+- **`Phase — design` bean missing while requirements is `completed`** ->
+  partial legacy state: the design work may proceed, but the confirm
+  gate cannot close the phase - it names `/sdd:spec-init` (whose heal
+  path creates missing phase beans) before completion. Carry the gap as
+  a CONCERNS line so it reaches the gate.
+
+Keep the design phase bean id at hand (when present); return it in the
+summary block (PHASE line) - the presenting context completes it at the
+confirm gate.
+
+## Step 3 - Load inputs
 
 Read, under the spec directory from Step 1:
 
@@ -83,7 +117,7 @@ exists, it holds cumulative edit intent from the user. Every recorded
 titled `Regenerate from scratch` overrides the edit-merge base: rewrite
 fully. Append nothing to the digest yourself.
 
-## Step 3 - Classify the feature and run discovery
+## Step 4 - Classify the feature and run discovery
 
 Classify from the epic description, requirements, brief, and codebase:
 
@@ -106,7 +140,7 @@ Research discipline:
   external API or library the design will rely on; record API contracts
   and constraints for the research log.
 
-## Step 4 - Synthesize and log
+## Step 5 - Synthesize and log
 
 Apply `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-synthesis.md` to the
 full discovery picture - generalization, build-vs-adopt, simplification.
@@ -115,7 +149,7 @@ per its template - key findings, evaluated options, decisions with
 rationale, risks. The design document stays self-contained; research.md
 holds the raw investigation behind it.
 
-## Step 5 - Draft the design
+## Step 6 - Draft the design
 
 Draft in memory against the template. Where this skill and
 `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` conflict, this skill
@@ -141,7 +175,7 @@ passes. Mandatory content:
   requirements.md mapped to the components, contracts, or flows that
   realize it. Use IDs exactly as written; never invent or relabel them.
 
-## Step 6 - Review gate
+## Step 7 - Review gate
 
 Read and apply
 `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` to the draft:
@@ -154,9 +188,9 @@ If the gate exposes a real requirements gap or ambiguity, do NOT write a
 patched-over design: return BLOCKED naming the exact gap and pointing
 back to `/sdd:spec-requirements`.
 
-## Step 7 - Write and return
+## Step 8 - Write and return
 
-Write `.sdd/specs/<feature>/design.md` (and research.md, Step 4) only
+Write `.sdd/specs/<feature>/design.md` (and research.md, Step 5) only
 after the gate passes, then return the summary block.
 
 ## Return contract
@@ -171,6 +205,7 @@ caller parses the heading and the `- STATUS:` line mechanically:
 - APPROACHES: <one line per approach considered, marking the recommended one>
 - CONCERNS: <one line each, if any>
 - PATH: <.sdd/specs/<feature>/design.md, or - when BLOCKED>
+- PHASE: <design phase bean id from Step 2, or `missing` - the gate closes with it>
 - BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
 ```
 
@@ -181,8 +216,13 @@ recommended one, boundary highlights, concerns, and the document path
 (the user reads design.md in the IDE; do not dump it into chat). Then
 AskUserQuestion, confirm-only:
 
-1. **Approve** (Recommended) - the design is settled. Name the next
-   command in a code block:
+1. **Approve** (Recommended) - the design is settled. Close the phase
+   gate: `beans update <design-phase-id> -s completed` (the PHASE id
+   from the fork's summary - `completed` IS the approval record, spec
+   Revision 5). (Rev 6 / C2 insertion point: the validate-design
+   auto-validator inserts between the approve answer and this
+   completion step - keep the completion standalone.) Then name the
+   next command in a code block:
    ```
    /sdd:spec-tasks
    ```
@@ -202,4 +242,14 @@ AskUserQuestion, confirm-only:
 
 On BLOCKED: present the blocker and the named command, then
 AskUserQuestion on how to proceed (resolve via that command / adjust
-inputs / stop).
+inputs / stop). The re-entry case escalates with the Revision 5 triple:
+**Reopen** (Recommended) - set the design AND tasks phase beans to
+`todo` (`beans update <phase-id> -s todo` each) with a one-line reason
+appended to each, then re-invoke `/sdd:spec-design`: the fork runs
+under the reopened gate and the confirm gate re-completes it; **Accept
+desync risk** - set only the design phase bean to `todo` (the gate must
+open for the redo) and append a one-line dated note to the epic body
+(`Desync accepted: design re-entered while the tasks gate reads
+completed`), then re-invoke `/sdd:spec-design`: the redone design lands
+while the tasks phase stays completed - the risk is on record, not
+silent; **Cancel** - nothing changes.

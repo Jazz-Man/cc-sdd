@@ -64,6 +64,15 @@ Query beans: `beans list --json -t epic -s in-progress`.
   Any "stop" ends the skill; otherwise re-check and continue to Step 3
   once no in-progress epic remains.
 
+**Heal carve-out**: if the active epic's phase beans are missing or
+incomplete (partial legacy state - e.g. `Phase — tasks` absent), a
+follow-up `/sdd:spec-init` invocation with the SAME feature name
+performs ONLY the idempotent phase-bean completion (Step 3.4) - the
+refusal guard does not apply to heal runs (no new epic is created;
+matched by slug against the in-progress epic). The heal run ends once
+Step 3.4 reports what it created or skipped; a name that matches no
+in-progress epic is not a heal run - the guard above applies unchanged.
+
 ## Step 3 - Create the feature
 
 1. **Directory**: `mkdir -p .sdd/specs/<name>/`.
