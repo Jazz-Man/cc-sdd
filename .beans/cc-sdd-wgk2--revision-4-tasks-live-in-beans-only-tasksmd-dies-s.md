@@ -1,11 +1,11 @@
 ---
 # cc-sdd-wgk2
-title: 'Revisions 4+5: beans-only tasks + phase gates (tasks.md dies)'
+title: 'Revisions 4+5+6: beans-only tasks + phase gates + validation gates'
 status: todo
 type: task
 priority: normal
 created_at: 2026-09-23T18:03:21Z
-updated_at: 2026-09-24T11:53:47Z
+updated_at: 2026-09-24T13:15:31Z
 parent: cc-sdd-uwj4
 ---
 
@@ -49,3 +49,22 @@ Work list additions:
 3. REV-5 MODEL VALIDATED LIVE: epic + tagged phase beans render as a lifecycle view (beans list --tag phase); completed=approved; draft->todo promotion works; roadmap renders the epic tree; machine queries via filter {tags,status,type,parent}.
 4. BUG/LIMITATION FOUND (design-relevant): GraphQL resolved relation blockedBy returns [] ALWAYS (tested with completed AND active blockers) while raw blockedByIds works. GATE QUERIES MUST USE blockedByIds + explicit per-blocker status checks — never the blockedBy relation. Also: singleton query field is bean(id:), not b(id:).
 Work-list amendment: item 11 (impl gates) + phase-skill start-gates use the blockedByIds+status form; document the blockedBy limitation in skill comments.
+
+
+## REVISION 6 (2026-09-24, user, model-thinking analysis): mandatory validation gates (pre-implementation scope)
+
+Decisions (all confirmed):
+- TRIGGER — dual loop: formative (manual /sdd:validate-* anytime, findings only, no state change) + summative ('approve' at a confirm gate AUTO-DISPATCHES the validator fork FIRST; GO required before the phase completes; NO-GO -> four-part escalation, phase stays open)
+- FRESHNESS — doc content hash: sha256 of the phase document computed at validation, recorded in the phase bean body (Validated-at date + Doc-hash); any gate recomputes and compares — mismatch = stale = re-validate before proceeding. Catches committed AND uncommitted edits. Implementation: inline 'shasum -a 256' one-liner in skills, or a bin/ script if preferred (implementation choice)
+- FIX BOUNDARY — validator auto-fixes ONLY zero-semantics items (typos, wrong paths, formatting), EVERY fix listed in the return summary; anything touching business logic/requirements/design semantics escalates four-part; NO-GO escalates immediately
+- NEW 15th SKILL validate-requirements (opus fork, independent): EARS format, completeness, internal contradictions, steering alignment; evidence-based verdicts; the summative gate of the requirements phase. validate-gap STAYS formative research (requirements vs codebase — different axis, no gate role)
+- Validators are independent opus forks (anti-confirm-bias, same principle as task-reviewer); validation rounds recorded in phase bean bodies (resume visibility)
+
+Work-list additions:
+14. skills/validate-requirements (new fork)
+15. Confirm gates in spec-requirements/spec-design reworked: approve -> auto validator -> GO -> tag 'validated' + Doc-hash + phase completed
+16. Hash mechanics (shasum record/compare) in gate flows
+17. impl Step 0 freshness check (validated tags + hash match for requirements/design)
+18. Fix-boundary + fixes-listed contract in validator texts
+19. workflow-map/README/guides/CLAUDE.md validation flow
+20. Battery: validated-tag + Doc-hash convention greps

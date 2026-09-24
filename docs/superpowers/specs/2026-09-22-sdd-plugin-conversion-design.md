@@ -459,3 +459,16 @@ moment of approval, not its persistence. Authoritative overrides:
   regardless of blocker status (verified with completed and active blockers).
   ALL gate queries use `blockedByIds` + explicit per-blocker status checks.
   Singleton queries use `bean(id:)`.
+
+## Revision 6 (2026-09-24) — mandatory validation gates (pre-implementation)
+
+Approval is no longer a conversation alone: every phase's "approve" auto-dispatches
+an independent validator (opus fork) first. GO → phase completes with tag
+`validated` and the document's sha256 recorded in the phase bean body
+(`Doc-hash:`); NO-GO → four-part escalation, phase stays open. Any later gate
+recomputes the hash — a changed document invalidates its validation (staleness is
+mechanical, catches committed and uncommitted edits). Validators auto-fix only
+zero-semantics items (typos, paths, formatting) and list every fix; all else
+escalates. New skill `validate-requirements` (15th) gates the requirements phase
+(EARS, completeness, contradictions, steering); `validate-gap` remains formative
+research against the codebase. Formative manual runs stay available anytime.
