@@ -1,12 +1,12 @@
 ---
 name: validate-impl
-description: Generative fork - the feature-level GO/NO-GO gate. Reads completion state from the feature's task beans, runs integration, coverage, design-alignment, and boundary checks with fresh evidence, and returns the verdict with remediation. Runs at feature finish (dispatched by impl) or standalone on demand.
+description: Generative fork - the feature-level GO/NO_GO gate. Reads completion state from the feature's task beans, runs integration, coverage, design-alignment, and boundary checks with fresh evidence, and returns the verdict with remediation. Runs at feature finish (dispatched by impl) or standalone on demand.
 context: fork
 background: false
 model: opus
 ---
 
-# validate-impl - feature-level GO/NO-GO
+# validate-impl - feature-level GO/NO_GO
 
 ## Entry paths - this skill is entered one of two ways
 
@@ -92,7 +92,7 @@ Query the epic's children, e.g.
   it reads `in-progress` and counts as open.
 - **Any task bean open** (`todo`, `draft`, `in-progress`) -> the feature
   is not finished; the full battery is predetermined to fail. Return
-  DONE with `DECISION: NO-GO`, the open tasks as the blocking finding,
+  DONE with `DECISION: NO_GO`, the open tasks as the blocking finding,
   and REMEDIATION pointing to `/sdd:impl` - and say explicitly that
   integration checks were skipped because the feature is incomplete.
 
@@ -138,7 +138,7 @@ already used by repo automation over ad hoc pipelines.
 
 **A. Full test suite**
 - Run the canonical full-test command. Use the exit code.
-- Tests fail -> NO-GO. No judgment needed.
+- Tests fail -> NO_GO. No judgment needed.
 - No canonical test command identifiable -> MANUAL_VERIFY_REQUIRED.
 
 **B. Residual placeholder markers**
@@ -156,7 +156,7 @@ already used by repo automation over ad hoc pipelines.
   reaches its first usable state (root URL load, Electron launch-ready,
   CLI `--help`, service health endpoint - whatever fits the app shape).
 - Boot crash, unhandled exception, module-load failure, native ABI
-  mismatch, missing required env/config -> NO-GO.
+  mismatch, missing required env/config -> NO_GO.
 - No trustworthy smoke command, or the runtime environment is
   unavailable -> MANUAL_VERIFY_REQUIRED.
 
@@ -221,7 +221,7 @@ line mechanically:
 ```
 ## Validation Summary
 - STATUS: <DONE | BLOCKED>
-- DECISION: <GO | NO-GO | MANUAL_VERIFY_REQUIRED>
+- DECISION: <GO | NO_GO | MANUAL_VERIFY_REQUIRED>
 - MECHANICAL_RESULTS:
   - Tests: PASS | FAIL (command and exit code)
   - TBD/TODO grep: CLEAN | <count> matches
@@ -241,11 +241,11 @@ line mechanically:
 - INCOMPLETE_TASKS: <open task beans, or none>
 - OWNERSHIP: LOCAL | UPSTREAM | UNCLEAR
 - UPSTREAM_SPEC: <feature name | N/A>
-- REMEDIATION: <mandatory when NO-GO - specific, actionable steps; vague feedback is not acceptable>
+- REMEDIATION: <mandatory when NO_GO - specific, actionable steps; vague feedback is not acceptable>
 - BLOCKERS: <BLOCKED only - the condition and the command to run>
 ```
 
-Return `GO` only when every check passed. Return `NO-GO` for concrete
+Return `GO` only when every check passed. Return `NO_GO` for concrete
 failures and `MANUAL_VERIFY_REQUIRED` when a mandatory validation could
 not be executed - and never treat a feature as complete on a manual-
 verify result. Do not return GO if the feature only works by smearing
@@ -262,7 +262,7 @@ present the decision with its evidence highlights (the block above is
 the report; do not dump spec files into chat), then AskUserQuestion:
 **GO** - suggest completing the feature: finish via `/sdd:impl`
 (feature-finish flow) or complete the epic bean per the global beans
-guide; **NO-GO** - remediate via `/sdd:impl` or manual work, then
+guide; **NO_GO** - remediate via `/sdd:impl` or manual work, then
 re-invoke `/sdd:validate-impl`; **MANUAL_VERIFY_REQUIRED** - state the
 exact missing validation or environment prerequisite; the feature is
 not complete until it is resolved. On BLOCKED: present the condition and
