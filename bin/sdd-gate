@@ -9,9 +9,11 @@
 #   - the requirements and design phase beans carry the `validated` tag and
 #     their LATEST `Doc-hash: <sha256>` line equals the current
 #     `shasum -a 256` of the respective document;
-#   - at least one todo task bean exists under the epic.
+#   - at least one todo task bean exists under the epic, OR every non-phase
+#     task bean is completed/scrapped (a finished feature: exit 0 with a
+#     "feature finished" note); with no task beans at all it fails.
 # On failure: one-line diagnosis (gate, fix command) on stderr, exit 1.
-# --quiet suppresses the success line on stdout (exit code only).
+# --quiet suppresses the success/finished note on stdout (exit code only).
 # Read-only: uses the beans CLI and shasum only; changes nothing.
 set -eu
 
@@ -86,12 +88,13 @@ TAB=$(printf '\t')
 req_id=""; des_id=""; tsk_id=""
 req_status=""; des_status=""; tsk_status=""
 req_tags=""; des_tags=""
-todo_tasks=0
+todo_tasks=0; all_tasks=0
 while IFS="$TAB" read -r cid ctitle cstatus ctags; do
     [ -n "$cid" ] || continue
     case ",$ctags," in
         *,phase,*) ;;
         *)
+            all_tasks=$((all_tasks + 1))
             [ "$cstatus" = todo ] && todo_tasks=$((todo_tasks + 1))
             continue
             ;;
@@ -162,9 +165,14 @@ check_hash() {
 check_hash "$req_id" "requirements.md" "spec-requirements" "requirements"
 check_hash "$des_id" "design.md" "spec-design" "design"
 
-# --- queue readiness: at least one todo task bean -----------------------------
-[ "$todo_tasks" -ge 1 ] ||
-    die "gate tasks: no todo task beans under $epic - promote the plan via /sdd:spec-tasks (or every task is already completed)"
+# --- queue readiness: todo tasks pending, or the feature is finished ----------
+[ "$todo_tasks" -ge 1 ] || {
+    [ "$all_tasks" -ge 1 ] ||
+        die "gate tasks: no task beans under $epic - promote the plan via /sdd:spec-tasks"
+    # zero todo tasks but task beans exist: all completed/scrapped already
+    [ "$quiet" = 1 ] || echo "feature finished — all tasks completed/scrapped"
+    exit 0
+}
 
 [ "$quiet" = 1 ] || echo "GATE PASS: $epic is ready for /sdd:impl ($spec_dir)"
 exit 0
