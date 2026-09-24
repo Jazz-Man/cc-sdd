@@ -104,9 +104,11 @@ time.
 
    **Freshness gate (spec Revision 6)** - on top of `completed`, the
    requirements and design phase beans must carry the `validated` tag
-   (read from the children query's `tags`), and the `Doc-hash:` line
-   in each one's `## Validation` body section (read from the query's
-   `body`) must equal the CURRENT hash of the document it validated.
+   (read from the children query's `tags`), and the LATEST line of
+   the form `Doc-hash: <sha256>` in each one's `## Validation` body
+   section (read from the query's `body`) must equal the CURRENT hash
+   of the document it validated - validation rounds append, so only
+   the last `Doc-hash:` counts; an earlier round's line never wins.
    The tasks phase bean carries neither - validation is scoped to
    requirements and design only. Recompute both hashes yourself:
 

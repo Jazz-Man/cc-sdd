@@ -249,7 +249,8 @@ AskUserQuestion, confirm-only:
         `shasum -a 256 .sdd/specs/<feature>/design.md`
      3. Append a `## Validation` round to the PHASE BEAN body
         (`--body-append`; create the section on the first round,
-        later rounds append beneath it): date, verdict GO,
+        later rounds append beneath it - only the latest
+        `Doc-hash:` counts at later gates): date, verdict GO,
         `Doc-hash: <the sha256 just computed>`
      4. Complete: `beans update <design-phase-id> -s completed`
      Then name the next command in a code block:
