@@ -61,7 +61,8 @@ Your dispatch prompt carries paths and ids, never file contents. Read:
      dangerous debris.
    - **MINOR** — a deferred improvement that carries no correctness risk.
 5. **Verdict.** APPROVED only with zero BLOCKING findings. MINOR findings
-   are triaged into the parking lot for the feature's final report.
+   are filed in the parking lot — the orchestrator appends each under the
+   epic bean's ## Parking lot.
 
 ## Review Verdict
 
@@ -77,7 +78,7 @@ never rename them, never replace the values with synonyms:
 - FINDINGS:
   1. [BLOCKING] <finding — exact file:line + required remediation>
   2. [MINOR] <finding>
-- PARKING_LOT: <each MINOR finding as one triage line for the final report>
+- PARKING_LOT: <one line per MINOR finding, written to outlive this review — the orchestrator files these under the epic bean's ## Parking lot>
 - SUMMARY: <one sentence>
 ```
 
