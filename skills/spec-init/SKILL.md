@@ -11,8 +11,8 @@ argument-hint: <feature-name-or-description>
 You run INLINE in the main conversation. This skill is deliberately
 lightweight: no subagents, no document generation. It collects the
 feature name and description, guards the single-active-feature rule,
-creates the spec directory and the epic bean, records where the feature
-lives, and hands off. Requirements, design, and tasks are produced by
+creates the spec directory and the epic bean, seeds its three phase-gate
+beans, records where the feature lives, and hands off. Requirements, design, and tasks are produced by
 their own skills.
 
 Exactly one feature is active at any time (spec 5.5). The active feature
@@ -88,6 +88,28 @@ Query beans: `beans list --json -t epic -s in-progress`.
    ```
    When activating a queued epic, keep its existing body content (its
    description, its queued-by notes); add only the missing lines.
+4. **Phase beans** - the three persistent phase gates under the epic
+   (spec Revision 5), all `todo` and tagged `phase`, chained in flow
+   order: requirements -> design -> tasks. Each body carries one line
+   naming its gate:
+   ```
+   beans create "Phase — requirements" -t task -s todo --tag phase --parent <epic-id> -d "Phase gate for <feature>: completed = approved (spec Rev 5)."
+   beans create "Phase — design" -t task -s todo --tag phase --parent <epic-id> -d "Phase gate for <feature>: completed = approved (spec Rev 5)."
+   beans create "Phase — tasks" -t task -s todo --tag phase --parent <epic-id> -d "Phase gate for <feature>: completed = approved (spec Rev 5)."
+   ```
+   Capture each bean's id from the create output, then chain (create
+   has no --blocked-by):
+   ```
+   beans update <design-phase-id> --blocked-by <requirements-phase-id>
+   beans update <tasks-phase-id> --blocked-by <design-phase-id>
+   ```
+   This step is idempotent and covers BOTH paths above: when activating
+   a queued epic that already carries phase beans (created by an older
+   flow or manually), list the epic's children
+   (`beans query --json '{ bean(id: "<epic-id>") { children { id title tags } } }'`),
+   match on exact title plus the `phase` tag, skip the ones that exist,
+   and create only the missing - adding only the chain links that are
+   not yet present (`blockedByIds` on the child).
 
 ## Step 4 - Summary and handoff
 
@@ -96,6 +118,8 @@ A SHORT summary:
 - **Feature**: `<name>` - the one-line description
 - **Spec directory**: `.sdd/specs/<name>/`
 - **Epic bean**: `<bean-id>`
+- **Phase chain**: requirements -> design -> tasks beans exist under the
+  epic - each gate closes when its phase is approved
 
 Then the next command in a code block:
 
