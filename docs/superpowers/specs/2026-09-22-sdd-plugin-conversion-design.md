@@ -424,3 +424,26 @@ bodies. Overrides, authoritatively:
   → stop with a pointer to `/sdd:spec-tasks`).
 - The executor header contract ("REQUIRED: execute via /sdd:impl") is retired —
   impl is the only executor and resolves from beans.
+
+## Revision 5 (2026-09-24) — persistent phase gates
+
+The original spec.json carried both state and gates; confirm-gates cover only the
+moment of approval, not its persistence. Authoritative overrides:
+
+- Phase gate model: each feature epic gets THREE phase sub-beans (tag `phase`,
+  titles "Phase — requirements/design/tasks", `--blocked-by` chained in flow
+  order, created by spec-init as `todo`).
+- `completed` on a phase bean IS the approval. Phase skills gate on the previous
+  phase bean being `completed` (stop with the named command otherwise) and
+  complete their own bean after the confirm-approve.
+- Task beans are born `draft` (generated-not-approved, the exact semantics of
+  spec.json's `approvals.tasks.generated:true, approved:false`); the spec-tasks
+  approve gate offers approve-all or selective promotion `draft → todo`;
+  `ready_for_implementation` is implicit: three phase beans completed + at least
+  one `todo` task bean.
+- impl Step 0 hard-gates on all three phase beans; `draft` task beans are never
+  auto-selected (unapproved).
+- Re-entering an approved phase escalates (AskUserQuestion): reopen downstream
+  phases (recommended) / accept desync risk / cancel. No silent invalidation.
+- Explicitly NOT phase gates: research, test-strategy, estimate (content of
+  design/requirements/validate-*, not lifecycle gates).
