@@ -447,3 +447,15 @@ moment of approval, not its persistence. Authoritative overrides:
   phases (recommended) / accept desync risk / cancel. No silent invalidation.
 - Explicitly NOT phase gates: research, test-strategy, estimate (content of
   design/requirements/validate-*, not lifecycle gates).
+
+### Revision 5 research annex (2026-09-24, live-tested)
+
+- Custom statuses are IMPOSSIBLE in beans v0.4.2 (latest; hardcoded in source,
+  config key absent, CLI rejects). Do not design around them; forking the tracker
+  is ruled out.
+- Tags are first-class and filterable (`--tag`, list/GraphQL filters) — the
+  sanctioned mechanism for phase marking and task labeling (qa-series etc.).
+- beans v0.4.2 BUG: the GraphQL `blockedBy` resolved relation returns empty
+  regardless of blocker status (verified with completed and active blockers).
+  ALL gate queries use `blockedByIds` + explicit per-blocker status checks.
+  Singleton queries use `bean(id:)`.
