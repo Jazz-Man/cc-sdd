@@ -2,7 +2,6 @@
 name: init
 description: Write the user-owned .claude/rules/sdd.md workflow-rules file from the plugin's default workflow map (single source of truth - no second copy anywhere). Refuses politely when the file exists and offers a read-only diff instead of overwriting. User-invoked.
 disable-model-invocation: true
-allowed-tools: Read, Write, Bash, AskUserQuestion
 ---
 
 # init - write the user's sdd rules file

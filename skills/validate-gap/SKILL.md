@@ -4,7 +4,6 @@ description: Generative fork - analyze the gap between the active feature's requ
 context: fork
 background: false
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
 # validate-gap - requirements vs existing codebase
@@ -65,8 +64,8 @@ Read, under the spec directory from Step 1:
 - `${CLAUDE_PLUGIN_ROOT}/assets/rules/gap-analysis.md` - the analysis
   framework (current state, feasibility, approach options, effort/risk)
   and its output checklist. Follow it.
-- Steering: Glob `.claude/rules/*.md`; read the files relevant to the
-  feature's domain, integrations, and constraints.
+- Steering: already in your context (project memory, loaded at session
+  start) - apply it; do not re-read the files.
 
 ## Step 3 - Survey the existing codebase
 

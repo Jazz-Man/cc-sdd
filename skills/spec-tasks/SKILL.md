@@ -4,7 +4,6 @@ description: Generative fork - derive the static task plan (.sdd/specs/<feature>
 context: fork
 background: false
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
 # spec-tasks - static task plan + task beans
@@ -60,9 +59,7 @@ Query beans: `beans list --json -t epic -s in-progress`.
   principles: natural-language capability descriptions, phase ordering
   (foundation -> core -> integration -> validation), task sizing,
   dependency declaration, boundary scope, requirements mapping,
-  observable completion, and the Task Plan Review Gate. Do NOT read
-  tasks-parallel-analysis.md - parallel judgement is retired; execution
-  is sequential.
+  observable completion, and the Task Plan Review Gate.
 - `${CLAUDE_PLUGIN_ROOT}/assets/templates/tasks.md` - the plan format,
   constrained by Step 3.
 - `.sdd/specs/<feature>/workspace/tasks-edits.md` - cumulative edit

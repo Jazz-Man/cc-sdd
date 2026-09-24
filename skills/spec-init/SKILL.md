@@ -1,7 +1,6 @@
 ---
 name: spec-init
 description: Birth a new feature - the only skill that creates one. Guards the single-active-feature rule, creates .sdd/specs/<name>/ and the in-progress epic bean that records the spec path, then names the next command.
-allowed-tools: Bash, Glob, Read, AskUserQuestion
 argument-hint: <feature-name-or-description>
 ---
 

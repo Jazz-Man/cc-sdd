@@ -1,7 +1,6 @@
 ---
 name: debug
 description: Root-cause-first debugging protocol - reproduce, isolate, confirm the root cause, then plan the minimal fix. Use when an implementer is blocked, verification fails, or repeated remediation does not converge.
-allowed-tools: Read, Bash, Grep, Glob, WebSearch, WebFetch
 argument-hint: <failure-summary>
 ---
 

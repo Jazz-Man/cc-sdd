@@ -4,7 +4,6 @@ description: Generative fork - research the active feature (discovery by classif
 context: fork
 background: false
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch
 ---
 
 # spec-design - design the HOW
@@ -65,8 +64,8 @@ Read, under the spec directory from Step 1:
   interview intent and workstream narrative, when present.
 - `.sdd/specs/<feature>/research.md` - prior discovery or validate-gap
   output, when present.
-- Steering: Glob `.claude/rules/*.md`; read the files relevant to the
-  feature's architecture, conventions, and constraints.
+- Steering: already in your context (project memory, loaded at session
+  start) - apply it; do not re-read the files.
 - `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-principles.md` - design
   rules (boundary first, type safety, visual communication).
 - `${CLAUDE_PLUGIN_ROOT}/assets/templates/design.md` - document

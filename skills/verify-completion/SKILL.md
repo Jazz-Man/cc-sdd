@@ -1,7 +1,6 @@
 ---
 name: verify-completion
 description: Verify completion and success claims with fresh evidence. Use before claiming a task is complete, a fix works, tests pass, or a feature is ready for GO.
-allowed-tools: Read, Bash, Grep, Glob
 argument-hint: <claim-type> <claim>
 ---
 
@@ -12,9 +11,9 @@ argument-hint: <claim-type> <claim>
 This skill prevents false completion claims. A task, fix, or feature is only complete when supported by fresh evidence that matches the scope of the claim.
 
 This is the protocol the impl orchestrator applies at its verification
-gate before completing any task bean, and that validate-impl applies to
-a `FEATURE_GO` claim before returning GO. It also stands alone for ad-hoc
-use whenever a completion claim needs checking.
+gate before completing any task bean, and the one validate-impl applies
+to a `FEATURE_GO` claim before returning GO. It also stands alone for
+ad-hoc use whenever a completion claim needs checking.
 
 ## When to Use
 

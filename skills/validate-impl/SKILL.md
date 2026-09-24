@@ -4,7 +4,6 @@ description: Generative fork - the feature-level GO/NO-GO gate. Reads completion
 context: fork
 background: false
 model: opus
-allowed-tools: Read, Bash, Grep, Glob
 ---
 
 # validate-impl - feature-level GO/NO-GO
@@ -110,11 +109,14 @@ Read, under the spec directory:
 - `.sdd/specs/<feature>/workspace/` - reports, review packages, and
   `notes.md` (including its `## Minor Findings` parking lot). Reference
   only: claims there are never evidence.
-- Steering: Glob `.claude/rules/*.md`; read files constraining the
-  validated boundaries and integrations.
-- The verify-completion protocol at `skills/verify-completion/SKILL.md`
-  (a sibling directory of this file in the plugin; Hard rule 4 and
-  Step 5 restate its core discipline regardless) - the fresh-evidence
+- Steering: already in your context (project memory, loaded at session
+  start) - apply it; do not re-read the files.
+- The verify-completion protocol at
+  `${CLAUDE_SKILL_DIR}/../verify-completion/SKILL.md` (a sibling
+  directory of this file in the plugin; if `${CLAUDE_SKILL_DIR}` does
+  not expand, fall back to
+  `${CLAUDE_PLUGIN_ROOT}/skills/verify-completion/SKILL.md`. Hard rule 4
+  and Step 5 restate its core discipline regardless) - the fresh-evidence
   gate you apply in Step 5, claim type `FEATURE_GO`.
 
 **Feature boundary scope**: translate the tasks' `_Boundary:_`
@@ -144,7 +146,7 @@ already used by repo automation over ad hoc pipelines.
 - Matches introduced by this feature -> Warning finding.
 
 **C. Residual hardcoded secrets**
-- `grep -rn "password\s*=\|api_key\s*=\|secret\s*=\|token\s*=" <feature-boundary-paths>`
+- `grep -rni "password\s*=\|api_key\s*=\|secret\s*=\|token\s*=" <feature-boundary-paths>`
   (case-insensitive)
 - Matches that are not environment-variable references -> Critical
   finding.
