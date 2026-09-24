@@ -106,7 +106,7 @@ verification commands that will prove resolution. Decide the outcome:
   - A spec conflict or architecture problem
 
 Do not propose a brute-force code fix as a substitute for revising
-`tasks.md` or the approved plan, and do not escalate prematurely when
+the task beans or the approved plan, and do not escalate prematurely when
 the issue is plainly repo-fixable.
 
 ### 5. Budget: at most two investigation rounds
@@ -143,7 +143,7 @@ the heading and the `- OUTCOME:` line mechanically):
 - VERIFICATION: <command(s) to confirm the fix>
 - STUCK: <UNRESOLVED only - what is established and why it does not resolve>
 - ESCALATION: <UNRESOLVED only>
-  1. Per plan: <what the plan/tasks.md specified>
+  1. Per plan: <what the plan/task bean specified>
   2. Actual: <what happened>
   3. Why it matters: <consequence>
   4. Options: accept as-is / fix now / change the plan / abort

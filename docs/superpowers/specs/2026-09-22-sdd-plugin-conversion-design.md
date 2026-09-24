@@ -357,7 +357,7 @@ enum token, single line. Complete inventory (live-swept):
 | 8 | evidence | Tests PASS/FAIL; Smoke PASS/FAIL/MANUAL_REQUIRED | validate-impl |
 | 9 | evidence | Tests PASS/FAIL; Static PASS/FAIL/SPOT_CHECKED | review |
 | 10 | STATUS / VERDICT | DONE/BLOCKED; GO/NO_GO | validate-design, forks |
-| 11 | criterion | PASS, CONCERN, FAIL | validate-design (per criterion) |
+| 11 | criterion | PASS, CONCERN, FAIL | validate-design, validate-requirements (per criterion/check) |
 | 12 | STATUS | DONE, AMBIGUITY | spec-requirements drafter |
 
 Task-bean body sections (stable append-only headers): `## Brief`, `## Report`,
@@ -365,6 +365,12 @@ Task-bean body sections (stable append-only headers): `## Brief`, `## Report`,
 `status-done`, `verdict-approved`, `outcome-resolved`, `verification-verified`,
 `decision-go`, and `validated` on phase beans. `bin/sdd-verdict` parses the
 authoritative line; tags exist for cheap cross-bean filtering.
+
+E1 live-sweep additions (2026-09-24): both document validators
+(validate-requirements, validate-design) also return `- FIXES_APPLIED:`
+lines — one per zero-semantics fix, `none` when empty. Prose hyphen forms
+(NO-GO, GO/NO-GO) are normalized to NO_GO throughout the live docs; this
+spec keeps its historical spellings as the record of what was swept.
 
 ## 9. Migration Plan (5 waves, each a child bean, verified before the next)
 

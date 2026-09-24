@@ -106,8 +106,7 @@ in-progress epic is not a heal run - the guard above applies unchanged.
    beans create "Phase — design" -t task -s todo --tag phase --parent <epic-id> -d "Phase gate for <feature>: completed = approved (spec Rev 5)."
    beans create "Phase — tasks" -t task -s todo --tag phase --parent <epic-id> -d "Phase gate for <feature>: completed = approved (spec Rev 5)."
    ```
-   Capture each bean's id from the create output, then chain (create
-   has no --blocked-by):
+   Capture each bean's id from the create output, then chain:
    ```
    beans update <design-phase-id> --blocked-by <requirements-phase-id>
    beans update <tasks-phase-id> --blocked-by <design-phase-id>

@@ -5,7 +5,9 @@
 # --all promotes every draft child of the epic except the phase beans;
 # otherwise each named bean is promoted after verification that it is a
 # draft child of the epic (phase beans and anything else are refused with a
-# stderr note). Prints one promoted id per line on stdout.
+# stderr note). Prints one promoted id per line on stdout. --all with
+# children present but zero parseable records warns and exits 1 (drift
+# guard - the parser is shared with bin/sdd-gate).
 # The only write helper of the sdd bin/ set: writes are strictly
 # `beans update <id> -s todo` - statuses change via the CLI only.
 set -eu
@@ -69,6 +71,19 @@ children_json=$(beans query --json "{ bean(id: \"$epic_id\") { children { id tit
 
 if [ "$all" = 1 ]; then
     TAB=$(printf '\t')
+    parsed=$(parse_children)
+    case $children_json in
+        *'"bean": null'*|*'"children": []'*) ;;
+        *)
+            # Drift guard: children exist but zero records parsed - the
+            # beans output shape changed under the shared parser; refuse
+            # rather than report success while promoting nothing.
+            if [ -z "$parsed" ]; then
+                echo "sdd-promote: epic $epic_id has children but none parsed - beans output drift? (parser shared with bin/sdd-gate)" >&2
+                exit 1
+            fi
+            ;;
+    esac
     while IFS="$TAB" read -r cid _ cstatus ctags; do
         [ -n "$cid" ] || continue
         [ "$cstatus" = draft ] || continue
@@ -78,7 +93,7 @@ if [ "$all" = 1 ]; then
         beans update "$cid" -s todo >/dev/null
         printf '%s\n' "$cid"
     done <<EOF
-$(parse_children)
+$parsed
 EOF
     exit 0
 fi

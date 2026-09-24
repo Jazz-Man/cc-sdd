@@ -109,14 +109,14 @@ Focus on capabilities and outcomes, not code structure.
 
 ## Task Plan Review Gate
 
-Before writing `tasks.md`, review the draft task plan and repair local issues until the plan passes or a true spec gap is discovered.
+Before creating the task briefs, review the draft plan and repair local issues until it passes or a true spec gap is discovered.
 
 ### Coverage Review
 
 - Every requirement ID from `requirements.md` must appear in at least one task.
 - Every design component, interface/contract, integration point, runtime prerequisite, and validation concern from `design.md` must be represented by at least one task.
 - If coverage is missing because the task plan is incomplete, repair the draft tasks and review again.
-- If coverage cannot be added cleanly because requirements or design are ambiguous, contradictory, or underspecified, stop and return to the requirements/design phase instead of papering over the gap in `tasks.md`.
+- If coverage cannot be added cleanly because requirements or design are ambiguous, contradictory, or underspecified, stop and return to the requirements/design phase instead of papering over the gap in the task plan.
 
 ### Executability Review
 
@@ -132,10 +132,10 @@ Before writing `tasks.md`, review the draft task plan and repair local issues un
 
 ### Review Loop
 
-- Run the review gate on the draft task plan before writing `tasks.md`.
+- Run the review gate on the drafted briefs before any task bean is written.
 - If issues are task-plan-local, repair the draft and re-run the review gate.
 - Keep the loop bounded: no more than 2 review-and-repair passes before escalating a real spec gap.
-- Write `tasks.md` only after the review gate passes.
+- Sync the task beans only after the review gate passes.
 
 ### Deferrable Test Coverage Tasks
 
@@ -171,7 +171,12 @@ Before writing `tasks.md`, review the draft task plan and repair local issues un
 - Group related tasks logically (same parent when possible) and highlight any ordering caveats in detail bullets.
 - Explicitly call out dependencies that break independence even when tasks look similar.
 
-### Plan Format
+### Brief Format
+
+The plan is the set of task-bean bodies — one `## Brief` per sub-task under the
+feature epic. Majors are numbering groups (1, 2, 3...); each sub-task (1.1, 1.2...)
+carries one brief. Draft shape:
+
 ```markdown
 - 1. Foundation: environment and test infrastructure setup
 - 1.1 Sub-task description
@@ -200,6 +205,10 @@ Before writing `tasks.md`, review the draft task plan and repair local issues un
   - _Depends: 2.1, 2.2_
   - _Requirements: W.W_
 ```
+
+Each `N.M` sub-task entry becomes one task bean: number and title in the bean's
+`Task:`/`Title:` lines, description and bullets its body, metadata lines kept
+verbatim.
 
 ## Requirements Coverage
 

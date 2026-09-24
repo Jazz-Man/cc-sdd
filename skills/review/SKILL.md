@@ -35,10 +35,10 @@ Do not use this skill to invent missing requirements or silently reinterpret the
 ## Inputs
 
 Provide:
-- Task ID and exact task text from `tasks.md`
+- Task ID and exact task text from the task bean's `## Brief` body section
 - Relevant requirement section numbers
 - Relevant design section numbers
-- Spec file paths (`requirements.md`, `design.md`, optionally `tasks.md`)
+- Spec file paths (`requirements.md`, `design.md`)
 - The implementer's status report
 - The task `_Boundary:_` scope constraints
 - Validation commands discovered by the orchestrator
