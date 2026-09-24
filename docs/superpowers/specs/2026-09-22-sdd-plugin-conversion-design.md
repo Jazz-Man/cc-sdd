@@ -472,3 +472,17 @@ zero-semantics items (typos, paths, formatting) and list every fix; all else
 escalates. New skill `validate-requirements` (15th) gates the requirements phase
 (EARS, completeness, contradictions, steering); `validate-gap` remains formative
 research against the codebase. Formative manual runs stay available anytime.
+
+## Revision 7 (2026-09-24) — workspace migrates to beans bodies
+
+Research-verified capabilities (live-tested): body writes are unlimited and
+transactional; `list` never carries bodies; `show` reads all-or-nothing — the
+practical boundary for "state=beans, artifacts=files" becomes ~100 lines / 4KB
+of end-to-end-read content. Decisions: briefs, implementer reports, notes, and
+verdict lines live in task-bean bodies (append-only sections; single-line enum
+flips); review packages (diff blobs) stay files in workspace/ with a verdict
+block + pointer in the bean; verdicts carry a lowercase-hyphen mirror tag for
+cross-bean filtering (dual-write accepted, tag-order noise accepted); a small
+bin/ helper set (sdd-gate, sdd-verdict, sdd-promote) protects quote/etag traps.
+Safety rules in all skill prose: search phrases always quoted; no --ready
+gating; etags on concurrent-capable paths; status changes via CLI only.

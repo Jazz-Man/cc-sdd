@@ -1,11 +1,11 @@
 ---
 # cc-sdd-wgk2
-title: 'Revisions 4+5+6: beans-only tasks + phase gates + validation gates'
+title: 'Revisions 4-7: beans-only tasks, phase gates, validation gates, workspace migration'
 status: todo
 type: task
 priority: normal
 created_at: 2026-09-23T18:03:21Z
-updated_at: 2026-09-24T13:15:31Z
+updated_at: 2026-09-24T14:35:32Z
 parent: cc-sdd-uwj4
 ---
 
@@ -68,3 +68,24 @@ Work-list additions:
 18. Fix-boundary + fixes-listed contract in validator texts
 19. workflow-map/README/guides/CLAUDE.md validation flow
 20. Battery: validated-tag + Doc-hash convention greps
+
+
+## REVISION 7 (2026-09-24, user + beans-artifact-research): workspace migrates to beans bodies
+
+Research-verified (live lab): no body size limits; bodyMod transactional; list carries no bodies; show is all-or-nothing (the real constraint -> ~100 lines/4KB boundary); 12 enum contract families inventoried; statuses impossible (+ GraphQL silently corrupts with '?' on CLI).
+
+DECISIONS (all confirmed):
+- MATRIX ADOPTED: task-brief/implementer-report/notes -> task-bean body sections (brief merges with rev-4 task spec; reports+notes append-only); review-package stays a FILE (workspace = blob storage only) with verdict block + one-line pointer in the bean
+- VERDICTS: authoritative body line + MIRROR TAG (user chose dual-write; lowercase-hyphen tags only — verdict-approved etc.; tags scramble on change = accepted git-diff noise)
+- bin/ HELPERS (user idea, small set): sdd-gate (phase+validated+doc-hash single call), sdd-verdict (read authoritative line), sdd-promote (draft->todo batch); one responsibility each
+- PROSE SAFETY RULES in all skills: search phrases ALWAYS quoted (unquoted colon-phrases silently return []); never --ready for gating (one-sided claim bug family); etags on any concurrent-capable path; no GraphQL status writes (CLI-only)
+
+Work-list additions:
+21. Task bean = full lifecycle record (brief/report/notes sections)
+22. Verdict lines + mirror tags dual-write discipline in templates/skills
+23. review-package file + pointer; workspace/ = blobs only
+24. impl stops writing brief/report FILES; dispatch carries task-bean id (subagent reads it) or inline brief section — implementation choice
+25. bin/ helpers (3, tiny)
+26. Safety prose rules everywhere
+27. Docs: workspace description update
+28. Battery: verdict-line + tag conventions; zero brief/report file references in skills
