@@ -1,6 +1,6 @@
 ---
 name: validate-design
-description: Generative fork - quality-review the active feature's design.md against the four review criteria, write the verdict-per-criterion report to workspace/design-review.md, and return a GO/NO-GO with blocking and minor findings. Use after /sdd:spec-design to pressure-test the design before tasks.
+description: Generative fork - quality-review the active feature's design.md against the four review criteria, apply only zero-semantics fixes, write the verdict-per-criterion report to workspace/design-review.md, and return a GO/NO_GO with blocking and minor findings. The design approve gate dispatches it automatically (Revision 6); it also runs standalone as a formative check.
 context: fork
 background: false
 model: opus
@@ -29,12 +29,24 @@ you are the independent second opinion before the plan gets built.
    branches: the user reviews and commits.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
-   any document.
+   any document. Phase completion, the `validated` tag, and the
+   `Doc-hash:` line are the presenting context's writes at the GO
+   moment - never yours.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **You review; you do not redesign.** No implementation-level design,
-   no technology research, no silent improvements to design.md. Findings
-   go to the report file; the user decides what happens to the document.
-5. **English output** - fixed; no per-spec language configuration exists.
+   no technology research. Your only edits to design.md are
+   zero-semantics fixes - typos, wrong paths (references to existing
+   files only), formatting, ID-label normalization - and every edit is
+   listed in the return's Fixes applied list (`- FIXES_APPLIED:`).
+   Anything that touches design meaning - a reworded decision, a moved
+   boundary, an added or removed component, alternative, or diagram
+   element - is a finding, never an edit. Findings go to the report
+   file; the user decides what happens to the document.
+5. **No hash computation.** Revision 6 pairs the document hash with
+   the phase-completion write: the presenting context computes it at
+   the GO moment, after your fixes have landed. You never compute or
+   record a hash.
+6. **English output** - fixed; no per-spec language configuration exists.
 
 ## Step 1 - Resolve the active feature
 
@@ -73,7 +85,35 @@ alignment with existing architecture - Grep/Read the modules it names
 and verify. A design that cites nonexistent structure is a finding, not
 a detail.
 
-## Step 3 - Review against the criteria
+## Step 3 - Zero-semantics fix pass
+
+Scan design.md for mechanical defects and fix them in place, recording
+every edit for the Fixes applied list:
+
+- **Typos** - spelling corrections only where the intended word is
+  unambiguous.
+- **Wrong paths** - references to EXISTING files or modules that do
+  not match the real layout (the codebase survey above is the
+  authority); correct the string. The prescriptive paths of the File
+  Structure Plan are design decisions, not defects - a finding, never
+  a fix.
+- **Formatting** - broken headings, list markers, or tables; mermaid
+  syntax errors repaired without adding, removing, or rewiring any
+  node or edge.
+- **ID-label normalization** - a malformed requirement-ID reference
+  (`R3`, `req 3`) becomes the exact ID as written in requirements.md;
+  the referent never changes.
+
+NOT fixes, ever: rewording a decision, changing a boundary, adding or
+removing components, alternatives, coverage, or diagram content. Those
+change the design - record them as findings with the better text as
+the suggested fix.
+
+Apply the fixes, then re-read the file and verify the edits took.
+Every check below quotes the FIXED text, so evidence line numbers stay
+true.
+
+## Step 4 - Review against the criteria
 
 Verdict per criterion, from design-review.md:
 
@@ -112,13 +152,14 @@ critical-focus rule - and say so when you stopped early. Each finding
 follows the rule's issue format: concern, impact, suggestion,
 traceability (requirement ID), evidence (design.md section).
 
-## Step 4 - Decide GO/NO-GO
+## Step 5 - Decide GO/NO_GO
 
 - **GO**: zero BLOCKING findings. The design is ready for task planning
   with acceptable risk; MINOR findings travel with it.
-- **NO-GO**: any BLOCKING finding. The design needs revision first.
+- **NO_GO**: any BLOCKING finding. The design needs revision first;
+  the phase stays open (Revision 6).
 
-## Step 5 - Write the report
+## Step 6 - Write the report
 
 Write `.sdd/specs/<feature>/workspace/design-review.md` (create the
 workspace directory if absent). If the file already exists, APPEND a new
@@ -129,8 +170,9 @@ survive untouched (the workspace is append-only). Structure per round:
 - Criterion verdicts: one line each (criterion, verdict, one-phrase why).
 - Critical issues (BLOCKING): the rule's issue format.
 - Minor findings: one line each.
+- Fixes applied: one line each.
 - Strengths: 1-2, to keep the assessment balanced.
-- Final assessment: GO or NO-GO with 1-2 sentences of rationale.
+- Final assessment: GO or NO_GO with 1-2 sentences of rationale.
 
 Verify the write by reading the file back.
 
@@ -142,38 +184,51 @@ caller parses the heading and the `- STATUS:` line mechanically:
 ```
 ## Design Review Summary
 - STATUS: <DONE | BLOCKED>
-- VERDICT: <GO | NO-GO>
+- VERDICT: <GO | NO_GO>
 - CRITERIA: <criterion: verdict, one per line - all four>
 - BLOCKING: <one line per blocking finding, or none>
-- MINOR: <count, one line each>
+- MINOR: <count first, then one line each>
+- FIXES_APPLIED: <one line per zero-semantics fix, or none>
 - PATH: <.sdd/specs/<feature>/workspace/design-review.md, or - when BLOCKED>
 - BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
 ```
 
 **To the presenting main context.** You invoked this fork; it cannot ask
 the user anything, so you own the adjudication. On DONE: present the
-verdict, the criterion verdicts, and each BLOCKING finding with its
-impact (the user reads design-review.md in the IDE; do not dump it into
-chat). Then AskUserQuestion:
+verdict, the criterion verdicts, each BLOCKING finding with its impact,
+and the fixes it applied (the user reads design-review.md in the IDE;
+do not dump it into chat). Then by invocation:
 
-1. **Accept GO, generate tasks** (Recommended, when VERDICT is GO) -
-   name the next command in a code block:
-   ```
-   /sdd:spec-tasks
-   ```
-   MINOR findings travel as context into the tasks phase.
-2. **Send findings to revision** (when VERDICT is NO-GO, or the user
-   rejects a GO) - the user picks the findings to address; append them
-   under `## Round <K>` in
-   `.sdd/specs/<feature>/workspace/design-edits.md` (create the file if
-   needed; workspace files are append-only), then re-invoke
-   `/sdd:spec-design` - a NEW fork edit-merges the round. Re-run
-   `/sdd:validate-design` afterwards.
-3. **Accept as-is despite findings** - the user explicitly accepts the
-   risk; record that in one line appended to design-review.md, then
-   proceed as in option 1.
-4. **Stop** - the user takes over; the report stays on disk.
+- **Auto-gate - dispatched by the spec-design approve step (spec
+  Revision 6).** On GO the design phase may complete: the phase bean
+  closes with the `validated` tag and the document's hash recorded as
+  its `Doc-hash:` line, computed at this moment, after the fork's
+  fixes (the fork computed no hash and wrote no beans - those writes
+  are yours). The wiring lives in the design approve gate. On NO_GO
+  the four-part escalation is YOURS, never the fork's: how it should
+  have been / what actually happened / why it matters / resolution
+  options, via AskUserQuestion, with the fork's BLOCKING findings as
+  the payload. The phase stays open.
+- **Standalone formative run.** AskUserQuestion:
 
-On BLOCKED: present the blocker and the named command, then
-AskUserQuestion on how to proceed (resolve via that command / adjust
-inputs / stop).
+  1. **Accept GO, generate tasks** (Recommended, when VERDICT is GO) -
+     name the next command in a code block:
+     ```
+     /sdd:spec-tasks
+     ```
+     MINOR findings travel as context into the tasks phase.
+  2. **Send findings to revision** (when VERDICT is NO_GO, or the user
+     rejects a GO) - the user picks the findings to address; append
+     them under `## Round <K>` in
+     `.sdd/specs/<feature>/workspace/design-edits.md` (create the file
+     if needed; workspace files are append-only), then re-invoke
+     `/sdd:spec-design` - a NEW fork edit-merges the round. Re-run
+     `/sdd:validate-design` afterwards.
+  3. **Accept as-is despite findings** - the user explicitly accepts
+     the risk; record that in one line appended to design-review.md,
+     then proceed as in option 1.
+  4. **Stop** - the user takes over; the report stays on disk.
+
+On BLOCKED (either invocation): present the blocker and the named
+command, then AskUserQuestion on how to proceed (resolve via that
+command / adjust inputs / stop).

@@ -29,8 +29,10 @@ Division of labor:
 2. **beans is the only tracker.** This skill writes no task state to
    beans - its bean writes are the Step 0 recovery updates, the re-entry
    updates of the phase-gate check, and the phase-gate completion of
-   Phase 3; the document on disk is the artifact. Never write progress,
-   approval, or blocked state into documents.
+   Phase 3 with its Revision 6 writes (the `validated` tag and the
+   `Doc-hash:` round on the phase bean); the document on disk is the
+   artifact. Never write progress, approval, or blocked state into
+   documents.
 3. **State lives in files, not chat.** Everything the drafter needs is
    written to `workspace/qa-digest.md` BEFORE dispatch; the dispatch
    prompt carries paths, never transcript.
@@ -98,7 +100,7 @@ Division of labor:
      path creates missing phase beans) before completion.
 
    Keep the requirements phase bean id at hand (when present); Phase 3
-   completes it at the approve gate.
+   validates onto it and completes it at the approve gate.
 4. **Existing-document gate**: if
    `.sdd/specs/<feature>/requirements.md` already exists, ask via
    AskUserQuestion before the interview begins:
@@ -237,18 +239,72 @@ in the IDE. Do not dump the document into chat.
 No new open questions from you here - confirm-only. Then
 AskUserQuestion:
 
-1. **Approve** (Recommended) - requirements are settled. Close the phase
-   gate: `beans update <requirements-phase-id> -s completed` (the id
-   from the Step 0 phase-gate check - `completed` IS the approval
-   record, spec Revision 5). (Rev 6 / C2 insertion point: the
-   validate-requirements auto-validator inserts between the approve
-   answer and this completion step - keep the completion standalone.)
-   Then name the next command in a code block:
-   ```
-   /sdd:spec-design
-   ```
-   Brownfield note: `/sdd:validate-gap` (optional) analyzes these
-   requirements against the existing codebase before design.
+1. **Approve** (Recommended) - requirements are settled. Approval runs
+   the independent validator FIRST (spec Revision 6): the phase
+   completes only on its GO.
+   - Dispatch the validate-requirements fork - Agent tool,
+     general-purpose, `model: opus`, paths only:
+     ```
+     Agent(
+       description: "Validate requirements for <feature>",
+       subagent_type: general-purpose,
+       model: opus,
+       prompt: (paths only)
+         Apply:       <abs-path>/skills/validate-requirements/SKILL.md
+         Feature dir: .sdd/specs/<feature>/
+         Document:    .sdd/specs/<feature>/requirements.md
+         Return exactly the ## Requirements Validation Summary block
+         the skill defines.
+     )
+     ```
+     Parse discipline: only the exact summary block and its
+     `- STATUS:` and `- VERDICT:` lines count; resume the fork once
+     (SendMessage) if the block is missing. Present its verdict,
+     findings, and fixes to the user - short lists in chat, the
+     workspace file when PATH names one.
+   - **GO** - the phase closes in this order (the phase-bean id from
+     the Step 0 check; `completed` IS the approval record, spec
+     Revision 5):
+     1. Tag: `beans update <requirements-phase-id> --tag validated`
+     2. Hash, computed NOW - after the validator's fixes, at the GO
+        moment (the fork never hashes; this write is yours):
+        `shasum -a 256 .sdd/specs/<feature>/requirements.md`
+     3. Append a `## Validation` round to the PHASE BEAN body
+        (`--body-append`; create the section on the first round,
+        later rounds append beneath it): date, verdict GO,
+        `Doc-hash: <the sha256 just computed>`
+     4. Complete: `beans update <requirements-phase-id> -s completed`
+     Then name the next command in a code block:
+     ```
+     /sdd:spec-design
+     ```
+     Brownfield note: `/sdd:validate-gap` (optional) analyzes these
+     requirements against the existing codebase before design. MINOR
+     findings travel with the document - name them at the completion
+     presentation. (Step 0 legacy case - no requirements phase bean:
+     skip the writes above and name `/sdd:spec-init` for its heal
+     path; a heal run creates the bean, and a re-run of this gate
+     validates onto it.)
+   - **NO_GO** - four-part escalation, verbatim, the validator's
+     BLOCKING findings as the payload:
+     ```
+     1. Per plan: approval requires a validated document - zero
+        BLOCKING findings
+     2. Actual: the validator returned NO_GO - <the BLOCKING
+        findings>
+     3. Why it matters: approving now would carry the defects into
+        design and tasks
+     4. Options: revise now / stop
+     ```
+     The phase stays open - no tag, no hash, no completion.
+     **Revise now** takes the Edit path below with the findings as
+     the seed feedback: append them to the digest under
+     `## Edit round <K>`, redraft, re-present, confirm - and the next
+     Approve re-dispatches the validator. Loop edit -> validate until
+     GO or the user stops.
+   - **BLOCKED** - present the blocker and the named command, then
+     AskUserQuestion (resolve via that command / stop); the phase
+     stays open.
 2. **Edit** - the user supplies feedback. Append it to the digest under
    `## Edit round <K>`, resume the SAME drafter via SendMessage where
    possible (fresh dispatch otherwise), then re-present and confirm

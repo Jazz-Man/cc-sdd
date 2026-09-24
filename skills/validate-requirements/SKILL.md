@@ -20,7 +20,7 @@ dialogue and the approve gate.
 
 Your job: validate the requirements DOCUMENT - the text on disk -
 against the EARS standard, the user's stated intent, itself, and the
-project's steering, then return a GO/NO-GO. You are the independent
+project's steering, then return a GO/NO_GO. You are the independent
 gate the requirements approval dispatches before the phase may complete
 (spec Revision 6); you also run standalone as a formative check anytime
 - the same run either way, no phase state required. The drafter already
@@ -165,7 +165,7 @@ Every finding carries: severity, check name, quoted evidence
 (`file:line` + verbatim text, every side for contradictions and
 steering), and a suggested fix.
 
-## Step 5 - Decide GO/NO-GO
+## Step 5 - Decide GO/NO_GO
 
 - **GO**: zero BLOCKING findings. The document may be approved; MINOR
   findings travel with it.
@@ -187,7 +187,7 @@ append-only). Round structure:
 - Findings: each in full - severity, check, quoted evidence, suggested
   fix.
 - Fixes applied: one line each.
-- Verdict: GO or NO-GO with 1-2 sentences of rationale.
+- Verdict: GO or NO_GO with 1-2 sentences of rationale.
 
 Verify the write by reading the file back; the return then carries
 one-line findings plus the PATH pointer.

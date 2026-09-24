@@ -28,7 +28,8 @@ WHAT.
    read-only inspection. Nothing in this run stages, commits, pushes, or
    touches branches: the user reviews and commits.
 2. **The fork writes no beans.** It resolves the active feature by
-   reading beans; the design phase-gate completion belongs to the
+   reading beans; the design phase-gate completion - with its
+   Revision 6 `validated`-tag and `Doc-hash` writes - belongs to the
    presenting main context (Return contract), and task-bean lifecycle
    belongs to `/sdd:spec-tasks`. Never write progress, approval, or
    blocked state into any document.
@@ -85,8 +86,8 @@ read `blockedByIds`). Identify the phase beans by exact title plus the
   a CONCERNS line so it reaches the gate.
 
 Keep the design phase bean id at hand (when present); return it in the
-summary block (PHASE line) - the presenting context completes it at the
-confirm gate.
+summary block (PHASE line) - the presenting context validates onto it
+and completes it at the confirm gate.
 
 ## Step 3 - Load inputs
 
@@ -216,18 +217,73 @@ recommended one, boundary highlights, concerns, and the document path
 (the user reads design.md in the IDE; do not dump it into chat). Then
 AskUserQuestion, confirm-only:
 
-1. **Approve** (Recommended) - the design is settled. Close the phase
-   gate: `beans update <design-phase-id> -s completed` (the PHASE id
-   from the fork's summary - `completed` IS the approval record, spec
-   Revision 5). (Rev 6 / C2 insertion point: the validate-design
-   auto-validator inserts between the approve answer and this
-   completion step - keep the completion standalone.) Then name the
-   next command in a code block:
-   ```
-   /sdd:spec-tasks
-   ```
-   Optional first: `/sdd:validate-design` for a forked quality
-   review of the document.
+1. **Approve** (Recommended) - the design is settled. Approval runs
+   the independent validator FIRST (spec Revision 6): the phase
+   completes only on its GO.
+   - Dispatch the validate-design fork - Agent tool, general-purpose,
+     `model: opus`, paths only:
+     ```
+     Agent(
+       description: "Validate design for <feature>",
+       subagent_type: general-purpose,
+       model: opus,
+       prompt: (paths only)
+         Apply:       <abs-path>/skills/validate-design/SKILL.md
+         Feature dir: .sdd/specs/<feature>/
+         Document:    .sdd/specs/<feature>/design.md
+         Return exactly the ## Design Review Summary block the skill
+         defines.
+     )
+     ```
+     Parse discipline: only the exact summary block and its
+     `- STATUS:` and `- VERDICT:` lines count; resume the fork once
+     (SendMessage) if the block is missing. Present its verdict,
+     criterion verdicts, findings, and fixes to the user - short
+     lists in chat, the report file when PATH names one.
+   - **GO** - the phase closes in this order (the PHASE id from the
+     fork's summary; `completed` IS the approval record, spec
+     Revision 5):
+     1. Tag: `beans update <design-phase-id> --tag validated`
+     2. Hash, computed NOW - after the validator's fixes, at the GO
+        moment (the fork never hashes; this write is yours):
+        `shasum -a 256 .sdd/specs/<feature>/design.md`
+     3. Append a `## Validation` round to the PHASE BEAN body
+        (`--body-append`; create the section on the first round,
+        later rounds append beneath it): date, verdict GO,
+        `Doc-hash: <the sha256 just computed>`
+     4. Complete: `beans update <design-phase-id> -s completed`
+     Then name the next command in a code block:
+     ```
+     /sdd:spec-tasks
+     ```
+     MINOR findings travel as context into the tasks phase. (Step 2
+     legacy case - no design phase bean: skip the writes above and
+     name `/sdd:spec-init` for its heal path.)
+   - **NO_GO** - four-part escalation, verbatim, the validator's
+     BLOCKING findings as the payload:
+     ```
+     1. Per plan: approval requires a validated design - zero
+        BLOCKING findings
+     2. Actual: the validator returned NO_GO - <the BLOCKING
+        findings>
+     3. Why it matters: task generation would inherit the design's
+        defects
+     4. Options: revise now / stop
+     ```
+     The phase stays open - no tag, no hash, no completion.
+     **Revise now** takes option 2 below with the findings as the
+     seed feedback: append them under `## Round <K>` in
+     `.sdd/specs/<feature>/workspace/design-edits.md`, re-invoke
+     `/sdd:spec-design` for the edit-merge, re-present - and the
+     next Approve re-dispatches the validator. Loop edit ->
+     validate until GO or the user stops.
+   - **BLOCKED** - present the blocker and the named command, then
+     AskUserQuestion (resolve via that command / stop); the phase
+     stays open.
+
+   A standalone `/sdd:validate-design` run stays available anytime
+   as a formative check; the approve gate above runs its own
+   validation regardless.
 2. **Edit** - the user supplies feedback. Append it under
    `## Round <K>` in
    `.sdd/specs/<feature>/workspace/design-edits.md` (create the file if
