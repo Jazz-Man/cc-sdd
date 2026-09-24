@@ -111,13 +111,13 @@ Read, under the spec directory:
   there are never evidence.
 - Steering: already in your context (project memory, loaded at session
   start) - apply it; do not re-read the files.
-- The verify-completion protocol at
-  `${CLAUDE_SKILL_DIR}/../verify-completion/SKILL.md` (a sibling
-  directory of this file in the plugin; if `${CLAUDE_SKILL_DIR}` does
-  not expand, fall back to
-  `${CLAUDE_PLUGIN_ROOT}/skills/verify-completion/SKILL.md`. Hard rule 4
-  and Step 5 restate its core discipline regardless) - the fresh-evidence
-  gate you apply in Step 5, claim type `FEATURE_GO`.
+- The verify-completion protocol - the fresh-evidence gate you apply in
+  Step 5, claim type `FEATURE_GO`. Its file sits in a sibling skill
+  directory of this one; resolve it from the absolute path of this file
+  in your prompt: `<given-path>/../verify-completion/SKILL.md` (neither
+  `${CLAUDE_SKILL_DIR}` nor `${CLAUDE_PLUGIN_ROOT}` expands in a
+  plain-file-read dispatch). Hard rule 4 and Step 5 restate its core
+  discipline regardless.
 
 **Feature boundary scope**: translate the tasks' `_Boundary:_`
 annotations into path patterns via design.md's structure map; when no
