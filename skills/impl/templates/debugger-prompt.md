@@ -16,9 +16,10 @@ contract instead.
 Your dispatch prompt carries file paths, never file contents. Read:
 
 - **Failure summary** — the one-line symptom.
-- **Task brief** — `workspace/task-<N>-brief.md`: what was being built.
-- **Reports** — `workspace/task-<N>-report.md`: what was attempted.
-  Evidence to weigh, not truth to adopt.
+- **Task bean** — the dispatch carries the task bean id; run
+  `beans show <task-id>` (read-only) and read its `## Brief` section:
+  what was being built. Any further notes the bean body carries are
+  evidence to weigh, not truth to adopt.
 - **Review evidence** — `workspace/review-package-<N>.md`, if it exists.
   On a first-round BLOCKED no package exists yet; work from the working
   tree instead.
@@ -38,7 +39,8 @@ Your dispatch prompt carries file paths, never file contents. Read:
    not edit code. A hypothesis is confirmed by evidence, never by trying
    a fix to see what happens.
 3. **No tracking writes.** Never edit `tasks.md`, never flip checkboxes,
-   never touch beans.
+   never write to beans (`beans show` on the task bean is the only beans
+   command you run — read-only).
 4. **No subagents of your own.** Do the investigation yourself.
 5. **Root cause first.** One confirmed cause, one minimal plan. Never a
    multi-fix shotgun.
@@ -79,7 +81,7 @@ never rename them, never replace the values with synonyms:
 - VERIFICATION: <commands that will confirm the fix>
 - STUCK: <UNRESOLVED only — what is established and why it does not resolve>
 - ESCALATION: <UNRESOLVED only>
-  1. Per plan: <what the plan/tasks.md specified>
+  1. Per plan: <what the task bean's ## Brief specified>
   2. Actual: <what happened>
   3. Why it matters: <consequence>
   4. Options: accept as-is / fix now / change the plan / abort
