@@ -94,10 +94,6 @@ time.
    > **Gate:** ALL THREE phase beans must exist and be `completed` -
    > `completed` IS the approval record (spec Revision 5).
 
-   (Rev 6 / C2 insertion point: the `validated`-tag + `Doc-hash`
-   checks on the requirements and design phase beans insert into this
-   gate - keep the completed-check standalone.)
-
    - **Any of the three phase beans missing** -> partial-legacy state:
      stop and point the user to `/sdd:spec-init` (a heal run with the
      same feature name creates missing phase beans idempotently).
@@ -105,6 +101,41 @@ time.
      not `completed`** -> stop naming its command:
      `/sdd:spec-requirements`, `/sdd:spec-design`, or `/sdd:spec-tasks`
      respectively.
+
+   **Freshness gate (spec Revision 6)** - on top of `completed`, the
+   requirements and design phase beans must carry the `validated` tag
+   (read from the children query's `tags`), and the `Doc-hash:` line
+   in each one's `## Validation` body section (read from the query's
+   `body`) must equal the CURRENT hash of the document it validated.
+   The tasks phase bean carries neither - validation is scoped to
+   requirements and design only. Recompute both hashes yourself:
+
+   - `shasum -a 256 .sdd/specs/<feature>/requirements.md` vs the
+     `Doc-hash:` on `Phase — requirements`
+   - `shasum -a 256 .sdd/specs/<feature>/design.md` vs the
+     `Doc-hash:` on `Phase — design`
+
+   (The recorded hash was computed at the GO moment, after the
+   validator's fixes; any later edit - committed or not - changes the
+   current one.)
+
+   - **Tag missing, or the `Doc-hash:` line absent, on requirements
+     or design** -> the phase closed without its validation record:
+     stale. STOP - never proceed past it, never re-validate silently.
+     Present the four-part format - 1. Per plan: completed
+     requirement/design phases carry `validated` and a `Doc-hash:`
+     line. 2. Actual: `<bean>` is missing `<the tag | the Doc-hash
+     line>`. 3. Why it matters: the approval's validation evidence
+     does not exist. 4. Options: re-run the phase's command to revise
+     and re-validate / stop - naming `/sdd:spec-requirements` or
+     `/sdd:spec-design`.
+   - **Hash mismatch** -> the document changed after its validation
+     (committed or not): stale. Same STOP, same four parts, naming
+     the re-validation command for the mismatched document
+     (`/sdd:spec-requirements` for requirements.md,
+     `/sdd:spec-design` for design.md). Staleness is mechanical and
+     the decision is the user's: you never re-validate, never
+     overwrite a `Doc-hash:`, and never continue past a stale gate.
 
 3. **Resolve the task queue**: from the same children query, the epic's
    task beans EXCLUDING the `phase`-tagged gate beans, with their
@@ -425,7 +456,7 @@ Agent(
     Apply:      <abs-path>/skills/validate-impl/SKILL.md
     Feature:    .sdd/specs/<feature>/ (requirements.md, design.md)
     Workspace:  .sdd/specs/<feature>/workspace/ (review packages, notes.md)
-    Return the GO / NO-GO result with its evidence.
+    Return the GO / NO_GO result with its evidence.
 )
 ```
 
