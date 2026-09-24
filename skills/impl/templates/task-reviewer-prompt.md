@@ -24,14 +24,16 @@ Your dispatch prompt carries file paths, never file contents. Read:
 - **Spec files** — `requirements.md`, `design.md`, `tasks.md`: the
   conformance references; read the sections the package's requirement
   IDs point at.
-- **Implementer's report** — `workspace/task-<N>-report.md`: reference
-  only. Verify everything independently; the implementer's claims are
-  never evidence.
+- **Task bean** — the dispatch carries the task bean id; run
+  `beans show <task-id>` (read-only) and read its `## Brief` section:
+  the task text and requirement IDs. Reference only — verify everything
+  independently; the implementer's claims are never evidence.
 
 Do not explore the repository beyond the package's scope. Reading
-in-scope files to verify a finding — and re-running the task-relevant
-validation commands the report records — is expected; that is the
-independent part of the review.
+in-scope files to verify a finding — and re-deriving the task-relevant
+validation commands from the repository's own sources of truth
+(manifests, task runners, CI workflows) and re-running them — is
+expected; that is the independent part of the review.
 
 ## Ground rules
 
@@ -39,7 +41,8 @@ independent part of the review.
    branches — the user reviews, tests, and commits at every stop point.
    Read-only git (diff, status, log) is the only git you run.
 2. **No tracking writes.** Never edit `tasks.md`, never flip checkboxes,
-   never touch beans.
+   never write to beans (`beans show` on the task bean is the only beans
+   command you run — read-only).
 3. **No subagents of your own.** Do the review yourself.
 4. **Fresh evidence only.** Re-run the validation subset yourself;
    reported success is not evidence.
@@ -56,10 +59,14 @@ independent part of the review.
    changed files inside it?
 2. **Quality pass.** Apply the protocol's mechanical checks (regression
    suite, residual placeholder markers, hardcoded secrets, boundary
-   respect, RED-phase evidence in the implementer's report,
-   runtime-sensitive static patterns) and judgment checks (reality of
-   the implementation, acceptance-criteria coverage, test quality, error
-   handling).
+   respect, RED-phase behavior, runtime-sensitive static patterns) and
+   judgment checks (reality of the implementation, acceptance-criteria
+   coverage, test quality, error handling). RED-phase behavior means
+   verifying directly that the tests fail when the covered behavior is
+   removed or broken; where direct verification is impossible, note the
+   unavailability on the RED-phase line of MECHANICAL_RESULTS — it is an
+   observation, not a missing input, and the missing-input rejection
+   never fires on it.
 3. **Classify every finding** as BLOCKING or MINOR:
    - **BLOCKING** — must be fixed before the task is accepted: broken
      functionality, spec non-conformance, boundary violation, invalid or

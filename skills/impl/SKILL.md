@@ -19,8 +19,9 @@ Division of labor:
 - **Subagents** implement, review, and debug. They NEVER ask the user
   questions. They return status contracts with structured explanations, and
   you formulate the AskUserQuestion.
-- **You** resolve state from beans, write task briefs, build review packages,
-  parse contracts, adjudicate, update beans, and gate every stop point.
+- **You** resolve state from beans, translate task boundaries into dispatch
+  payloads, build review packages, parse contracts, adjudicate, update
+  beans, and gate every stop point.
 
 ## Hard rules
 
@@ -30,9 +31,10 @@ Division of labor:
    this skill stages, commits, pushes, or touches branches: the user reviews,
    tests, and commits at every stop point. The feature branch is created and
    deleted by the user.
-2. **Paths, never contents.** Dispatch prompts carry file paths and path
-   patterns, never file contents. Subagents read files and Glob-expand
-   patterns themselves.
+2. **Paths and ids, never contents.** Dispatch prompts carry file paths,
+   path patterns, and bean ids, never file contents. Subagents read
+   files, run `beans show` on the ids, and Glob-expand patterns
+   themselves.
 3. **Resolve plugin variables before dispatch.** `${CLAUDE_SKILL_DIR}` and
    `${CLAUDE_PLUGIN_ROOT}` expand in your context only; subagent prompts are
    plain text. Always pass resolved absolute paths to templates and protocols.
@@ -51,9 +53,10 @@ Division of labor:
    arrives as a status contract; you decide whether it is answerable from the
    repo/spec files or must go to the user via AskUserQuestion.
 6. **beans is the only tracker.** Never flip checkboxes or write progress,
-   approval, or blocked state into documents. `tasks.md` is a STATIC plan
-   document; execution state lives in beans and workspace files only.
-   Lifecycle follows the global beans guide.
+   approval, or blocked state into documents. The task beans ARE the
+   plan (spec Revision 4 - no plan document exists); execution state
+   lives in beans and workspace files only. Lifecycle follows the global
+   beans guide.
 7. **Single active feature.** Exactly one feature is active at any time (spec
    5.5). You never accept a feature argument; you resolve the feature from
    beans.
@@ -81,16 +84,41 @@ time.
      complete it / scrap it (you run either as a beans update on the user's
      answer) / stop and the user fixes beans manually. Then re-invoke
      `/sdd:impl`.
-2. **Resolve the task queue**: query the epic's task beans with their
-   statuses and blocked-by relations (e.g.
-   `beans query --json '{ bean(id: "<epic-id>") { children { id title status blockedByIds } } }'`).
-   A task is **unblocked** when none of its blocked-by beans is incomplete
-   (`todo`, `draft`, or `in-progress` - completed and scrapped blockers do
-   not block). A task is **actionable** when it has status `todo` or
-   `in-progress`, is unblocked, and its body carries no unresolved
-   `## Blocker` note (the blocked-task encoding written by Step 6; a note is
-   unresolved until the task completes or the user explicitly clears it).
-3. **Select the task**:
+2. **Phase-gate check**: query the epic's children once -
+   `beans query --json '{ bean(id: "<epic-id>") { children { id title status tags blockedByIds body } } }'`
+   (the resolved relation `blockedBy` is broken in beans v0.4.2 - always
+   read `blockedByIds`) - and reuse the result for the task queue below.
+   Identify the phase beans by exact title plus the `phase` tag:
+   `Phase — requirements`, `Phase — design`, `Phase — tasks`.
+
+   > **Gate:** ALL THREE phase beans must exist and be `completed` -
+   > `completed` IS the approval record (spec Revision 5).
+
+   (Rev 6 / C2 insertion point: the `validated`-tag + `Doc-hash`
+   checks on the requirements and design phase beans insert into this
+   gate - keep the completed-check standalone.)
+
+   - **Any of the three phase beans missing** -> partial-legacy state:
+     stop and point the user to `/sdd:spec-init` (a heal run with the
+     same feature name creates missing phase beans idempotently).
+   - **First phase bean in flow order (requirements -> design -> tasks)
+     not `completed`** -> stop naming its command:
+     `/sdd:spec-requirements`, `/sdd:spec-design`, or `/sdd:spec-tasks`
+     respectively.
+
+3. **Resolve the task queue**: from the same children query, the epic's
+   task beans EXCLUDING the `phase`-tagged gate beans, with their
+   statuses and blocked-by relations. A task is **unblocked** when none
+   of its blocked-by beans is incomplete (`todo`, `draft`, or
+   `in-progress` - completed and scrapped blockers do not block). A task
+   is **actionable** when it has status `todo` or `in-progress`, is
+   unblocked, and its body carries no unresolved `## Blocker` note (the
+   blocked-task encoding written by Step 6; a note is unresolved until
+   the task completes or the user explicitly clears it). Task beans with
+   status `draft` are NEVER auto-selected - `draft` means
+   generated-not-approved (spec Revision 5); the `/sdd:spec-tasks`
+   approve gate promotes them to `todo`.
+4. **Select the task**:
    - No argument: the lowest-numbered actionable task; an `in-progress` task
      wins over a `todo` task with the same number (interrupted run resumes
      there). If a task would be selected but for an unresolved `## Blocker`
@@ -103,7 +131,7 @@ time.
      task, provided it belongs to the active feature and is not completed or
      scrapped; if it is effectively blocked, stop and report the blocking
      beans.
-4. **Terminal checks**:
+5. **Terminal checks**:
    - No task beans at all -> stop: the plan has not been generated. Point the
      user to `/sdd:spec-tasks`.
    - No actionable tasks remain and every task bean is completed or scrapped
@@ -125,19 +153,16 @@ time.
    trustworthy smoke check. Keep the full set in your context; pass only the
    task-relevant subset into dispatch prompts.
 3. **Mark the task started**: `beans update <task-id> -s in-progress`.
-4. **Write the task brief** to
-   `.sdd/specs/<feature>/workspace/task-<N>-brief.md` (append a dated section
-   if the file already exists from an interrupted run). The brief contains:
-   - The task ID and the task's section extracted verbatim from `tasks.md`
-     (text, detail bullets, and its `_Requirements:_`, `_Boundary:_`,
-     `_Depends:_` annotations).
-   - Requirement IDs from the plan and the task bean body.
-   - The boundary translated into path patterns (use design.md's structure
-     map); note `full working tree` when no boundary is declared or the
-     boundary cannot be translated confidently.
-   - Path patterns for the spec files and the codebase scope.
-   - The task-relevant validation command subset.
-   - A pointer to `workspace/notes.md` for prior learnings.
+4. **Resolve the dispatch inputs** - no brief file is written: the task
+   bean's `## Brief` body section IS the brief (spec Revisions 4+7); the
+   subagent reads the bean itself. You resolve:
+   - The task bean id (from Step 0) for the dispatch payload.
+   - The boundary translated into path patterns (use design.md's
+     structure map); note `full working tree` when no boundary is
+     declared or the boundary cannot be translated confidently.
+   - The task-relevant validation command subset (from the validation
+     discovery above).
+   - The learnings pointer: `workspace/notes.md`.
 
 ## Step 2 - Dispatch the implementer
 
@@ -149,16 +174,17 @@ Agent(
   description: "Implement task <N>",
   subagent_type: general-purpose,
   model: sonnet,
-  prompt: (paths only)
+  prompt: (paths and ids only)
     Role prompt: <abs-path>/skills/impl/templates/implementer-prompt.md
                  (read it first and follow it exactly)
-    Task brief:   .sdd/specs/<feature>/workspace/task-<N>-brief.md
-    Spec files:   .sdd/specs/<feature>/requirements.md,
-                  .sdd/specs/<feature>/design.md,
-                  .sdd/specs/<feature>/tasks.md
-    Code scope:   <boundary path patterns, or repo root>
-    Validation:   <task-relevant command subset>
-    Learnings:    .sdd/specs/<feature>/workspace/notes.md
+    Task bean:   <task-bean-id> (run `beans show <task-bean-id>` - its
+                 ## Brief section IS the task brief)
+    Spec files:  .sdd/specs/<feature>/requirements.md,
+                 .sdd/specs/<feature>/design.md
+    Steering:    .claude/rules/ of this project (only when present)
+    Code scope:  <boundary path patterns, or repo root>
+    Validation:  <task-relevant command subset>
+    Learnings:   .sdd/specs/<feature>/workspace/notes.md
     Return exactly the ## Status Report block your role prompt defines.
 )
 ```
@@ -180,9 +206,9 @@ this round (field shape defined by the role prompt).
 
 | STATUS | Action |
 |---|---|
-| `DONE` | Append the report to `workspace/task-<N>-report.md` (with a round header). Go to Step 4. |
+| `DONE` | Hold the contract in context; go to Step 4. |
 | `DONE_WITH_CONCERNS` | Same as `DONE`, plus hold the concerns: they surface at the STOP in the four-part format and are appended to the task bean in Step 8. Review still runs - concerns do not bypass it. |
-| `BLOCKED` | Append the report; go to Step 6 (debug protocol). |
+| `BLOCKED` | Go to Step 6 (debug protocol). |
 | `NEEDS_CONTEXT` | The report states exactly what is missing. If it is trivially answerable from repo or spec files, answer it yourself and resume the implementer (SendMessage) with the answer. Otherwise formulate an AskUserQuestion for the user, then resume the implementer with their answer. Context rounds do not count against the fix-loop budget - but if the implementer repeats `NEEDS_CONTEXT` with no new specifics after being answered, treat it as `BLOCKED`. |
 
 ## Step 4 - Build the review package and dispatch the reviewer
@@ -192,8 +218,9 @@ this round (field shape defined by the role prompt).
    - Scope: the task's boundary paths when declared, else the full working
      tree. Unrelated uncommitted user work (the Step 1 baseline outside the
      scope) never enters the package.
-   - Contents: header (task ID, requirement IDs, scope, baseline note), the
-     findings under remediation (rounds 2+), the scoped diffstat and diff
+   - Contents: header (task ID, requirement IDs from the task bean's
+     `_Requirements:` metadata, scope, baseline note), the findings
+     under remediation (rounds 2+), the scoped diffstat and diff
      (`git diff -- <paths>`), and full contents of untracked in-scope files
      (from `git status --porcelain`).
    - `git diff` and `git status` are the only git calls used here; agents
@@ -208,13 +235,14 @@ Agent(
   description: "Review task <N>",
   subagent_type: general-purpose,
   model: opus,
-  prompt: (paths only)
+  prompt: (paths and ids only)
     Role prompt:     <abs-path>/skills/impl/templates/task-reviewer-prompt.md
     Review protocol: <abs-path>/skills/review/SKILL.md (apply it to this task)
     Package:         .sdd/specs/<feature>/workspace/review-package-<N>.md
-    Spec files:      .sdd/specs/<feature>/requirements.md, design.md, tasks.md
-    Implementer report (reference only - verify independently):
-                     .sdd/specs/<feature>/workspace/task-<N>-report.md
+    Spec files:      .sdd/specs/<feature>/requirements.md, design.md
+    Task bean:       <task-bean-id> (its ## Brief carries the task text and
+                     requirement IDs - verify against it independently;
+                     the implementer's contract is not evidence)
     Return exactly the ## Review Verdict block your role prompt defines.
 )
 ```
@@ -273,12 +301,12 @@ Agent(
   description: "Debug task <N> failure",
   subagent_type: general-purpose,
   model: opus,
-  prompt: (paths only)
+  prompt: (paths and ids only)
     Role prompt:      <abs-path>/skills/impl/templates/debugger-prompt.md
     Debug protocol:   <abs-path>/skills/debug/SKILL.md (apply it)
     Failure summary:  <one-line symptom>
-    Task brief:       .sdd/specs/<feature>/workspace/task-<N>-brief.md
-    Reports:          .sdd/specs/<feature>/workspace/task-<N>-report.md
+    Task bean:        <task-bean-id> (its ## Brief section says what was
+                      being built)
     Review evidence:  .sdd/specs/<feature>/workspace/review-package-<N>.md
                       (if built; on a first-round BLOCKED no package exists
                       yet - the debugger relies on the working tree)
@@ -328,13 +356,11 @@ type `TASK`:
 
 ## Step 8 - Record state
 
-1. Append the implementer's final `## Status Report` (round-headed) to
-   `workspace/task-<N>-report.md` if not already there.
-2. Concerns (`DONE_WITH_CONCERNS`, verification gaps, accepted disputes):
+1. Concerns (`DONE_WITH_CONCERNS`, verification gaps, accepted disputes):
    one line each, appended to the task bean body.
-3. Cross-cutting learnings for later tasks: one line each, appended to
+2. Cross-cutting learnings for later tasks: one line each, appended to
    `workspace/notes.md` under `## Learnings`.
-4. Complete the task bean: `beans update <task-id> -s completed` with a short
+3. Complete the task bean: `beans update <task-id> -s completed` with a short
    `## Summary of Changes` appended per the global beans guide.
 
 ## Step 9 - STOP (after every task)
@@ -348,7 +374,7 @@ diff summary, no changed-file list, no beans recap.
 Present any concern or deviation in the four-part format, verbatim:
 
 ```
-1. Per plan: <what the plan/tasks.md specified>
+1. Per plan: <what the task bean's ## Brief specified>
 2. Actual: <what happened>
 3. Why it matters: <consequence>
 4. Options: accept as-is / fix now / change the plan / abort
@@ -363,14 +389,15 @@ Then ask via AskUserQuestion (recommended option first, labeled):
    input (same implementer via SendMessage where possible, else fresh sonnet
    dispatch), scoped re-review, verification gate, beans update, and STOPs
    again.
-3. **Escalate to plan change** - stop the run. The plan (`tasks.md` and its
-   beans) must be revised before impl resumes; the user drives that revision
+3. **Escalate to plan change** - stop the run. The plan (the task beans)
+   must be revised before impl resumes; the user drives that revision
    (possibly via `/sdd:spec-tasks`).
 4. **Abort feature** - cancellation is a first-class outcome: run
    `beans update <epic-id> -s scrapped` and the same for every task bean of
-   the feature (append a one-line reason first), then stop. The branch, spec,
-   workspace, and bean files are the user's to carry away; nothing else is
-   touched.
+   the feature - plan tasks AND the three `phase` gate beans, which are its
+   task-type children too (append a one-line reason first), then stop. The
+   branch, spec, workspace, and bean files are the user's to carry away;
+   nothing else is touched.
 
 ## Feature finish
 
@@ -396,8 +423,8 @@ Agent(
   model: opus,
   prompt: (paths only)
     Apply:      <abs-path>/skills/validate-impl/SKILL.md
-    Feature:    .sdd/specs/<feature>/ (requirements.md, design.md, tasks.md)
-    Workspace:  .sdd/specs/<feature>/workspace/ (reports, packages, notes.md)
+    Feature:    .sdd/specs/<feature>/ (requirements.md, design.md)
+    Workspace:  .sdd/specs/<feature>/workspace/ (review packages, notes.md)
     Return the GO / NO-GO result with its evidence.
 )
 ```
@@ -419,5 +446,6 @@ Agent(
 - Every cycle starts at Step 0 with fresh beans queries. Nothing depends on
   session memory; an interrupted run is indistinguishable from a fresh one
   (the `in-progress` task bean is simply picked up again).
-- The workspace is the durable record: append-only briefs, reports, and
-  packages. Never re-parse documents for progress - beans answers that.
+- The workspace holds the append-only review packages and notes.md; task
+  briefs live in the task beans' `## Brief` bodies (spec Revisions 4+7).
+  Never re-parse documents for progress - beans answers that.
