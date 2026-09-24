@@ -26,8 +26,10 @@ Division of labor:
 ## Hard rules
 
 1. **Git is read-only.** Bash use is limited to read-only git (`git diff`,
-   `git status`, `git log`, `git merge-base`), the beans CLI, and file
-   operations. Nothing in
+   `git status`, `git log`, `git merge-base`), the beans CLI, the plugin's
+   `bin/` helpers (`sdd-gate` and `sdd-verdict` are read-only; `sdd-promote`
+   is the sole write helper — strictly `beans update <id> -s todo`), and
+   file operations. Nothing in
    this skill stages, commits, pushes, or touches branches: the user reviews,
    tests, and commits at every stop point. The feature branch is created and
    deleted by the user.
@@ -531,7 +533,9 @@ from Step 0 when invoked in that state).
    remediation round. Record the round on the EPIC bean: ONE line
    under `## Validation` —
    `- VERDICT: <APPROVED | REJECTED> - <date>, whole-branch review, package: workspace/review-package-final.md` —
-   plus the verdict mirror tag per Hard rule 9.
+   plus the verdict mirror tag per Hard rule 9 — and park the
+   code-reviewer's `PARKING_LOT` one-liners under the EPIC bean's
+   `## Parking lot` (one line each, same append form as task parking).
 2. **validate-impl gate**. Dispatch a fresh subagent applying the
    validate-impl protocol:
 
@@ -563,7 +567,8 @@ Agent(
    failing after three rounds -> stop and escalate with the four-part format.
 4. **Final stop**. Apply the same fresh-evidence discipline to the GO claim
    before reporting it. Report: GO verdict (one line), the parking lot
-   (the `## Parking lot` sections of the feature's task beans), then an
+   (the `## Parking lot` sections of the feature's task beans plus the
+   EPIC bean's — the epic's lot carries the whole-branch minors), then an
    AskUserQuestion:
    **Complete feature** (Recommended) - epic bean `-s completed` with a short
    summary; **Leave open** - the user continues manually; **Abort** - scrapped
