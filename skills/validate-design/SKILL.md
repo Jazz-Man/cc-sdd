@@ -4,7 +4,6 @@ description: Generative fork - quality-review the active feature's design.md aga
 context: fork
 background: false
 model: opus
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # validate-design - design quality review
@@ -66,8 +65,8 @@ Read, under the spec directory from Step 1:
   criteria and issue format. Its interactive-dialogue step is superseded
   in fork form: where the rule says engage the designer, you record the
   finding instead, and the presenting main context takes it to the user.
-- Steering: Glob `.claude/rules/*.md`; read the files that constrain the
-  design's architecture and conventions.
+- Steering: already in your context (project memory, loaded at session
+  start) - apply it; do not re-read the files.
 
 Also survey the codebase enough to check claims: the design asserts
 alignment with existing architecture - Grep/Read the modules it names

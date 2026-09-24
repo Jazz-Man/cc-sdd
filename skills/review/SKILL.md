@@ -1,7 +1,6 @@
 ---
 name: review
 description: Adversarial task-local review protocol - verify an implementation is real, complete, bounded, spec-aligned, and backed by mechanical evidence. Use after an implementer finishes a task, after remediation, or before accepting a task as complete.
-allowed-tools: Read, Bash, Grep, Glob
 argument-hint: <task-id>
 ---
 

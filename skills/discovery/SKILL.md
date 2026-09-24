@@ -2,7 +2,6 @@
 name: discovery
 description: Entry point for new work. Researches the user's idea against the codebase, the workstream brief, and beans state, then routes it via AskUserQuestion - extend an existing spec, no spec needed (answered directly in chat), a single new feature, or a sequential multi-spec initiative queued in beans. Writes .sdd/brief.md.
 disable-model-invocation: true
-allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 argument-hint: <idea-or-request>
 ---
 
@@ -60,8 +59,8 @@ note "greenfield" and skip the adjacency checks.
 - **Specs inventory**: Glob `.sdd/specs/*/` and note the feature names.
   Read a spec's `requirements.md` boundary sections only when the idea
   is plausibly adjacent to that spec.
-- **Steering**: Glob `.claude/rules/*.md`; read the files plausibly
-  relevant to the idea for goals and constraints.
+- **Steering**: already in your context (project memory, loaded at
+  session start) - apply it; do not re-read the files.
 - **Project surface**: list the project root; do not recurse.
 
 ## Step 2 - Research what routing needs

@@ -1,7 +1,6 @@
 ---
 name: impl
 description: Execute the active feature's approved task plan one task at a time - dispatch subagent implementers and reviewers, run the bounded fix loop, verify completion with fresh evidence, and stop after every task for the user's review.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 argument-hint: [task-id]
 ---
 
@@ -84,7 +83,7 @@ time.
      `/sdd:impl`.
 2. **Resolve the task queue**: query the epic's task beans with their
    statuses and blocked-by relations (e.g.
-   `beans query --json '{ bean(id: "<epic-id>") { children { id title status } } }'`).
+   `beans query --json '{ bean(id: "<epic-id>") { children { id title status blockedByIds } } }'`).
    A task is **unblocked** when none of its blocked-by beans is incomplete
    (`todo`, `draft`, or `in-progress` - completed and scrapped blockers do
    not block). A task is **actionable** when it has status `todo` or

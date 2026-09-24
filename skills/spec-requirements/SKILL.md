@@ -1,7 +1,6 @@
 ---
 name: spec-requirements
 description: Shape and write the requirements for the active feature. Interviews the user one question at a time, dispatches an opus subagent that drafts the EARS requirements document from a Q&A digest, then runs a confirm-only review. Use after /sdd:spec-init.
-allowed-tools: Read, Write, Glob, Bash, Agent, AskUserQuestion
 ---
 
 # spec-requirements - interview, draft, confirm
@@ -55,11 +54,11 @@ Division of labor:
      (spec 5.5). Stop; resolve via AskUserQuestion - one question per
      extra epic (complete it / scrap it / stop; you run the chosen beans
      update), then have the user re-invoke `/sdd:spec-requirements`.
-2. Load light context: the epic bean body (feature description),
-   `.sdd/brief.md` if present (workstream narrative from discovery),
-   and a Glob of `.claude/rules/*.md` to note which steering files
-   exist. Do not load more into the main context - the drafter reads the
-   full files.
+2. Load light context: the epic bean body (feature description) and
+   `.sdd/brief.md` if present (workstream narrative from discovery).
+   Steering is already in your context (project memory, loaded at
+   session start) - apply it; do not re-read the files. Do not load more
+   into the main context - the drafter reads the full files.
 3. **Existing-document gate**: if
    `.sdd/specs/<feature>/requirements.md` already exists, ask via
    AskUserQuestion before anything else:
@@ -143,8 +142,8 @@ Agent(
     Review gate:  <abs-path>/assets/rules/requirements-review-gate.md
                   (apply it to your draft before writing; at most 2
                   repair passes)
-    Steering:     .claude/rules/*.md - read the files relevant to the
-                  feature (if present)
+    Steering:     already in your context (project memory, loaded at
+                  session start) - apply it; do not re-read files
     Workstream:   .sdd/brief.md (if present)
     Existing doc: .sdd/specs/<feature>/requirements.md (edit-merge only:
                   merge into it; do not rewrite untouched sections)
