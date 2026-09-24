@@ -102,10 +102,9 @@ Read, under the spec directory:
 
 - `.sdd/specs/<feature>/requirements.md` - REQUIRED. Missing -> return
   BLOCKED pointing to `/sdd:spec-requirements`.
-- `.sdd/specs/<feature>/design.md` and `tasks.md` - the conformance
-  references: boundary commitments, structure map, requirement mapping,
-  `## Implementation Notes`. Either missing -> return BLOCKED pointing
-  to the generating skill.
+- `.sdd/specs/<feature>/design.md` - the conformance reference:
+  boundary commitments, structure map. Missing -> return BLOCKED
+  pointing to `/sdd:spec-design`.
 - `.sdd/specs/<feature>/workspace/` - reports, review packages, and
   `notes.md` (including its `## Minor Findings` parking lot). Reference
   only: claims there are never evidence.
@@ -193,7 +192,7 @@ already used by repo automation over ad hoc pipelines.
 **H. Blocked tasks and implementation notes**
 - Open task beans and unresolved `## Blocker` notes (Step 2) and their
   impact on feature completeness.
-- `## Implementation Notes` in tasks.md that need cross-cutting
+- `## Notes` one-liners in the task beans that need cross-cutting
   attention.
 
 ## Step 5 - Classify ownership, apply verify-completion, report

@@ -547,3 +547,8 @@ cross-bean filtering (dual-write accepted, tag-order noise accepted); a small
 bin/ helper set (sdd-gate, sdd-verdict, sdd-promote) protects quote/etag traps.
 Safety rules in all skill prose: search phrases always quoted; no --ready
 gating; etags on concurrent-capable paths; status changes via CLI only.
+
+### §8.1 amendment (Revision 7, D1): epic beans may also carry `## Validation`
+rounds — feature-level verdicts (validate-impl DECISION etc.) record there; the
+section-header set is identical, the bean differs (task = per-task lifecycle,
+epic = feature-level). Mirror tags apply on the epic for decision-* family.

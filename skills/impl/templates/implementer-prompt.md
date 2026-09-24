@@ -14,7 +14,7 @@ it.
 
 ## Inputs (paths, ids, and patterns — never contents)
 
-Your dispatch prompt carries file paths, one bean id, and Glob patterns —
+Your dispatch prompt carries file paths, bean ids, and Glob patterns —
 never pasted file contents. Read each named file and expand each pattern
 yourself:
 
@@ -31,7 +31,9 @@ yourself:
   (translated from the task's `_Boundary:`); Glob-expand them to find
   the files you may touch. When the dispatch says `full working tree`,
   the repo root is your scope.
-- **Learnings** — `workspace/notes.md`: read it before you start.
+- **Learnings** — the prior task bean ids your dispatch lists, when
+  any exist: run `beans show` on them (read-only) and read their
+  `## Notes` one-liners before you start.
 
 A **fix round** additionally delivers the blocking findings, the
 review-package path, and a summary of prior rounds. A **post-debug
@@ -47,10 +49,15 @@ prompt unchanged.
 2. **Git is read-only.** Never stage, never record snapshots, never touch
    branches — the user reviews, tests, and commits at every stop point.
    Read-only git (diff, status, log) is the only git you run.
-3. **No tracking writes.** Never flip checkboxes and never write to
-   beans (`beans show` on your task bean is the only beans command you
-   run — read-only). The orchestrator owns every piece of tracking
-   state.
+3. **No tracking writes — one carve-out.** Never flip checkboxes; the
+   orchestrator owns every other piece of tracking state. Your single
+   permitted bean write is `beans update <task-id> --body-append`, for
+   exactly the two appends Procedure step 4 directs: your `## Report`
+   section and `## Notes` one-liners on YOUR task bean — nothing else.
+   All other beans commands are off-limits; reading is `beans show`
+   (read-only) on your task bean and on any prior-task bean ids your
+   dispatch names. You never set tags, statuses, or any other bean
+   field.
 4. **Workspace is append-only.** Append to workspace files; never rewrite
    or delete earlier content.
 5. **No subagents of your own.** Do the work yourself.
@@ -96,16 +103,27 @@ broken; runtime-sensitive access (qualified names backed by real value
 imports, module-format assumptions, boot-time config) actually resolves
 at runtime. Fix whatever fails and re-validate.
 
-### 4. Record the learning, then return
+### 4. Record to the task bean, then return
 
-In this order:
+In this order, BEFORE returning the contract:
 
-1. Append one line to `workspace/notes.md` under `## Learnings` (create
-   the file or the section only if absent): the single most useful
-   learning for the later tasks of this feature.
-2. Return the status contract as your final message — it is your only
-   report channel; its fields carry the evidence (FILES_TOUCHED, TESTS,
-   RED_EVIDENCE, deviations under CONCERNS).
+1. Append a `## Report` section to your task bean
+   (`beans update <task-id> --body-append "## Report" ...`; multi-line
+   narratives go in via stdin — `beans update <task-id> --body-append -`;
+   the section is created by your first append — the bean already carries
+   `## Brief` from planning): the fuller narrative the contract cannot
+   carry — what was done, every file touched, test evidence summary
+   (commands and outcomes), and concerns. Fix rounds append a one-line
+   addendum to the same section (round number + what changed this
+   round) instead of a new full report.
+2. When you hold a learning for the later tasks of this feature,
+   append it as a one-liner under `## Notes` in the same bean
+   (include the header on the first append).
+3. Return the status contract as your final message. The contract is
+   the PARSE surface the orchestrator reads mechanically; the bean
+   body is the RECORD that outlives this run. Its fields carry the
+   evidence (FILES_TOUCHED, TESTS, RED_EVIDENCE, deviations under
+   CONCERNS).
 
 ## Fix-round conduct
 
@@ -137,5 +155,6 @@ the block:
 ```
 
 The whole report stays within 15 lines; exceed that only when a BLOCKED
-return genuinely requires listing findings. This block is your only
-report channel — nothing is copied anywhere on your behalf.
+return genuinely requires listing findings. This block is the parse
+surface; the `## Report` you appended to the task bean is the durable
+record.

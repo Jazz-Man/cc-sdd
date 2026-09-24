@@ -63,6 +63,35 @@ Division of labor:
 8. **Workspace is append-only.** Never rewrite or delete
    `.sdd/specs/<feature>/workspace/` artifacts; append new rounds and
    sections.
+9. **The task bean is the lifecycle record; verdicts dual-write**
+   (spec 8.1, Revision 7). Task-bean bodies carry the append-only
+   sections `## Brief`, `## Report`, `## Notes`, `## Validation`,
+   `## Parking lot` — append beneath a section, never rewrite or
+   reorder it. Every 8.1 verdict/outcome/status you record on a bean
+   ALSO sets its lowercase-hyphen mirror tag on that same bean, and a
+   new round that flips a verdict removes the old tag of the family in
+   the same call
+   (`beans update <id> --remove-tag <old> --tag <new>`; plain `--tag`
+   when no tag of that family is set):
+
+   | Contract line (writer) | Mirror tags |
+   |---|---|
+   | implementer `STATUS: DONE` / `DONE_WITH_CONCERNS` | `status-done` / `status-done-with-concerns` |
+   | review + re-review `VERDICT: APPROVED` / `REJECTED` | `verdict-approved` / `verdict-rejected` |
+   | debugger `OUTCOME: RESOLVED` / `UNRESOLVED` | `outcome-resolved` / `outcome-unresolved` |
+   | verification `STATUS: VERIFIED` / `NOT_VERIFIED` / `MANUAL_VERIFY_REQUIRED` | `verification-verified` / `verification-not-verified` / `verification-manual-verify-required` |
+   | validate-impl `DECISION: GO` / `NO_GO` / `MANUAL_VERIFY_REQUIRED` (recorded on the epic bean) | `decision-go` / `decision-no-go` / `decision-manual-verify-required` |
+
+   `BLOCKED` and `NEEDS_CONTEXT` get no tag — transient control
+   states, not records. Phase beans carry `validated` (Revision 6,
+   already wired). You are the single tag writer: subagents never set
+   tags. The implementer's ONE bean write is its `--body-append` of
+   `## Report` / `## Notes` (its role prompt's carve-out); reviewer and
+   debugger subagents are read-only, and you record their outcomes.
+   The loop is sequential — one task at a time — so plain appends are
+   safe; any path that could write a bean in parallel with another
+   writer must guard every append with `--if-match` (etag from
+   `beans show <id> --etag-only`).
 
 ## Step 0 - Resolve state from beans (every cycle)
 
@@ -195,7 +224,10 @@ time.
      declared or the boundary cannot be translated confidently.
    - The task-relevant validation command subset (from the validation
      discovery above).
-   - The learnings pointer: `workspace/notes.md`.
+   - The learnings source: the ids of the feature's completed task
+     beans — their `## Notes` sections carry the one-liners past
+     implementers appended. None completed yet -> omit the learnings
+     line from the dispatch.
 
 ## Step 2 - Dispatch the implementer
 
@@ -211,13 +243,16 @@ Agent(
     Role prompt: <abs-path>/skills/impl/templates/implementer-prompt.md
                  (read it first and follow it exactly)
     Task bean:   <task-bean-id> (run `beans show <task-bean-id>` - its
-                 ## Brief section IS the task brief)
+                 ## Brief section IS the task brief; per your role
+                 prompt, append your ## Report and any ## Notes
+                 one-liners to this bean before returning)
     Spec files:  .sdd/specs/<feature>/requirements.md,
                  .sdd/specs/<feature>/design.md
     Steering:    .claude/rules/ of this project (only when present)
     Code scope:  <boundary path patterns, or repo root>
     Validation:  <task-relevant command subset>
-    Learnings:   .sdd/specs/<feature>/workspace/notes.md
+    Learnings:   <completed task bean ids, if any> (their ## Notes
+                 sections carry the one-liners - read before you start)
     Return exactly the ## Status Report block your role prompt defines.
 )
 ```
@@ -240,9 +275,18 @@ this round (field shape defined by the role prompt).
 | STATUS | Action |
 |---|---|
 | `DONE` | Hold the contract in context; go to Step 4. |
-| `DONE_WITH_CONCERNS` | Same as `DONE`, plus hold the concerns: they surface at the STOP in the four-part format and are appended to the task bean in Step 8. Review still runs - concerns do not bypass it. |
+| `DONE_WITH_CONCERNS` | Same as `DONE`, plus hold the concerns: they surface at the STOP in the four-part format; the implementer's `## Report` records them and Step 8 appends anything further. Review still runs - concerns do not bypass it. |
 | `BLOCKED` | Go to Step 6 (debug protocol). |
 | `NEEDS_CONTEXT` | The report states exactly what is missing. If it is trivially answerable from repo or spec files, answer it yourself and resume the implementer (SendMessage) with the answer. Otherwise formulate an AskUserQuestion for the user, then resume the implementer with their answer. Context rounds do not count against the fix-loop budget - but if the implementer repeats `NEEDS_CONTEXT` with no new specifics after being answered, treat it as `BLOCKED`. |
+
+On `DONE` or `DONE_WITH_CONCERNS`, two bean duties are yours before
+Step 4 (Hard rule 9): confirm the task bean now carries the
+implementer's `## Report` (`beans show <task-id>`; if the section is
+absent, resume the implementer once requesting the append - the append
+precedes the contract by its role prompt), and set the status mirror
+tag for the parsed STATUS (`status-done` /
+`status-done-with-concerns`, removing a prior round's tag of the
+family in the same call).
 
 ## Step 4 - Build the review package and dispatch the reviewer
 
@@ -290,10 +334,22 @@ Agent(
 Same parse discipline as Step 3 (exact block and `- VERDICT:` line only).
 `REJECTED` findings must be marked blocking or minor.
 
+**Record the round on the task bean** (every review round - first
+review and each re-review): ONE line appended under `## Validation`:
+
+```
+- VERDICT: <APPROVED | REJECTED> - <date>, review round <K>, package: workspace/review-package-<N>.md
+```
+
+(the package pointer rides the round line; `<K>` counts review cycles,
+`<N>` is the task's package file), plus the verdict mirror tag per
+Hard rule 9 (`verdict-approved` / `verdict-rejected`, old family tag
+removed in the same call).
+
 - **APPROVED** -> Step 7 (verification gate).
-- **Minor findings** never enter the fix loop regardless of verdict: append
-  them to `workspace/notes.md` under `## Minor Findings` (the parking lot,
-  surfaced at feature finish).
+- **Minor findings** never enter the fix loop regardless of verdict:
+  each lands as a one-liner appended under `## Parking lot` in the
+  task bean (the parking lot, surfaced at feature finish).
 - **REJECTED** -> Step 5.
 
 ## Step 5 - Fix loop (REJECTED verdicts)
@@ -308,11 +364,16 @@ One counter per review cycle; it resets only when the task closes
   `model: opus` - full dispatch data from Step 2 plus the blocking findings
   and a short summary of prior rounds (paths, not transcripts).
 - **Every round**: after the implementer returns `DONE`/`DONE_WITH_CONCERNS`,
-  append a `# Round <K>` scoped section to the review package covering the
+  apply the Step 3 bean duties (confirm its `## Report` addendum landed;
+  flip the status mirror tag if the round's STATUS differs), append a
+  `# Round <K>` scoped section to the review package covering the
   files changed this round only, then dispatch a scoped re-review (read
   `${CLAUDE_SKILL_DIR}/templates/re-review-prompt.md`, resolve, dispatch with
   `model: opus`, package + findings paths). Parse the same
-  `## Review Verdict` block.
+  `## Review Verdict` block and record the round on the task bean per
+  Step 4 (`## Validation` line + package pointer + verdict mirror
+  tag); park the re-review's `PARKING_LOT` one-liners under
+  `## Parking lot`.
 - **APPROVED** -> Step 7. **Five rounds exhausted** -> Step 6.
 
 Adjudication: if the implementer substantively disputes the same finding two
@@ -358,6 +419,13 @@ Agent(
 Same parse discipline. `RESOLVED` carries a root cause and a fix plan;
 `UNRESOLVED` carries the root cause found so far and why it is stuck.
 
+**Record the round on the task bean**: ONE line appended under
+`## Validation` —
+`- OUTCOME: <RESOLVED | UNRESOLVED> - <date>, debug round <n>` — plus
+the outcome mirror tag per Hard rule 9 (`outcome-resolved` /
+`outcome-unresolved`, old family tag removed in the same call). The
+debugger itself writes nothing; you record its outcome.
+
 3. **Handle it**:
    - `RESOLVED` -> dispatch a fresh implementer (`model: opus`) with the fix
      plan plus the Step 2 dispatch data, then a scoped re-review. Still
@@ -380,6 +448,11 @@ type `TASK`:
 - Re-run the task-relevant validation commands yourself via Bash. Reported
   success from the implementer is not evidence; only fresh output and exit
   codes from the current code state count.
+- **Record the result on the task bean** (every run): ONE line appended
+  under `## Validation` —
+  `- STATUS: <VERIFIED | NOT_VERIFIED | MANUAL_VERIFY_REQUIRED> - <date>, verification gate` —
+  plus the verification mirror tag per Hard rule 9 (old family tag
+  removed in the same call).
 - `VERIFIED` -> Step 8.
 - `NOT_VERIFIED` -> the evidence gap becomes a blocking finding; re-enter the
   Step 5 fix loop under the same cycle counter.
@@ -389,10 +462,13 @@ type `TASK`:
 
 ## Step 8 - Record state
 
-1. Concerns (`DONE_WITH_CONCERNS`, verification gaps, accepted disputes):
-   one line each, appended to the task bean body.
-2. Cross-cutting learnings for later tasks: one line each, appended to
-   `workspace/notes.md` under `## Learnings`.
+1. Concerns the implementer's `## Report` does not already carry
+   (verification gaps, accepted disputes): one line each, appended to
+   the task bean's `## Report`.
+2. Cross-cutting learnings for later tasks the implementer did not
+   already record: one line each, appended to the task bean's
+   `## Notes` (later dispatches read the completed beans' `## Notes`
+   as their learnings input).
 3. Complete the task bean: `beans update <task-id> -s completed` with a short
    `## Summary of Changes` appended per the global beans guide.
 
@@ -444,8 +520,14 @@ from Step 0 when invoked in that state).
    working-tree remainder. Then
    dispatch the code-reviewer: read
    `${CLAUDE_SKILL_DIR}/templates/code-reviewer-prompt.md`, resolve, dispatch
-   with `model: opus`, package + spec paths. Parse `## Review Verdict` as
-   usual; blocking findings start a remediation round.
+   with `model: opus`, package + spec paths + the feature's task bean
+   ids (read-only `beans show`: their `## Notes` sections are the
+   learnings, their `## Parking lot` sections the parked minors).
+   Parse `## Review Verdict` as usual; blocking findings start a
+   remediation round. Record the round on the EPIC bean: ONE line
+   under `## Validation` —
+   `- VERDICT: <APPROVED | REJECTED> - <date>, whole-branch review, package: workspace/review-package-final.md` —
+   plus the verdict mirror tag per Hard rule 9.
 2. **validate-impl gate**. Dispatch a fresh subagent applying the
    validate-impl protocol:
 
@@ -454,13 +536,21 @@ Agent(
   description: "Validate feature implementation",
   subagent_type: general-purpose,
   model: opus,
-  prompt: (paths only)
+  prompt: (paths and ids only)
     Apply:      <abs-path>/skills/validate-impl/SKILL.md
     Feature:    .sdd/specs/<feature>/ (requirements.md, design.md)
-    Workspace:  .sdd/specs/<feature>/workspace/ (review packages, notes.md)
+    Workspace:  .sdd/specs/<feature>/workspace/ (review packages)
     Return the GO / NO_GO result with its evidence.
 )
 ```
+
+   The validator writes no beans (its own hard rules); on parsing its
+   `## Validation Summary`, record the decision on the EPIC bean: ONE
+   line under `## Validation` —
+   `- DECISION: <GO | NO_GO | MANUAL_VERIFY_REQUIRED> - <date>, validate-impl` —
+   plus the decision mirror tag per Hard rule 9 (old family tag
+   removed in the same call). Remediation rounds re-run the gate and
+   append their own round lines.
 
 3. **Remediation budget: 3 rounds total for the finish phase**, shared by
    both gates. Each round: implementer dispatch (`model: sonnet`) fixing the
@@ -469,7 +559,8 @@ Agent(
    failing after three rounds -> stop and escalate with the four-part format.
 4. **Final stop**. Apply the same fresh-evidence discipline to the GO claim
    before reporting it. Report: GO verdict (one line), the parking lot
-   (`## Minor Findings` from `workspace/notes.md`), then an AskUserQuestion:
+   (the `## Parking lot` sections of the feature's task beans), then an
+   AskUserQuestion:
    **Complete feature** (Recommended) - epic bean `-s completed` with a short
    summary; **Leave open** - the user continues manually; **Abort** - scrapped
    handling as in Step 9.
@@ -479,6 +570,7 @@ Agent(
 - Every cycle starts at Step 0 with fresh beans queries. Nothing depends on
   session memory; an interrupted run is indistinguishable from a fresh one
   (the `in-progress` task bean is simply picked up again).
-- The workspace holds the append-only review packages and notes.md; task
-  briefs live in the task beans' `## Brief` bodies (spec Revisions 4+7).
+- The workspace holds the append-only review packages; each task bean's
+  body is its full lifecycle record - `## Brief`, `## Report`,
+  `## Notes`, `## Validation`, `## Parking lot` (spec Revisions 4+7).
   Never re-parse documents for progress - beans answers that.

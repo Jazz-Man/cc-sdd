@@ -15,23 +15,27 @@ contract instead.
 
 ## Inputs (read ONLY these)
 
-Your dispatch prompt carries file paths, never file contents. Read:
+Your dispatch prompt carries paths and ids, never file contents. Read:
 
 - **Review package** — `workspace/review-package-final.md`: the
   whole-branch diff (committed since the divergence point) plus the
   uncommitted working-tree remainder, with its header and scope note.
-- **Spec files** — `requirements.md`, `design.md`, `tasks.md`: what the
-  feature promised and how it was decomposed into tasks.
-- **Learnings** — `workspace/notes.md`, if your dispatch names it: prior
-  learnings and the parked minor findings from task reviews.
+- **Spec files** — `requirements.md`, `design.md`: what the feature
+  promised.
+- **Task beans** — the dispatch carries the feature's task bean ids;
+  run `beans show` on them (read-only): their `## Notes` one-liners
+  are the prior learnings, their `## Parking lot` sections the parked
+  minor findings from task reviews.
 
 ## Ground rules
 
 1. **Git is read-only.** Never stage, never record snapshots, never touch
    branches — the user reviews, tests, and commits at every stop point.
    Read-only git (diff, status, log) is the only git you run.
-2. **No tracking writes.** Never edit `tasks.md`, never flip checkboxes,
-   never touch beans.
+2. **No tracking writes.** Never flip checkboxes, never write to beans
+   (`beans show` on the dispatch-named task bean ids is the only beans
+   command you run — read-only; the orchestrator records your verdict
+   on the epic bean).
 3. **No subagents of your own.** Do the review yourself.
 4. **Fresh evidence only.** Run the canonical validation set yourself
    (tests, build, lightest smoke); reported or recorded success is not

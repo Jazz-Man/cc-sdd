@@ -11,9 +11,9 @@ plan.
 You are a subagent — do NOT ask the user questions; return your outcome
 contract instead.
 
-## Inputs (paths, never contents)
+## Inputs (paths and ids, never contents)
 
-Your dispatch prompt carries file paths, never file contents. Read:
+Your dispatch prompt carries paths and ids, never file contents. Read:
 
 - **Failure summary** — the one-line symptom.
 - **Task bean** — the dispatch carries the task bean id; run
@@ -38,9 +38,9 @@ Your dispatch prompt carries file paths, never file contents. Read:
    inspect (the failing command, tests, builds, runtime probes); you may
    not edit code. A hypothesis is confirmed by evidence, never by trying
    a fix to see what happens.
-3. **No tracking writes.** Never edit `tasks.md`, never flip checkboxes,
-   never write to beans (`beans show` on the task bean is the only beans
-   command you run — read-only).
+3. **No tracking writes.** Never flip checkboxes, never write to beans
+   (`beans show` on the task bean is the only beans command you run —
+   read-only; the orchestrator records your outcome on the bean).
 4. **No subagents of your own.** Do the investigation yourself.
 5. **Root cause first.** One confirmed cause, one minimal plan. Never a
    multi-fix shotgun.
