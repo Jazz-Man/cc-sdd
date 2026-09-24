@@ -1,11 +1,11 @@
 ---
 # cc-sdd-73kb
 title: Follow-ups from final branch review (findings 2-8)
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-09-23T12:45:25Z
-updated_at: 2026-09-24T13:30:49Z
+updated_at: 2026-09-24T18:38:52Z
 parent: cc-sdd-uwj4
 ---
 
@@ -24,3 +24,6 @@ Apply AFTER the user's E2E walkthrough returns (do not desync the scratch sessio
 
 
 10. (E2E finding 5, user) REMOVE redundant steering re-reads: 7 instructions across 6 skills (spec-design:68, spec-requirements:60+146, discovery:63, validate-design:69, validate-gap:68, validate-impl:113) say 'Glob .claude/rules/*.md; read...' — project memory is session-start context for main sessions AND default-context subagents (no omitClaudeMd anywhere in our design; platform-default assumption, noted). Replace with one-liner: steering is already in context — apply, do not re-read. DO NOT TOUCH: skills/init (file operations on sdd.md), skills/steering (verbatim port), assets/rules references (on-demand plugin content). Saves tokens/time, removes hallucination surface.
+
+## Summary of Changes
+All 10 items landed: #2-8+10 in wave task A1 (cc-sdd-5bwa, committed); #9 (allowed-tools strip) also A1. This bean was the source manifest; execution tracked in A1.

@@ -1,11 +1,11 @@
 ---
 # cc-sdd-wgk2
 title: 'Revisions 4-7: beans-only tasks, phase gates, validation gates, workspace migration'
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-09-23T18:03:21Z
-updated_at: 2026-09-24T14:35:32Z
+updated_at: 2026-09-24T18:38:52Z
 parent: cc-sdd-uwj4
 ---
 
@@ -89,3 +89,6 @@ Work-list additions:
 26. Safety prose rules everywhere
 27. Docs: workspace description update
 28. Battery: verdict-line + tag conventions; zero brief/report file references in skills
+
+## Summary of Changes
+All Revisions 4-7 items landed across wave tasks: B1-B4 (cc-sdd-5lgl/60q2/v6e0/mqhj), C1-C2 (cc-sdd-yoo1/5r8c), D1-D3 (cc-sdd-wsju/p1mi/ccvc). E1 (docs/battery) = final task cc-sdd-2xuo. This bean was the design manifest; execution tracked per wave.
