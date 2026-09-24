@@ -123,6 +123,10 @@ time.
    > **Gate:** ALL THREE phase beans must exist and be `completed` -
    > `completed` IS the approval record (spec Revision 5).
 
+   (`${CLAUDE_PLUGIN_ROOT}/bin/sdd-gate <epic-id>` wraps this whole
+   check - phases + freshness + queue readiness - as a read-only script;
+   the inline procedure stays canonical.)
+
    - **Any of the three phase beans missing** -> partial-legacy state:
      stop and point the user to `/sdd:spec-init` (a heal run with the
      same feature name creates missing phase beans idempotently).

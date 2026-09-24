@@ -1,0 +1,61 @@
+#!/bin/sh
+# sdd-verdict - latest verdict token from a task or epic bean (spec 8.1).
+# Usage: sdd-verdict <bean-id> [status|verdict|outcome|decision]
+#
+# Prints the TOKEN of the LATEST line of the form `- <FIELD>: <TOKEN>` in the
+# bean body (validation rounds append, so the last match wins; the token is
+# the word right after the field, metadata trails it). Without a field
+# argument all four fields are considered and the latest of them wins.
+# Handles task beans (## Validation rounds) and epic beans alike.
+# No match (or unknown bean): empty output, exit 1. Read-only.
+set -eu
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "usage: sdd-verdict <bean-id> [status|verdict|outcome|decision]" >&2
+    exit 2
+fi
+bean_id=$1
+field=""
+[ $# -eq 2 ] && field=$2
+
+case $field in
+    ""|status|verdict|outcome|decision) ;;
+    *)
+        echo "sdd-verdict: unknown field '$field' (status|verdict|outcome|decision)" >&2
+        exit 2
+        ;;
+esac
+
+field_upper=$(printf '%s' "$field" | tr '[:lower:]' '[:upper:]')
+
+bean_json=$(beans query --json "{ bean(id: \"$bean_id\") { body } }")
+case $bean_json in
+    *'"bean": null'*) exit 1 ;;
+esac
+
+# The body serializes as ONE physical line with \n escapes; unescape, then
+# scan every line and keep the last `- <FIELD>: <TOKEN>` match.
+token=$(printf '%s\n' "$bean_json" | awk -v f="$field_upper" '
+    /^ *"body": / {
+        s = $0
+        sub(/^ *"body": "/, "", s)
+        sub(/",?$/, "", s)
+        gsub(/\\n/, "\n", s)
+        n = split(s, lines, "\n")
+        rx = "^- " (f == "" ? "(STATUS|VERDICT|OUTCOME|DECISION)" : f) ": "
+        for (i = 1; i <= n; i++) {
+            t = lines[i]
+            sub(/^[ \t]+/, "", t)
+            if (t ~ rx) {
+                v = t
+                sub(rx, "", v)
+                sub(/ .*$/, "", v)
+                tok = v
+            }
+        }
+    }
+    END { if (tok != "") print tok }
+')
+
+[ -n "$token" ] || exit 1
+printf '%s\n' "$token"

@@ -1,0 +1,114 @@
+#!/bin/sh
+# sdd-promote - draft->todo promotion for task beans (spec Revision 5).
+# Usage: sdd-promote <epic-id> --all | <bean-id>...
+#
+# --all promotes every draft child of the epic except the phase beans;
+# otherwise each named bean is promoted after verification that it is a
+# draft child of the epic (phase beans and anything else are refused with a
+# stderr note). Prints one promoted id per line on stdout.
+# The only write helper of the sdd bin/ set: writes are strictly
+# `beans update <id> -s todo` - statuses change via the CLI only.
+set -eu
+
+usage() {
+    echo "usage: sdd-promote <epic-id> --all | <bean-id>..." >&2
+    exit 2
+}
+
+epic_id=""
+all=0
+ids=""
+for arg in "$@"; do
+    case $arg in
+        --all) all=1 ;;
+        -h|--help)
+            echo "usage: sdd-promote <epic-id> --all | <bean-id>... - promote draft task beans to todo (spec Revision 5 approve gate); prints each promoted id. --all takes every draft child except phase beans."
+            exit 0
+            ;;
+        -*) usage ;;
+        *)
+            if [ -z "$epic_id" ]; then
+                epic_id=$arg
+            else
+                ids="$ids $arg"
+            fi
+            ;;
+    esac
+done
+[ -n "$epic_id" ] || usage
+if [ "$all" = 1 ] && [ -n "$ids" ]; then
+    echo "sdd-promote: --all and explicit ids are mutually exclusive" >&2
+    exit 2
+fi
+
+epic_json=$(beans query --json "{ bean(id: \"$epic_id\") { status } }")
+case $epic_json in
+    *'"bean": null'*)
+        echo "sdd-promote: epic $epic_id not found - check the id (beans show)" >&2
+        exit 1
+        ;;
+esac
+
+# Same child-record parser as bin/sdd-gate (pretty-printed JSON, one field
+# per physical line): TAB-separated id/title/status/tags, tags normalized to
+# a bare comma list.
+parse_children() {
+    printf '%s\n' "$children_json" | awk '
+        BEGIN { n = 0 }
+        /^ *"bean": *null/ { exit }
+        /^ *"children":/ { inch = 1; if ($0 ~ /: *\[\]/) exit; next }
+        inch && /^ *"id": /     { s = $0; sub(/^ *"id": "/, "", s); sub(/",$/, "", s);     id[n] = s;  next }
+        inch && /^ *"title": /  { s = $0; sub(/^ *"title": "/, "", s); sub(/",$/, "", s);  ti[n] = s;    next }
+        inch && /^ *"status": / { s = $0; sub(/^ *"status": "/, "", s); sub(/",$/, "", s); st[n] = s;    next }
+        inch && /^ *"tags": /   { s = $0; sub(/^ *"tags": \[/, "", s); sub(/\][, ]*$/, "", s); gsub(/"/, "", s); gsub(/ +/, "", s); tg[n] = s; n++; next }
+        END { for (i = 0; i < n; i++) print id[i] "\t" ti[i] "\t" st[i] "\t" tg[i] }
+    '
+}
+
+children_json=$(beans query --json "{ bean(id: \"$epic_id\") { children { id title status tags } } }")
+
+if [ "$all" = 1 ]; then
+    TAB=$(printf '\t')
+    while IFS="$TAB" read -r cid _ cstatus ctags; do
+        [ -n "$cid" ] || continue
+        [ "$cstatus" = draft ] || continue
+        case ",$ctags," in
+            *,phase,*) continue ;;
+        esac
+        beans update "$cid" -s todo >/dev/null
+        printf '%s\n' "$cid"
+    done <<EOF
+$(parse_children)
+EOF
+    exit 0
+fi
+
+[ -n "$ids" ] || usage
+
+rc=0
+for task_id in $ids; do
+    bean_json=$(beans query --json "{ bean(id: \"$task_id\") { parentId status tags } }")
+    parent_id=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"parentId": "\(.*\)",*$/\1/p')
+    bean_status=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"status": "\(.*\)",*$/\1/p')
+    bean_tags=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"tags": \[\(.*\)\][, ]*$/\1/p' | tr -d '"')
+    if [ -z "$bean_status" ]; then
+        echo "sdd-promote: skip $task_id - no such bean" >&2
+        rc=1
+        continue
+    fi
+    if [ "$parent_id" != "$epic_id" ] || [ "$bean_status" != draft ]; then
+        echo "sdd-promote: skip $task_id - not a draft child of $epic_id (parent=${parent_id:-none}, status=$bean_status)" >&2
+        rc=1
+        continue
+    fi
+    case ",$bean_tags," in
+        *,phase,*)
+            echo "sdd-promote: skip $task_id - phase bean (never promoted here)" >&2
+            rc=1
+            continue
+            ;;
+    esac
+    beans update "$task_id" -s todo >/dev/null
+    printf '%s\n' "$task_id"
+done
+exit $rc

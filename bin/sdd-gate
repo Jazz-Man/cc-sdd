@@ -1,0 +1,170 @@
+#!/bin/sh
+# sdd-gate - impl Step 0 phase gate as a read-only script (spec Revisions 5-7).
+# Usage: sdd-gate [--quiet] <epic-id>
+#
+# Exits 0 iff the feature epic is ready for /sdd:impl:
+#   - the epic is in-progress;
+#   - all three phase beans (exact "Phase - <name>" titles + the `phase` tag)
+#     exist as its children and are completed;
+#   - the requirements and design phase beans carry the `validated` tag and
+#     their LATEST `Doc-hash: <sha256>` line equals the current
+#     `shasum -a 256` of the respective document;
+#   - at least one todo task bean exists under the epic.
+# On failure: one-line diagnosis (gate, fix command) on stderr, exit 1.
+# --quiet suppresses the success line on stdout (exit code only).
+# Read-only: uses the beans CLI and shasum only; changes nothing.
+set -eu
+
+quiet=0
+epic=""
+for arg in "$@"; do
+    case $arg in
+        --quiet) quiet=1 ;;
+        -h|--help)
+            echo "usage: sdd-gate [--quiet] <epic-id> - exit 0 iff the feature is ready for /sdd:impl; on failure prints a one-line diagnosis with the fixing command on stderr (exit 1). Read-only."
+            exit 0
+            ;;
+        -*)
+            echo "sdd-gate: unknown option: $arg" >&2
+            exit 2
+            ;;
+        *)
+            if [ -n "$epic" ]; then
+                echo "sdd-gate: exactly one epic id is required" >&2
+                exit 2
+            fi
+            epic=$arg
+            ;;
+    esac
+done
+if [ -z "$epic" ]; then
+    echo "usage: sdd-gate [--quiet] <epic-id>" >&2
+    exit 2
+fi
+
+die() {
+    echo "sdd-gate: $1" >&2
+    exit 1
+}
+
+# --- epic: exists, in-progress, records its spec path -----------------------
+epic_json=$(beans query --json "{ bean(id: \"$epic\") { status body } }")
+case $epic_json in
+    *'"bean": null'*) die "epic $epic not found - check the id (beans show)" ;;
+esac
+
+epic_status=$(printf '%s\n' "$epic_json" | sed -n 's/^ *"status": "\(.*\)",*$/\1/p')
+[ "$epic_status" = in-progress ] ||
+    die "gate epic-status: epic $epic is '$epic_status', not in-progress - resolve the feature state first"
+
+spec_dir=$(printf '%s\n' "$epic_json" | sed -n 's/.*Spec path: \([^\\"]*\).*/\1/p')
+[ -n "$spec_dir" ] ||
+    die "gate spec-path: the epic body carries no 'Spec path:' line - re-run /sdd:spec-init (heal)"
+spec_dir=${spec_dir%/}
+
+# --- children: the three phase beans + the todo task count -------------------
+children_json=$(beans query --json "{ bean(id: \"$epic\") { children { id title status tags } } }")
+case $children_json in
+    *'"bean": null'*) die "epic $epic disappeared mid-check" ;;
+esac
+
+# Pretty-printed JSON, one physical line per field; children fields sit one
+# indent level below the wrapper. Emit TAB-separated id/title/status/tags
+# records (tags normalized to a bare comma list) - see task-D2 report.
+child_records=$(printf '%s\n' "$children_json" | awk '
+    BEGIN { n = 0 }
+    /^ *"bean": *null/ { exit }
+    /^ *"children":/ { inch = 1; if ($0 ~ /: *\[\]/) exit; next }
+    inch && /^ *"id": /     { s = $0; sub(/^ *"id": "/, "", s); sub(/",$/, "", s);     id[n] = s;  next }
+    inch && /^ *"title": /  { s = $0; sub(/^ *"title": "/, "", s); sub(/",$/, "", s);  ti[n] = s;    next }
+    inch && /^ *"status": / { s = $0; sub(/^ *"status": "/, "", s); sub(/",$/, "", s); st[n] = s;    next }
+    inch && /^ *"tags": /   { s = $0; sub(/^ *"tags": \[/, "", s); sub(/\][, ]*$/, "", s); gsub(/"/, "", s); gsub(/ +/, "", s); tg[n] = s; n++; next }
+    END { for (i = 0; i < n; i++) print id[i] "\t" ti[i] "\t" st[i] "\t" tg[i] }
+')
+
+TAB=$(printf '\t')
+req_id=""; des_id=""; tsk_id=""
+req_status=""; des_status=""; tsk_status=""
+req_tags=""; des_tags=""
+todo_tasks=0
+while IFS="$TAB" read -r cid ctitle cstatus ctags; do
+    [ -n "$cid" ] || continue
+    case ",$ctags," in
+        *,phase,*) ;;
+        *)
+            [ "$cstatus" = todo ] && todo_tasks=$((todo_tasks + 1))
+            continue
+            ;;
+    esac
+    case $ctitle in
+        "Phase — requirements") req_id=$cid; req_status=$cstatus; req_tags=$ctags ;;
+        "Phase — design")       des_id=$cid; des_status=$cstatus; des_tags=$ctags ;;
+        "Phase — tasks")        tsk_id=$cid; tsk_status=$cstatus ;;
+    esac
+done <<EOF
+$child_records
+EOF
+
+[ -n "$req_id" ] || die "gate phases: 'Phase — requirements' bean missing under $epic - run /sdd:spec-init (heal)"
+[ -n "$des_id" ] || die "gate phases: 'Phase — design' bean missing under $epic - run /sdd:spec-init (heal)"
+[ -n "$tsk_id" ] || die "gate phases: 'Phase — tasks' bean missing under $epic - run /sdd:spec-init (heal)"
+
+[ "$req_status" = completed ] ||
+    die "gate phase-completed: 'Phase — requirements' is '$req_status' - run /sdd:spec-requirements"
+[ "$des_status" = completed ] ||
+    die "gate phase-completed: 'Phase — design' is '$des_status' - run /sdd:spec-design"
+[ "$tsk_status" = completed ] ||
+    die "gate phase-completed: 'Phase — tasks' is '$tsk_status' - run /sdd:spec-tasks"
+
+case ",$req_tags," in
+    *,validated,*) ;;
+    *) die "gate validated: 'Phase — requirements' lacks the 'validated' tag - re-run /sdd:spec-requirements" ;;
+esac
+case ",$des_tags," in
+    *,validated,*) ;;
+    *) die "gate validated: 'Phase — design' lacks the 'validated' tag - re-run /sdd:spec-design" ;;
+esac
+
+# --- freshness: latest Doc-hash per phase vs current document hash -----------
+check_hash() {
+    phase_id=$1
+    doc_name=$2
+    fix_cmd=$3
+    phase_label=$4
+    doc_path="$spec_dir/$doc_name"
+    [ -f "$doc_path" ] ||
+        die "gate freshness: $doc_path is missing on disk - restore it or re-run /sdd:$fix_cmd"
+    phase_body=$(beans query --json "{ bean(id: \"$phase_id\") { body } }")
+    recorded_hash=$(printf '%s\n' "$phase_body" | awk '
+        /^ *"body": / {
+            s = $0
+            sub(/^ *"body": "/, "", s)
+            sub(/",?$/, "", s)
+            gsub(/\\n/, "\n", s)
+            n = split(s, lines, "\n")
+            for (i = n; i >= 1; i--)
+                if (lines[i] ~ /^[- ]*Doc-hash: [0-9a-fA-F][0-9a-fA-F]*$/) {
+                    v = lines[i]
+                    sub(/^[- ]*Doc-hash: /, "", v)
+                    print v
+                    exit
+                }
+        }
+    ')
+    [ -n "$recorded_hash" ] ||
+        die "gate doc-hash: 'Phase — $phase_label' carries no Doc-hash: line - re-run /sdd:$fix_cmd"
+    current_hash=$(shasum -a 256 "$doc_path")
+    current_hash=${current_hash%% *}
+    [ "$recorded_hash" = "$current_hash" ] ||
+        die "gate freshness: $doc_name changed after its validation (hash mismatch) - re-run /sdd:$fix_cmd"
+}
+
+check_hash "$req_id" "requirements.md" "spec-requirements" "requirements"
+check_hash "$des_id" "design.md" "spec-design" "design"
+
+# --- queue readiness: at least one todo task bean -----------------------------
+[ "$todo_tasks" -ge 1 ] ||
+    die "gate tasks: no todo task beans under $epic - promote the plan via /sdd:spec-tasks (or every task is already completed)"
+
+[ "$quiet" = 1 ] || echo "GATE PASS: $epic is ready for /sdd:impl ($spec_dir)"
+exit 0
