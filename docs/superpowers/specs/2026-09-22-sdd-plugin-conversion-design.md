@@ -39,7 +39,8 @@ skill; bootstrap hook with user-file precedence; `/sdd:init` opt-in; docs rewrit
 - `.github/workflows/` — untouched (separate future flow)
 - `.zed/` — untouched (user's IDE configuration)
 - No new features beyond this migration
-- No marketplace distribution (local `--plugin-dir` use only for now)
+- No public marketplace distribution; local install supported via the repo's
+  `.claude-plugin/marketplace.json` (sdd-local) and `--plugin-dir`
 - No mutation of any target project's `CLAUDE.md`, ever
 
 ## 4. Plugin Architecture
@@ -50,7 +51,7 @@ skill; bootstrap hook with user-file precedence; `/sdd:init` opt-in; docs rewrit
 cc-sdd/                            plugin name: sdd
 ├── .claude-plugin/plugin.json    name: sdd, version, description
 ├── hooks/hooks.json              SessionStart hook (see 4.3)
-├── skills/                       14 skills, bare names → /sdd:<name>
+├── skills/                       15 skills, bare names → /sdd:<name>
 │   ├── init/SKILL.md
 │   ├── discovery/SKILL.md
 │   ├── spec-init/SKILL.md
@@ -67,14 +68,18 @@ cc-sdd/                            plugin name: sdd
 │   ├── validate-gap/SKILL.md
 │   ├── validate-design/SKILL.md
 │   ├── validate-impl/SKILL.md
+│   ├── validate-requirements/SKILL.md
 │   └── steering/SKILL.md         + references/ (steering-principles.md, core/, custom/)
 ├── assets/
 │   ├── rules/                    12 shared rule files (ported verbatim except the
 │                                                                 placeholder/language strip in wave 3)
-│   └── templates/                4 document templates: requirements.md,
+│   ├── templates/                4 document templates: requirements.md,
 │                                 requirements-init.md, design.md, research.md
 │                                 (init.json died with spec.json; tasks.md died with
 │                                 Revision 4 — tasks live in bean bodies only)
+│   ├── workflow-map.md           session-bootstrap map (the SessionStart hook cats it)
+│   └── design-system_flow.png   upstream design-flow diagram
+├── bin/                          sdd-gate, sdd-verdict, sdd-promote (Revision 7)
 ├── CLAUDE.md                     development context for THIS repo only
 ├── README.md                     human-facing, fork scope
 └── docs/guides/                  English survivors, updated
@@ -84,7 +89,7 @@ Compared to the source 17 skills: `spec-status` is deleted (beans replaces it),
 `spec-quick` is deleted (full cycle only, phase by phase — quick one-off work stays
 in the main chat outside sdd), `spec-batch` is deleted (sequential single-feature
 workflow — see 5.5), `steering-custom` merges into `steering`, `init` is new.
-Total: 14.
+Total: 15 (validate-requirements added by Revision 6).
 
 ### 4.2 Skill inventory (interaction pattern, model, origin)
 
@@ -99,6 +104,7 @@ Total: 14.
 | impl | inline orchestrator + per-task subagents | inherit | rewritten fresh |
 | review / debug / verify-completion | protocol payloads; user-invocable | (set by caller) | ported |
 | validate-gap / -design / -impl | generative fork | opus | ported + reworked |
+| validate-requirements | generative fork (Revision 6 gate) | opus | new |
 | steering | interactive pipeline (own SKILL design) | inherit | user's global skill, verbatim |
 
 Frontmatter on generative skills: `context: fork`, `background: false` (full toolset,
@@ -121,6 +127,12 @@ matcher does not include `resume` (resumed sessions rely on the file or the next
 startup injection), and a user's `sdd.md` that lags behind a newer plugin version
 remains authoritative — precedence is by design; `/sdd:init` offers to show a diff
 rather than overwrite.
+
+The hook set also ships `beans prime` unconditionally on SessionStart and on
+PreCompact: the plugin self-supplies the beans agent guide every session and
+before compaction. The user's global hooks carry the same today; once the plugin
+is stable they will be removed in favor of the plugin's (the duplication is
+harmless — identical content).
 
 `/sdd:init` writes `.claude/rules/sdd.md` containing **only the sdd workflow rules** —
 no session briefing, no narrative. After writing, it informs the current session in
@@ -159,7 +171,8 @@ sequenceDiagram
     participant R as Task-reviewer (opus)
 
     O->>O: query beans → next unblocked task
-    O->>O: write workspace/task-N-brief.md
+    O->>O: resolve the task bean (brief/report/notes are its body sections —
+    Revisions 4+7; brief/report FILES are gone)
     O->>I: Agent(prompt=implementer-template + file path patterns)
     I-->>O: status contract (≤15 lines)
     O->>O: build workspace/review-package-N.md (working-tree diff+stat vs HEAD,
@@ -178,8 +191,7 @@ sequenceDiagram
 ```
 
 Status contract values: `DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`.
-Minor (non-blocking) findings never enter the fix loop — they land in a final-report
-parking lot. The review package is scoped to the task's boundary paths when declared,
+Minor (non-blocking) findings never enter the fix loop — they land in the task bean's parking lot (body section, Revision 7). The review package is scoped to the task's boundary paths when declared,
 else the full working-tree diff — unrelated uncommitted user work never contaminates
 it. After the last task: whole-branch review (opus) + `validate-impl` gate
 (GO/NO-GO, max 3 remediation rounds).
@@ -247,9 +259,9 @@ in parallel. Consequences:
 │   │   ├── requirements.md      EARS-format requirements
 │   │   ├── design.md            includes High-Level Architecture + mermaid diagram
 │   │   ├── research.md          (validate-gap output, when used)
-│   │   └── workspace/           execution artifacts, append-only:
-│   │                            task-N-brief.md, task-N-report.md,
-│   │                            review-package-N.md, notes.md
+│   │   └── workspace/           blob storage only (Revision 7): review-package-N.md
+│   │                            and other >100-line evidence; briefs/reports/notes
+│   │                            live in task-bean bodies
 │   └── ...
 └── .claude/
     └── rules/
@@ -273,8 +285,10 @@ in parallel. Consequences:
 plans live in bean bodies), roadmap.md
 checkboxes, `_Blocked:_` inline annotations (blocked state lives in beans).
 
-**Division of concerns**: state = beans; artifacts = files in the feature workspace.
-Resume = query beans (never re-parse documents for progress).
+**Division of concerns** (two-tier since Revision 7): state, verdicts, briefs,
+reports, and notes = beans (bodies/tags); blobs over ~100 lines / 4KB that humans
+read end-to-end (review packages, large evidence) = files, referenced from beans
+by pointers. Resume = query beans (never re-parse documents for progress).
 
 ### 6.3 Plugin-internal data
 
@@ -326,6 +340,32 @@ Other paths:
   design-review-gate, task-plan review loop, independent per-task review,
   root-cause debugging, fresh-evidence completion verification.
 
+### 8.1 Machine contract grammar (authoritative, Revisions 6-7)
+
+Every machine-parsed line is `- <FIELD>: <VALUE>` — exact field spelling, exact
+enum token, single line. Complete inventory (live-swept):
+
+| # | Field | Values | Written by |
+|---|---|---|---|
+| 1 | STATUS | DONE, DONE_WITH_CONCERNS, BLOCKED, NEEDS_CONTEXT | implementer |
+| 2 | VERDICT | APPROVED, REJECTED | task-reviewer, re-review, code-reviewer, review |
+| 3 | finding | [ADDRESSED], [NOT ADDRESSED] | re-review (per finding) |
+| 4 | severity | BLOCKING, MINOR | reviewers (per finding) |
+| 5 | OUTCOME | RESOLVED, UNRESOLVED | debugger |
+| 6 | STATUS | VERIFIED, NOT_VERIFIED, MANUAL_VERIFY_REQUIRED | verify-completion |
+| 7 | DECISION | GO, NO_GO, MANUAL_VERIFY_REQUIRED | validate-impl |
+| 8 | evidence | Tests PASS/FAIL; Smoke PASS/FAIL/MANUAL_REQUIRED | validate-impl |
+| 9 | evidence | Tests PASS/FAIL; Static PASS/FAIL/SPOT_CHECKED | review |
+| 10 | STATUS / VERDICT | DONE/BLOCKED; GO/NO_GO | validate-design, forks |
+| 11 | criterion | PASS, CONCERN, FAIL | validate-design (per criterion) |
+| 12 | STATUS | DONE, AMBIGUITY | spec-requirements drafter |
+
+Task-bean body sections (stable append-only headers): `## Brief`, `## Report`,
+`## Notes`, `## Validation`, `## Parking lot`. Mirror tags (lowercase-hyphen):
+`status-done`, `verdict-approved`, `outcome-resolved`, `verification-verified`,
+`decision-go`, and `validated` on phase beans. `bin/sdd-verdict` parses the
+authoritative line; tags exist for cheap cross-bean filtering.
+
 ## 9. Migration Plan (5 waves, each a child bean, verified before the next)
 
 1. **Purge** — delete `tools/cc-sdd/`, `.agents/`, `AGENTS.md`, all non-Claude agent
@@ -341,8 +381,8 @@ Other paths:
    load check would hang).
 3. **Subagent-first + beans** — fork frontmatter on generative skills; impl
    orchestrator + prompt-template suite + status contracts + fix-loop + review-package
-   builder; all tracking migrated to beans; `spec.json` deleted; `tasks.md` becomes
-   the static plan doc; rules/templates stripped of spec.json/`{{LANG_CODE}}`/language
+   builder; all tracking migrated to beans; `spec.json` deleted; `tasks.md` became
+   the static plan doc at this stage (removed later by Revision 4); rules/templates stripped of spec.json/`{{LANG_CODE}}`/language
    references; discovery moves to milestone/epic beans (sequential queue); `spec-batch` is deleted.
    Verify: grep invariants (see 10), smoke-run `/sdd:impl` on a toy spec.
 4. **Steering + bootstrap** — integrate the steering skill with its references;
@@ -361,7 +401,11 @@ behavioral:
 2. **Grep invariants** (all must return zero hits; scope = `skills/ assets/ hooks/
    README.md CLAUDE.md docs/guides/` — deliberately excluding `.github/`, `.zed/`,
    `.beans/`, and `docs/superpowers/`, whose `kiro`/`{{` content is either untouchable
-   or self-referential):
+   or self-referential). Convention invariants (Revisions 4-7): zero `tasks.md`
+   references in skills; spec-init creates exactly three `phase`-tagged beans;
+   completed requirement/design phases carry `validated` tags + `Doc-hash:` lines;
+   verdict lines follow §8.1 grammar with mirror tags; zero brief/report file
+   references in skills; `bin/` included in the scope:
    - `{{` (unresolved placeholders), `.kiro`, `kiro-` (old names)
    - checkbox-flip instructions (`- [x]` writes) and spec.json phase/approval writes
    - git-write instructions (`git add`, `git commit`, `git push`, branch ops) in any
@@ -371,13 +415,20 @@ behavioral:
    `background: false` + `model:`; prompt-templates pin `model` per role; every
    user-facing choice-point instruction mentions AskUserQuestion; impl templates
    contain the four-part escalation format and stop-per-task rule.
-4. **Per-skill behavior checklist**: each of the 14 skills gets a short manual
+4. **Per-skill behavior checklist**: each of the 15 skills gets a short manual
    checklist (entry condition → expected interaction pattern → expected artifacts →
    expected beans effects) walked through during wave verification.
 5. **End-to-end dry run**: in a scratch project — `/sdd:init`, a toy feature through
    spec-init → spec-requirements → spec-design → spec-tasks (approving each
    confirm), `/sdd:impl` for one task verifying the
    stop-point and report shape, beans state inspected.
+
+Post-Revision dry-run additions: the walkthrough must exercise the phase gates
+(impl refuses unapproved phases), the auto-validator firing on approve (including
+one NO-GO round and one zero-semantics auto-fix), validate-requirements as the
+requirements gate, a deliberate post-validation doc edit triggering the stale-hash
+escalation, task bodies carrying Brief/Report/Notes sections with verdict lines +
+mirror tags, and the review-package file + bean pointer pair.
 
 ## 11. Open Items (inferences to verify during build)
 
@@ -391,14 +442,15 @@ behavioral:
 
 ## 12. Success Criteria
 
-1. Plugin loads via `claude --plugin-dir .`; all 14 skills invocable as `/sdd:<name>`;
+1. Plugin loads via `claude --plugin-dir .`; all 15 skills invocable as `/sdd:<name>`;
    hook injects on startup and defers to an existing `.claude/rules/sdd.md`.
 2. `git ls-files` contains none of: `tools/`, `.agents/`, `AGENTS.md`, `.kiro/`,
    ja/zh-TW files, demo specs.
 3. All grep invariants (10.2) hold; all presence invariants (10.3) hold.
 4. The end-to-end dry run (10.5) passes with the expected interaction shapes:
    questions via AskUserQuestion, stop-per-task with short report, concerns escalated
-   in the four-part format.
+   in the four-part format; phase gates enforced; auto-validation fires on approve;
+stale-hash escalates rather than silently re-validates.
 5. README/docs describe the fork; everything is English; `.zed/` and
    `.github/workflows/` are byte-identical to before the migration.
 
@@ -447,6 +499,11 @@ moment of approval, not its persistence. Authoritative overrides:
   phases (recommended) / accept desync risk / cancel. No silent invalidation.
 - Explicitly NOT phase gates: research, test-strategy, estimate (content of
   design/requirements/validate-*, not lifecycle gates).
+- Re-running spec-tasks after promotion preserves promoted statuses (never resets
+  todo/in-progress to draft); the numbering discipline (no number reuse for
+  different work) applies to re-runs.
+- Mirror-tag scope (Revision 7): task beans carry status-/verdict-/outcome-/
+  verification-/decision- mirrors; phase beans carry `validated` after GO.
 
 ### Revision 5 research annex (2026-09-24, live-tested)
 
@@ -462,12 +519,16 @@ moment of approval, not its persistence. Authoritative overrides:
 
 ## Revision 6 (2026-09-24) — mandatory validation gates (pre-implementation)
 
-Approval is no longer a conversation alone: every phase's "approve" auto-dispatches
-an independent validator (opus fork) first. GO → phase completes with tag
+Approval is no longer a conversation alone: the REQUIREMENTS and DESIGN phases'
+"approve" auto-dispatches an independent validator (opus fork) first (the tasks
+phase has no document post-Revision 4 — it completes on its approve/promotion
+gate alone). GO → phase completes with tag
 `validated` and the document's sha256 recorded in the phase bean body
 (`Doc-hash:`); NO-GO → four-part escalation, phase stays open. Any later gate
 recomputes the hash — a changed document invalidates its validation (staleness is
-mechanical, catches committed and uncommitted edits). Validators auto-fix only
+mechanical, catches committed and uncommitted edits; the hash is computed AFTER
+the validator's own zero-semantics fixes, at the GO moment; a stale hash at any
+later gate escalates four-part — never silently re-validates). Validators auto-fix only
 zero-semantics items (typos, paths, formatting) and list every fix; all else
 escalates. New skill `validate-requirements` (15th) gates the requirements phase
 (EARS, completeness, contradictions, steering); `validate-gap` remains formative
