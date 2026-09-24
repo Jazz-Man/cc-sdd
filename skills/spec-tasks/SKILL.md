@@ -233,6 +233,7 @@ caller parses the heading and the `- STATUS:` line mechanically:
 - BEANS: <created / updated / scrapped / unchanged counts>
 - DRAFTS: <one line per task bean: "<N> <title> - depends on <numbers, or none>">
 - CONCERNS: <one line each, if any>
+- PHASE: <tasks phase bean id from Step 2, or `missing` - the approve gate closes with it>
 - BLOCKERS: <BLOCKED only - the gap, the missing gate, or the re-entry, and the command or decision needed>
 ```
 

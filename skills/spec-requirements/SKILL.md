@@ -26,10 +26,11 @@ Division of labor:
 1. **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and
    read-only inspection. Nothing in this skill stages, commits, pushes,
    or touches branches: the user reviews and commits.
-2. **beans is the only tracker.** This skill writes no feature or task
-   state to beans - its only bean writes are the multi-epic recovery
-   updates of Step 0; the document on disk is the artifact. Never write
-   progress, approval, or blocked state into documents.
+2. **beans is the only tracker.** This skill writes no task state to
+   beans - its bean writes are the Step 0 recovery updates, the re-entry
+   updates of the phase-gate check, and the phase-gate completion of
+   Phase 3; the document on disk is the artifact. Never write progress,
+   approval, or blocked state into documents.
 3. **State lives in files, not chat.** Everything the drafter needs is
    written to `workspace/qa-digest.md` BEFORE dispatch; the dispatch
    prompt carries paths, never transcript.
@@ -59,9 +60,48 @@ Division of labor:
    Steering is already in your context (project memory, loaded at
    session start) - apply it; do not re-read the files. Do not load more
    into the main context - the drafter reads the full files.
-3. **Existing-document gate**: if
+3. **Phase-gate check**: the requirements phase is the FIRST phase -
+   there is no upstream phase gate (the active epic resolved above IS
+   the entry condition). The only gate is the re-entry check below
+   (spec Revision 5).
+
+   > **Gate:** if the `Phase — requirements` bean is already
+   > `completed`, this is re-entry into an approved phase - STOP: run
+   > the re-entry escalation below before anything else in this skill.
+
+   Query the epic's children once:
+   `beans query --json '{ bean(id: "<epic-id>") { children { id title status tags blockedByIds } } }'`
+   (the resolved relation `blockedBy` is broken in beans v0.4.2 - always
+   read `blockedByIds`). Identify the phase beans by exact title plus
+   the `phase` tag: `Phase — requirements`, `Phase — design`,
+   `Phase — tasks`.
+
+   - **`Phase — requirements` already `completed`** -> re-entry (the
+     gate above): escalate via AskUserQuestion before proceeding:
+     1. **Reopen downstream phases** (Recommended) - the downstream
+        approvals descend from the requirements being replaced: set
+        `Phase — design` and `Phase — tasks` to `todo`
+        (`beans update <phase-id> -s todo` each) with a one-line reason
+        appended to each, then continue this run - the interview
+        proceeds under the reopened gates and the approve gate
+        re-completes the requirements phase.
+     2. **Accept desync risk** - leave every gate as it is; append a
+        one-line dated note to the epic body (`Desync accepted:
+        requirements re-entered while phase gates read completed`),
+        then continue this run. Downstream phases stay completed
+        against a requirements document that may change - the risk is
+        on record, not silent.
+     3. **Cancel** - stop; nothing changes.
+   - **No `Phase — requirements` bean under the epic** -> partial
+     legacy state: the interview may proceed, but the approve gate
+     cannot close the phase - it names `/sdd:spec-init` (whose heal
+     path creates missing phase beans) before completion.
+
+   Keep the requirements phase bean id at hand (when present); Phase 3
+   completes it at the approve gate.
+4. **Existing-document gate**: if
    `.sdd/specs/<feature>/requirements.md` already exists, ask via
-   AskUserQuestion before anything else:
+   AskUserQuestion before the interview begins:
    1. **Edit-merge** (Recommended) - keep the document; the interview
       covers only the change intent; the drafter merges.
    2. **Regenerate** - interview from scratch; the drafter rewrites the
@@ -197,8 +237,13 @@ in the IDE. Do not dump the document into chat.
 No new open questions from you here - confirm-only. Then
 AskUserQuestion:
 
-1. **Approve** (Recommended) - requirements are settled. Name the next
-   command in a code block:
+1. **Approve** (Recommended) - requirements are settled. Close the phase
+   gate: `beans update <requirements-phase-id> -s completed` (the id
+   from the Step 0 phase-gate check - `completed` IS the approval
+   record, spec Revision 5). (Rev 6 / C2 insertion point: the
+   validate-requirements auto-validator inserts between the approve
+   answer and this completion step - keep the completion standalone.)
+   Then name the next command in a code block:
    ```
    /sdd:spec-design
    ```
