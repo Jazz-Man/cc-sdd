@@ -18,6 +18,7 @@ skills/                         one directory per skill, bare names
                                 (.sdd/brief.md); queues follow-up features as milestone/epic beans
   spec-init/                    creates spec skeleton under .sdd/specs/<feature>/
   spec-requirements/            EARS requirements + review gate
+  validate-requirements/        EARS/completeness/contradictions gate (generative fork)
   spec-design/                  design + discovery + review gate (generative fork)
   spec-tasks/                   task plan + sanity review (generative fork)
   impl/                         orchestrator; templates/ holds subagent prompts
