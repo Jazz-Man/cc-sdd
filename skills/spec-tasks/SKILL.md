@@ -278,7 +278,7 @@ AskUserQuestion on how to proceed (resolve via that command / adjust
 inputs / stop). The re-entry case escalates with two options: **Reopen**
 (Recommended) - `beans update <tasks-phase-id> -s todo`, then re-invoke
 `/sdd:spec-tasks`: the re-sync runs under the reopened gate and the
-approve gate re-completes it; **Stop** - nothing changes. (Revision 5's
+approve gate re-completes it; **Cancel** - nothing changes. (Revision 5's
 accept-desync option is deliberately absent here: the tasks phase has no
 upstream document - the bean queue IS the execution input, so mutating
 it while the gate reads completed is exactly the silent invalidation the

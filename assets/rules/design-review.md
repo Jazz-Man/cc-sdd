@@ -8,11 +8,11 @@ Conduct interactive quality review of technical design documents to ensure they 
 - **Critical focus**: Limit to 3 most important concerns
 - **Interactive dialogue**: Engage with designer, not one-way evaluation
 - **Balanced assessment**: Recognize strengths and weaknesses
-- **Clear decision**: Definitive GO/NO-GO with rationale
+- **Clear decision**: Definitive GO/NO_GO with rationale
 
 ## Scope & Non-Goals
 
-- Scope: Evaluate the quality of the design document against project context and standards to decide GO/NO-GO.
+- Scope: Evaluate the quality of the design document against project context and standards to decide GO/NO_GO.
 - Non-Goals: Do not perform implementation-level design, deep technology research, or finalize technology choices. Defer such items to the design phase iteration.
 
 ## Core Review Criteria
@@ -60,9 +60,9 @@ For each issue:
 ### Step 3: Recognize Strengths
 Acknowledge 1-2 strong aspects to maintain balanced feedback.
 
-### Step 4: Decide GO/NO-GO
+### Step 4: Decide GO/NO_GO
 - **GO**: No critical architectural misalignment, requirements addressed, clear implementation path, acceptable risks
-- **NO-GO**: Fundamental conflicts, critical gaps, high failure risk, disproportionate complexity
+- **NO_GO**: Fundamental conflicts, critical gaps, high failure risk, disproportionate complexity
 
 ## Traceability & Evidence
 
@@ -82,7 +82,7 @@ For each: Issue, Impact, Recommendation, Traceability (e.g., 1.1, 1.2), Evidence
 1-2 positive aspects.
 
 ### Final Assessment
-Decision (GO/NO-GO), Rationale (1-2 sentences), Next Steps.
+Decision (GO/NO_GO), Rationale (1-2 sentences), Next Steps.
 
 ### Interactive Discussion
 Engage on designer's perspective, alternatives, clarifications, and necessary changes.
@@ -99,7 +99,7 @@ Engage on designer's perspective, alternatives, clarifications, and necessary ch
 2. **Constructive Tone**: Provide solutions, not just criticism
 3. **Interactive Approach**: Engage in dialogue rather than one-way evaluation
 4. **Balanced Assessment**: Recognize both strengths and weaknesses
-5. **Clear Decision**: Make definitive GO/NO-GO recommendation
+5. **Clear Decision**: Make definitive GO/NO_GO recommendation
 6. **Actionable Feedback**: Ensure all suggestions are implementable
 
 ## Final Checklist
@@ -107,4 +107,4 @@ Engage on designer's perspective, alternatives, clarifications, and necessary ch
 - **Critical Issues ≤ 3** and each includes Impact and Recommendation
 - **Traceability**: Each issue references requirement ID/section
 - **Evidence**: Each issue cites design doc location
-- **Decision**: GO/NO-GO with clear rationale and next steps
+- **Decision**: GO/NO_GO with clear rationale and next steps

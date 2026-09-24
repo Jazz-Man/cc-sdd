@@ -14,6 +14,7 @@ This file is development context for THIS repository, not user documentation.
 ```
 .claude-plugin/plugin.json      plugin manifest (name: sdd)
 skills/                         one directory per skill, bare names
+  init/                         writes the user-owned .claude/rules/sdd.md (opt-in)
   discovery/                    action-path triage; writes the workstream brief
                                 (.sdd/brief.md); queues follow-up features as milestone/epic beans
   spec-init/                    creates spec skeleton under .sdd/specs/<feature>/
@@ -27,12 +28,13 @@ skills/                         one directory per skill, bare names
   verify-completion/            fresh-evidence completion gate
   validate-gap/                 requirements vs existing codebase analysis
   validate-design/              interactive design quality review
-  validate-impl/                feature-level GO/NO-GO validation
+  validate-impl/                feature-level GO/NO_GO validation
   steering/                     manages .claude/rules/ in target projects
 assets/                         shared content referenced by skills
   rules/                        rule files (EARS format, review gates, …)
-  templates/                    document templates (requirements, design, tasks, …)
-hooks/                          SessionStart hook (added by a pending task)
+  templates/                    document templates (requirements, design, research, …)
+bin/                            sdd-gate, sdd-verdict, sdd-promote helpers (Revision 7)
+hooks/                          SessionStart hook (bootstrap map injection)
 docs/guides/                    user-facing guides
 docs/superpowers/               this conversion's spec and plan (self-referential;
                                 excluded from invariant greps)
@@ -55,13 +57,19 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
 
 ## Verification
 
-- `claude plugin validate .` must pass. Known accepted warnings: missing `author`
-  field, and this root `CLAUDE.md` not loading as plugin context.
+- `claude plugin validate .` must pass. With `.claude-plugin/marketplace.json`
+  present it validates the marketplace manifest and passes clean — the old
+  "missing `author`" accepted-warning is gone (the field exists; the marketplace
+  manifest also changes what validate reports on). This root `CLAUDE.md` still
+  does not load as plugin context.
 - Invariant greps (must return zero hits; scope `skills/ assets/ hooks/ README.md
-  CLAUDE.md docs/guides/`): unresolved double-brace placeholders, the old Kiro
-  settings-directory convention, and old skill names carrying the Kiro prefix.
-  Exact patterns and the full battery (checkbox-flip, git-write, beans-duplication) are
-  in `docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md` §10.
+  CLAUDE.md docs/guides/`, plus `bin/` for the convention set): unresolved
+  double-brace placeholders, the old Kiro settings-directory convention, and
+  old skill names carrying the Kiro prefix. Exact patterns and the full battery
+  (checkbox-flip, git-write, beans-duplication, and the Revisions 4-7 convention
+  invariants: zero plan-document/notes-file references, NO_GO spelling, six
+  forks, 15-skill census) are in
+  `docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md` §10.
 - After content changes to skills or assets, re-run the greps and
   `claude plugin validate .` before claiming done.
 

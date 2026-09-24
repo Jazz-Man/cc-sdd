@@ -105,9 +105,10 @@ Read, under the spec directory:
 - `.sdd/specs/<feature>/design.md` - the conformance reference:
   boundary commitments, structure map. Missing -> return BLOCKED
   pointing to `/sdd:spec-design`.
-- `.sdd/specs/<feature>/workspace/` - reports, review packages, and
-  `notes.md` (including its `## Minor Findings` parking lot). Reference
-  only: claims there are never evidence.
+- `.sdd/specs/<feature>/workspace/` - review packages and other large
+  evidence blobs; the minor-findings parking lot lives in the task
+  beans' `## Parking lot` sections (Step 2). Reference only: claims
+  there are never evidence.
 - Steering: already in your context (project memory, loaded at session
   start) - apply it; do not re-read the files.
 - The verify-completion protocol at

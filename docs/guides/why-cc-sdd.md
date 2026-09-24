@@ -23,9 +23,8 @@ something a human approved.
 Five commitments carry that:
 
 1. **Structured, Kiro-style documents.** Requirements in EARS format, designs
-   with considered alternatives and diagrams, a static task plan with
-   boundaries — not walls of text. The structure is what makes a spec
-   reviewable at a gate.
+   with considered alternatives and diagrams, boundary-annotated task briefs —
+   not walls of text. The structure is what makes a spec reviewable at a gate.
 2. **Subagent-first execution.** The main conversation is for decisions.
    Implementation, review, and debugging run in fresh subagents that return
    status contracts — keeping contexts clean over long runs and giving every
@@ -40,7 +39,10 @@ Five commitments carry that:
    model choice is a cost and quality decision the user already made.
 5. **Stop-per-task user control.** After every task, the run stops: the user
    reviews the diff, tests, and commits. Agents never touch git. Autonomy is
-   bounded by gates that a human actually passes through.
+   bounded by gates that a human actually passes through — and phase approval
+   itself is validator-gated: an independent opus review must return GO before
+   a phase completes, and any later edit to the document invalidates that
+   approval mechanically.
 
 ## Specification vs design
 
@@ -49,7 +51,7 @@ Two things often get collapsed that shouldn't be:
 - **Specification** — the contract: the boundary, the preconditions, what a
   piece of work must respect. In sdd: `requirements.md`, the boundary
   commitments in `design.md`, the `_Boundary:_`/`_Depends:_` annotations in
-  `tasks.md`.
+  the task briefs (task-bean bodies — there is no plan document).
 - **Design** — the free exploration space inside that contract: components,
   interfaces, implementation decisions. In sdd: the internals of `design.md`
   and everything an implementer does within a task's boundary.
@@ -127,5 +129,5 @@ optimizes for depth on one workflow, which meant deleting:
 
 - [Spec-Driven Workflow](spec-driven.md) — how the ideas here run phase by
   phase
-- [Skill Reference](skill-reference.md) — the 14 skills and their contracts
+- [Skill Reference](skill-reference.md) — the 15 skills and their contracts
 - [README](../../README.md) — the plugin overview

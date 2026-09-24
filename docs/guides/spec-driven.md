@@ -28,9 +28,10 @@ Three rules hold the whole thing together:
   milestone. Nothing runs in parallel, by design.
 - **State is beans, artifacts are files.** Progress, approvals, blockers, and
   dependencies live in beans (feature = epic, task = task bean, initiative =
-  milestone). Documents are artifacts: `tasks.md` is a static plan whose
-  checkboxes are never flipped. Resume means querying beans — never
-  re-parsing documents, never trusting session memory.
+  milestone) — and so do task briefs, reports, notes, and verdict lines, as
+  body sections. There is no plan document: the task beans ARE the plan.
+  Resume means querying beans — never re-parsing documents, never trusting
+  session memory.
 
 ## Phase 1 — Discovery
 
@@ -73,7 +74,11 @@ single-active-feature rule (while an epic is `in-progress` it refuses — and
 offers to complete or scrap that epic first), creates `.sdd/specs/<feature>/`,
 and activates a matching queued epic or creates a new one. The epic bean body
 records the spec path and a one-line description; later skills parse those
-lines. Handoff: `/sdd:spec-requirements`, no argument.
+lines. It also seeds the three phase-gate beans under the epic —
+`Phase — requirements`, `Phase — design`, `Phase — tasks`, `phase`-tagged,
+chained in flow order: `completed` on one IS that phase's approval, and every
+later phase gates on the one before it. Handoff: `/sdd:spec-requirements`,
+no argument.
 
 ## Phase 3 — Requirements
 
@@ -87,6 +92,13 @@ confirm-only), writes the Q&A digest to the feature's `workspace/qa-digest.md`,
 and dispatches an opus subagent that drafts `requirements.md` in EARS format
 ("WHEN <trigger> THE SYSTEM SHALL <response>"), applying the requirements
 review gate before returning. You review the document and confirm.
+
+Approval is validator-gated: confirming auto-dispatches
+`/sdd:validate-requirements` (EARS, completeness, contradictions, steering,
+testability — evidence-quoted findings, zero-semantics fixes listed). Only its
+GO completes the phase — with a `validated` tag and the document's sha256
+recorded as a `Doc-hash:` line on the phase bean. NO_GO escalates in the
+four-part format and the phase stays open; edit, re-validate, repeat until GO.
 
 Output: `.sdd/specs/<feature>/requirements.md`.
 
@@ -119,7 +131,10 @@ light discovery depending on novelty), then writes `design.md`:
 - a mermaid diagram, kept 100% consistent with the prose
 
 You review and confirm in the main context; the fork itself never asks
-questions (blocked means `BLOCKED`, returned as a status contract).
+questions (blocked means `BLOCKED`, returned as a status contract). The
+approve gate auto-dispatches `/sdd:validate-design` — the same
+validator-gated approval as requirements: GO completes the phase with the
+`validated` tag and a `Doc-hash:`, NO_GO escalates and the phase stays open.
 
 Output: `.sdd/specs/<feature>/design.md`.
 
@@ -129,9 +144,9 @@ Output: `.sdd/specs/<feature>/design.md`.
 /sdd:validate-design
 ```
 
-An independent second opinion before the plan gets built: a fork reviews the
+Also runs standalone as a formative check anytime: a fork reviews the
 design against four criteria, writes the verdict-per-criterion report to
-`workspace/design-review.md`, and returns GO/NO-GO with blocking and minor
+`workspace/design-review.md`, and returns GO/NO_GO with blocking and minor
 findings. It reviews; it does not redesign — what happens to the document is
 your call.
 
@@ -141,13 +156,19 @@ your call.
 /sdd:spec-tasks
 ```
 
-Another fork. It derives `.sdd/specs/<feature>/tasks.md` from the approved
-requirements and design — a STATIC plan: task numbering, requirement mapping,
-`_Boundary:_` and `_Depends:_` annotations, no checkboxes and no progress
-state, ever — and syncs one task bean per sub-task under the feature epic,
-with cross-task dependencies as `--blocked-by` relations. From here the
-execution state lives in those beans; the plan document never changes to
-record progress.
+Another fork — but it writes no document. It derives the plan from the
+approved requirements and design and creates one task bean per sub-task under
+the feature epic, born `draft`: each body's `## Brief` section carries the
+number, title, natural-language description, detail bullets (at least one
+observable completion condition), and `_Requirements:_` / `_Boundary:_` /
+`_Depends:_` metadata; cross-task dependencies are `--blocked-by` relations.
+The beans ARE the plan.
+
+The approve gate is yours in the main context: approve-all or selectively
+promote `draft` → `todo` (impl never auto-selects a `draft`). Promotion
+completes the tasks phase bean, and the handoff is `/sdd:impl`. Re-running
+the fork re-syncs idempotently — promoted statuses are never reset, and a
+task number is never reused for different work.
 
 ## Phase 6 — Implementation
 
@@ -156,20 +177,28 @@ record progress.
 ```
 
 The orchestrator. It runs inline, owns the loop and the gates, and dispatches
-all execution to subagents via five role templates (implementer, task-reviewer, re-review, code-reviewer,
-debugger). Per task:
+all execution to subagents via five role templates (implementer, task-reviewer,
+re-review, code-reviewer, debugger). Before anything: the phase gates — all
+three phase beans must be `completed` (impl refuses unapproved phases) and
+fresh, meaning the `Doc-hash:` recorded at validation still matches the
+document on disk. A stale hash escalates four-part; it never silently
+re-validates. Per task:
 
 1. State is re-resolved from beans — active feature, task queue, blockers.
    Nothing depends on session memory.
-2. A sonnet implementer gets a written task brief; it returns a status
-   contract (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
+2. A sonnet implementer is dispatched with the task bean id — its `## Brief`
+   body section IS the brief; it appends its own `## Report` and `## Notes`
+   one-liners — and returns a status contract
+   (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
 3. An opus task-reviewer gets a scoped review package (the task's working-tree
-   diff vs HEAD — agents never commit) and applies the adversarial review
-   protocol. Verdict `APPROVED` or `REJECTED`.
+   diff vs HEAD, kept in `workspace/` — agents never commit) and applies the
+   adversarial review protocol. Verdict `APPROVED` or `REJECTED`, recorded on
+   the task bean as a `## Validation` line (with the package pointer) plus a
+   mirror tag.
 4. Rejections run a bounded fix loop — max 5 rounds (rounds 1–3 the same
    implementer, rounds 4–5 a fresh one with the model raised to opus), each
    round with a scoped re-review. Minor findings never enter the loop; they
-   park in `workspace/notes.md` and surface at feature finish.
+   park in the task bean's `## Parking lot` and surface at feature finish.
 5. Still failing: a fresh opus debugger investigates root causes (max 2
    rounds). Unresolved → the task bean is marked blocked with the root cause
    and the decision escalates to you.
@@ -193,14 +222,16 @@ When the last task bean closes, two gates run, sharing 3 remediation rounds:
 - **Whole-branch review** — an opus code-reviewer reads the committed diff
   since the feature branch diverged from the default branch, plus the
   uncommitted remainder.
-- **`validate-impl`** — the feature-level GO/NO-GO gate: integration,
+- **`validate-impl`** — the feature-level GO/NO_GO gate: integration,
   coverage, design-alignment, and boundary checks with fresh evidence, reading
   completion state from the task beans.
 
-Then the final stop: GO verdict, the minor-findings parking lot from
-`notes.md`, and the closing question — complete the feature (epic bean
-`completed` with a summary), leave it open, or abort (the epic and its tasks
-go `scrapped`; the branch — yours to delete — carries the whole feature away).
+Both verdicts are recorded on the epic bean's `## Validation` with mirror
+tags. Then the final stop: GO verdict, the minor-findings parking lot (the
+`## Parking lot` sections of the task beans plus the epic's), and the closing
+question — complete the feature (epic bean `completed` with a summary), leave
+it open, or abort (the epic and its tasks go `scrapped`; the branch — yours to
+delete — carries the whole feature away).
 
 ## What lands on disk
 
@@ -210,17 +241,18 @@ go `scrapped`; the branch — yours to delete — carries the whole feature away
 └── specs/<feature>/
     ├── requirements.md           EARS-format requirements
     ├── design.md                 architecture + mermaid
-    ├── tasks.md                  static plan (never carries progress)
     ├── research.md               validate-gap output, when used
-    └── workspace/                append-only execution record:
-                                   task briefs and reports, review
-                                   packages, qa-digest, notes.md
+    └── workspace/                append-only blobs: review packages,
+                                   qa-digest, design-review and
+                                   validation reports, edit digests
 ```
 
-The workspace is append-only: briefs, reports, and packages accumulate; rounds
-are added as new sections, earlier ones are never rewritten. Together with
-beans it forms the durable record — any session can pick the feature up from
-there.
+Task briefs, implementer reports, notes, verdict lines, and the parking lot
+do NOT land on disk — they live in the task-bean bodies (`## Brief`,
+`## Report`, `## Notes`, `## Validation`, `## Parking lot`). The workspace is
+append-only: packages and reports accumulate; rounds are added as new
+sections, earlier ones are never rewritten. Together with beans it forms the
+durable record — any session can pick the feature up from there.
 
 ## New vs existing projects
 
