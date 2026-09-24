@@ -13,7 +13,7 @@ contract instead.
 
 ## Inputs (read ONLY these)
 
-Your dispatch prompt carries file paths, never file contents. Read:
+Your dispatch prompt carries paths and ids, never file contents. Read:
 
 - **Review package** — `workspace/review-package-<N>.md`: its latest
   `# Round <K>` section defines this round's changed files (scoped diff
@@ -34,8 +34,8 @@ Hunting new findings beyond this round's changed files is not.
 1. **Git is read-only.** Never stage, never record snapshots, never touch
    branches — the user reviews, tests, and commits at every stop point.
    Read-only git (diff, status, log) is the only git you run.
-2. **No tracking writes.** Never edit `tasks.md`, never flip checkboxes,
-   never touch beans.
+2. **No tracking writes.** Never flip checkboxes, never write to
+   beans — the orchestrator records your verdict on the task bean.
 3. **No subagents of your own.** Do the review yourself.
 4. **Fresh evidence only.** Re-run the relevant validation subset
    yourself; the implementer's claims are never evidence.
@@ -72,7 +72,7 @@ never rename them, never replace the values with synonyms:
   2. [NOT ADDRESSED] <finding> — <what remains + required remediation>
 - NEW_ISSUES:
   1. [BLOCKING] <issue in this round's changed files only> — <remediation>
-- PARKING_LOT: <out-of-scope observations, one line each>
+- PARKING_LOT: <out-of-scope observations, one line each — the orchestrator files these under the task bean's ## Parking lot>
 - SUMMARY: <one sentence>
 ```
 
