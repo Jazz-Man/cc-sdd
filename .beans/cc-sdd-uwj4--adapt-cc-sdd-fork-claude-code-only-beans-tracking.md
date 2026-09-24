@@ -1,11 +1,11 @@
 ---
 # cc-sdd-uwj4
 title: 'Adapt cc-sdd fork: Claude Code-only, beans tracking, .claude/rules steering'
-status: in-progress
+status: completed
 type: feature
 priority: normal
 created_at: 2026-09-22T15:57:37Z
-updated_at: 2026-09-23T19:37:27Z
+updated_at: 2026-09-24T19:44:06Z
 ---
 
 Umbrella bean for refactoring the cc-sdd fork:
@@ -210,3 +210,13 @@ User: full cycle ONLY, phase by phase; quick one-off work happens in the main ch
 Plan APPROVED by user after revision 3 + opus review (2026-09-23). Execution method: subagent-driven. Starting superpowers:subagent-driven-development. Execution order: 3→4→5→1→2→6…16. Each task: fresh implementer (sonnet) + independent reviewer (opus) + STOP for user review/commit.
 
 Session paused 2026-09-23 EOD. Plan executed (16/16 tasks, all reviewed+committed). Remaining: user E2E report + incoming observations; post-E2E wave (cc-sdd-73kb 9 items + revision 4 cc-sdd-wgk2 + marketplace.json, one commit); umbrella closure; branch merge (user).
+
+## Summary of Changes
+
+EPIC COMPLETE (2026-09-22 → 2026-09-24). cc-sdd fork → 'sdd' Claude Code plugin, two editions:
+
+EDITION 1 (original plan, 16 tasks): purged multi-agent surface (426+10 files) + non-English; plugin skeleton (manifest/marketplace, 14 skills bare-named, assets/ single source); impl orchestrator + 5 subagent templates (status contracts, fix-loop escalation, stop-per-task); spec lifecycle skills with fork pattern; steering verbatim-integrated; bootstrap (SessionStart hook w/ user-file precedence + beans prime, /sdd:init); docs rewritten; final review CLEAN-WITH-FOLLOW-UPS, follow-ups landed.
+
+EDITION 2 (Revisions 4-7, 11 wave tasks): tasks live in bean bodies (## Brief; tasks.md dead); persistent phase gates (3 phase beans, completed=approved, draft promotion); mandatory validation gates (validate-requirements 15th skill, auto-validator on approve, doc-hash freshness w/ LATEST rule); workspace migration (lifecycle body sections, verdict dual-write w/ mirror tags, package hybrid, bin/ helpers live-tested); + spec reconciliation (22 inline fixes incl. B1 blocking) and 10 routed residuals. Final whole-branch review: CLEAN-WITH-FOLLOW-UPS; 2 polish items landed.
+
+Process: 27 task beans completed; every task implementer+reviewer gated (opus), fix rounds where needed; ~50 documented rulings; 2 opus deep-research reports (beans capabilities, gh-vs-beans experiment); battery green at every wave boundary. E2E walkthrough deferred to future scope by user. Branch: feature/tools → user merges.
