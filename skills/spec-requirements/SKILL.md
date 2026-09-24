@@ -274,6 +274,7 @@ AskUserQuestion:
         later rounds append beneath it - only the latest
         `Doc-hash:` counts at later gates): date, verdict GO,
         `Doc-hash: <the sha256 just computed>`
+        (this freshness write mirrors `${CLAUDE_PLUGIN_ROOT}/bin/sdd-gate`'s read)
      4. Complete: `beans update <requirements-phase-id> -s completed`
      Then name the next command in a code block:
      ```
