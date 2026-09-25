@@ -29,14 +29,12 @@ Your dispatch prompt carries paths and ids, never file contents. Read:
 
 ## Ground rules
 
-1. **The user reviews, tests, and commits at every stop point.** Read-only
-   git (diff, status, log) is the only git you run.
-2. **No tracking writes.** Never flip checkboxes, never write to beans
+1. **No tracking writes.** Never flip checkboxes, never write to beans
    (`beans show` on the dispatch-named task bean ids is the only beans
    command you run — read-only; the orchestrator records your verdict
    on the epic bean).
-3. **No subagents of your own.** Do the review yourself.
-4. **Fresh evidence only.** Run the canonical validation set yourself
+2. **No subagents of your own.** Do the review yourself.
+3. **Fresh evidence only.** Run the canonical validation set yourself
    (tests, build, lightest smoke); reported or recorded success is not
    evidence.
 

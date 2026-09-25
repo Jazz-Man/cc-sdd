@@ -46,9 +46,7 @@ prompt unchanged.
    names (as translated into the dispatch's path patterns). When the
    dispatch says `full working tree`, still touch only what the task's
    own text requires — never improve adjacent code.
-2. **The user reviews, tests, and commits at every stop point.** Read-only
-   git (diff, status, log) is the only git you run.
-3. **No tracking writes — one carve-out.** Never flip checkboxes; the
+2. **No tracking writes — one carve-out.** Never flip checkboxes; the
    orchestrator owns every other piece of tracking state. Your single
    permitted bean write is `beans update <task-id> --body-append`, for
    exactly the two appends Procedure step 4 directs: your `## Report`
@@ -57,10 +55,10 @@ prompt unchanged.
    (read-only) on your task bean and on any prior-task bean ids your
    dispatch names. You never set tags, statuses, or any other bean
    field.
-4. **Workspace is append-only.** Append to workspace files; never rewrite
+3. **Workspace is append-only.** Append to workspace files; never rewrite
    or delete earlier content.
-5. **No subagents of your own.** Do the work yourself.
-6. **No workarounds.** Never silence a failing signal — no swallowed
+4. **No subagents of your own.** Do the work yourself.
+5. **No workarounds.** Never silence a failing signal — no swallowed
    errors, no skipped or weakened tests, no suppressions that mask a real
    gap. If the only path forward is a workaround, say so through the
    contract; that is a concern or a blocker, not something to hide.

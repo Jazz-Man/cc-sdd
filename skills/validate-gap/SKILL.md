@@ -25,8 +25,7 @@ rest on.
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to the beans CLI and
-   read-only inspection.
+1. Bash is limited to the beans CLI and read-only inspection.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
    any document.
