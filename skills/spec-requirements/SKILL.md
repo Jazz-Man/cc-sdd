@@ -23,8 +23,7 @@ Division of labor:
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to the beans CLI,
-   `mkdir`, and read-only inspection.
+1. Bash is limited to the beans CLI, `mkdir`, and read-only inspection.
 2. **beans is the only tracker.** This skill writes no task state to
    beans - its bean writes are the Step 0 recovery updates, the re-entry
    updates of the phase-gate check, and the phase-gate completion of

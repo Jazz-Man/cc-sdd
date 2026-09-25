@@ -24,8 +24,7 @@ WHAT.
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to the beans CLI,
-   `mkdir`, and read-only inspection.
+1. Bash is limited to the beans CLI, `mkdir`, and read-only inspection.
 2. **The fork writes no beans.** It resolves the active feature by
    reading beans; the design phase-gate completion - with its
    Revision 6 `validated`-tag and `Doc-hash` writes - belongs to the

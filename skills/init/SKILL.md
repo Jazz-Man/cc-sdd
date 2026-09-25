@@ -23,8 +23,7 @@ content from any other skill, ever.
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to read-only file
-   inspection (`cat`, `sed`, `diff`, `ls`).
+1. Bash is limited to read-only file inspection (`cat`, `sed`, `diff`, `ls`).
 2. **AskUserQuestion, always.** Explanation in chat prose first, then the
    structured question (recommended option first, labeled).
 3. **Never overwrite silently.** An existing `.claude/rules/sdd.md` is
@@ -91,5 +90,3 @@ entry command in a code block:
 ```
 /sdd:discovery
 ```
-
-Do not run it; the user drives the cycle one command at a time.

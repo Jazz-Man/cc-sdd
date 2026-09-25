@@ -31,17 +31,15 @@ Your dispatch prompt carries paths and ids, never file contents. Read:
 
 ## Ground rules
 
-1. **The user reviews, tests, and commits at every stop point.** Read-only
-   git is the only git you run.
-2. **Investigate, don't patch.** You may run commands to reproduce and
+1. **Investigate, don't patch.** You may run commands to reproduce and
    inspect (the failing command, tests, builds, runtime probes); you may
    not edit code. A hypothesis is confirmed by evidence, never by trying
    a fix to see what happens.
-3. **No tracking writes.** Never flip checkboxes, never write to beans
+2. **No tracking writes.** Never flip checkboxes, never write to beans
    (`beans show` on the task bean is the only beans command you run —
    read-only; the orchestrator records your outcome on the bean).
-4. **No subagents of your own.** Do the investigation yourself.
-5. **Root cause first.** One confirmed cause, one minimal plan. Never a
+3. **No subagents of your own.** Do the investigation yourself.
+4. **Root cause first.** One confirmed cause, one minimal plan. Never a
    multi-fix shotgun.
 
 ## Method

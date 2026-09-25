@@ -23,8 +23,7 @@ the feature from beans.
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to the beans CLI and
-   read-only inspection.
+1. Bash is limited to the beans CLI and read-only inspection.
 2. **beans is the only tracker.** Queue state lives in beans via
    `--blocked-by` - never in documents. `.sdd/brief.md` carries the
    narrative; its queue section is a rendered snapshot, never a source
@@ -289,6 +288,3 @@ Then name the next command for the chosen route in a code block:
   `/sdd:spec-init "<feature>"` and say it will refuse until the active
   feature is completed or scrapped - by design.
 - No spec needed: no command - the work happened here.
-
-Do not run the next command yourself; the user drives the cycle one
-command at a time.

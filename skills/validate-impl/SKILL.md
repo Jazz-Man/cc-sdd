@@ -43,8 +43,8 @@ Boundary terminology continuity:
 
 ## Hard rules
 
-1. **The user reviews, tests, and commits.** Bash is limited to the beans
-   CLI, validation commands, greps, and read-only git inspection.
+1. Bash is limited to the beans CLI, validation commands, greps, and
+   read-only git inspection.
 2. **This skill writes no beans** and flips no checkboxes anywhere.
    Completion state is READ from the task beans under the feature epic -
    beans is the tracker, documents are static.

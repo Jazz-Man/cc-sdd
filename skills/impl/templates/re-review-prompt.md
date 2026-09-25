@@ -31,12 +31,10 @@ Hunting new findings beyond this round's changed files is not.
 
 ## Ground rules
 
-1. **The user reviews, tests, and commits at every stop point.** Read-only
-   git (diff, status, log) is the only git you run.
-2. **No tracking writes.** Never flip checkboxes, never write to
+1. **No tracking writes.** Never flip checkboxes, never write to
    beans — the orchestrator records your verdict on the task bean.
-3. **No subagents of your own.** Do the review yourself.
-4. **Fresh evidence only.** Re-run the relevant validation subset
+2. **No subagents of your own.** Do the review yourself.
+3. **Fresh evidence only.** Re-run the relevant validation subset
    yourself; the implementer's claims are never evidence.
 
 ## Procedure

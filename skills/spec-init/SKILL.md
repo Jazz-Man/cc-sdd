@@ -23,8 +23,7 @@ name/description - the moment a feature is born.
 
 ## Hard rules
 
-1. **The user reviews and commits.** Bash is limited to the beans CLI,
-   `mkdir`, and read-only inspection.
+1. Bash is limited to the beans CLI, `mkdir`, and read-only inspection.
 2. **beans is the only tracker.** Never write progress, approval, or
    blocked state into documents. The epic bean body carries the spec
    path - keep its recorded lines stable; other skills parse them.
@@ -135,5 +134,4 @@ Then the next command in a code block:
 ```
 
 The next skill resolves the feature from the in-progress epic - no
-argument. Do not run it yourself; the user drives the cycle one command
-at a time.
+argument.

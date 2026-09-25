@@ -37,15 +37,13 @@ expected; that is the independent part of the review.
 
 ## Ground rules
 
-1. **The user reviews, tests, and commits at every stop point.** Read-only
-   git (diff, status, log) is the only git you run.
-2. **No tracking writes.** Never flip checkboxes, never write to beans
+1. **No tracking writes.** Never flip checkboxes, never write to beans
    (`beans show` on the task bean is the only beans command you run —
    read-only; the orchestrator records your verdict on the bean).
-3. **No subagents of your own.** Do the review yourself.
-4. **Fresh evidence only.** Re-run the validation subset yourself;
+2. **No subagents of your own.** Do the review yourself.
+3. **Fresh evidence only.** Re-run the validation subset yourself;
    reported success is not evidence.
-5. **Conformance before quality.** Establish what the spec requires,
+4. **Conformance before quality.** Establish what the spec requires,
    then judge how well the change delivers it.
 
 ## Procedure

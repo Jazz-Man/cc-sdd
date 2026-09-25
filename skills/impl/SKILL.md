@@ -25,12 +25,11 @@ Division of labor:
 
 ## Hard rules
 
-1. **The user reviews, tests, and commits at every stop point.** Bash use is
-   limited to read-only git (`git diff`, `git status`, `git log`,
+1. Bash use is limited to read-only git (`git diff`, `git status`, `git log`,
    `git merge-base`), the beans CLI, the plugin's
    `bin/` helpers (`sdd-gate` and `sdd-verdict` are read-only; `sdd-promote`
    is the sole write helper — strictly `beans update <id> -s todo`), and
-   file operations. The feature branch is created and deleted by the user.
+   file operations.
 2. **Paths and ids, never contents.** Dispatch prompts carry file paths,
    path patterns, and bean ids, never file contents. Subagents read
    files, run `beans show` on the ids, and Glob-expand patterns
@@ -476,8 +475,6 @@ type `TASK`:
    `## Summary of Changes` appended per the global beans guide.
 
 ## Step 9 - STOP (after every task)
-
-The user reviews, tests, and commits here - never you.
 
 **The stop report is SHORT**: task ID, final status, review verdict, and
 verification result; optionally ONE line of test results if tests ran. No
