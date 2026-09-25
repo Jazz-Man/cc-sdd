@@ -39,10 +39,10 @@ time); the beans record structure, never progress.
 
 Query beans: `beans list --json -t epic -s in-progress`.
 
-- **Exactly one** -> the active feature. Resolve its spec directory from
-  the `Spec path:` line in the bean body (`.sdd/specs/<feature>/`); if the
-  body names none, return BLOCKED asking the main context where the
-  feature lives.
+- **Exactly one** -> that epic is the active feature. Resolve its spec
+  directory from the `Spec path:` line in the bean body
+  (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
+  asking the main context where the feature lives.
 - **None** -> return BLOCKED: no active feature; point to
   `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
   (nothing shaped yet).
