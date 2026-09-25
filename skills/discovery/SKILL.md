@@ -23,9 +23,8 @@ the feature from beans.
 
 ## Hard rules
 
-1. **Git is read-only.** Bash is limited to the beans CLI and read-only
-   inspection. Nothing in this skill stages, commits, pushes, or touches
-   branches: the user reviews and commits.
+1. **The user reviews and commits.** Bash is limited to the beans CLI and
+   read-only inspection.
 2. **beans is the only tracker.** Queue state lives in beans via
    `--blocked-by` - never in documents. `.sdd/brief.md` carries the
    narrative; its queue section is a rendered snapshot, never a source

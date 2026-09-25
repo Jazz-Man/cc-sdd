@@ -46,9 +46,7 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
 
 ## Editing rules
 
-- Skills may NOT instruct git writes (no staging, commits, branch ops, pushes) —
-  no component of the plugin commits: the user reviews, tests, and commits at
-  each stop point (spec §5.4).
+- The user reviews, tests, and commits at each stop point (spec §5.4).
 - Skills may NOT flip task checkboxes or write progress/approval state — beans
   is the only tracker (spec §6).
 - Do not duplicate the global beans guide in skill texts; one-line references only.
@@ -78,7 +76,6 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
 - Work is tracked in beans (`.beans/`); before starting, check for an existing
   bean, otherwise create one and keep its checklist current. Commit messages
   include the bean file changes alongside code.
-- Git is read-only for agent sessions in this repo: no staging, commits, branches,
-  or pushes. The human reviews and commits.
+- The human reviews and commits.
 - The conversion spec and task plan live in `docs/superpowers/`; task briefs and
   reports live in `.superpowers/sdd/2026-09-22-sdd-plugin-conversion/`.

@@ -31,7 +31,7 @@ sections; verdict lines carry mirror tags). Resume by querying beans, never by r
 **Interaction.** Every question or choice-point goes through AskUserQuestion; subagents never
 ask the user - they return status contracts. Clarifying questions only in discovery and
 requirements; design and tasks are confirm-only. Stop-per-task: after each impl task the
-orchestrator stops - the user reviews, tests, and commits; git is read-only for agents.
+orchestrator stops - the user reviews, tests, and commits.
 
 **Models (hardwired, never the agent's choice).** Generation of requirements, design, and tasks:
 opus. All reviews and validations: opus. Implementation: sonnet, raised to opus in rounds 4-5.

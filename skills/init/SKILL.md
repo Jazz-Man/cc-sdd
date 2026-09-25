@@ -23,9 +23,8 @@ content from any other skill, ever.
 
 ## Hard rules
 
-1. **Git is read-only.** Bash is limited to read-only file inspection
-   (`cat`, `sed`, `diff`, `ls`). Nothing stages, commits, pushes, or touches
-   branches.
+1. **The user reviews and commits.** Bash is limited to read-only file
+   inspection (`cat`, `sed`, `diff`, `ls`).
 2. **AskUserQuestion, always.** Explanation in chat prose first, then the
    structured question (recommended option first, labeled).
 3. **Never overwrite silently.** An existing `.claude/rules/sdd.md` is

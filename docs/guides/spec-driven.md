@@ -191,7 +191,7 @@ re-validates. Per task:
    one-liners — and returns a status contract
    (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
 3. An opus task-reviewer gets a scoped review package (the task's working-tree
-   diff vs HEAD, kept in `workspace/` — agents never commit) and applies the
+   diff vs HEAD, kept in `workspace/`) and applies the
    adversarial review protocol. Verdict `APPROVED` or `REJECTED`, recorded on
    the task bean as a `## Validation` line (with the package pointer) plus a
    mirror tag.
@@ -212,8 +212,7 @@ re-validates. Per task:
    task, escalate to a plan change, or abort the feature.
 
 Stop-per-task is the rhythm: **you** review the diff, run what you want, and
-commit. Git is read-only for agents — enforced by the skill texts and the
-user's hooks. Continuing is an explicit answer, not a default.
+commit. Continuing is an explicit answer, not a default.
 
 ## Feature finish
 

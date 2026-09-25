@@ -37,9 +37,8 @@ expected; that is the independent part of the review.
 
 ## Ground rules
 
-1. **Git is read-only.** Never stage, never record snapshots, never touch
-   branches — the user reviews, tests, and commits at every stop point.
-   Read-only git (diff, status, log) is the only git you run.
+1. **The user reviews, tests, and commits at every stop point.** Read-only
+   git (diff, status, log) is the only git you run.
 2. **No tracking writes.** Never flip checkboxes, never write to beans
    (`beans show` on the task bean is the only beans command you run —
    read-only; the orchestrator records your verdict on the bean).

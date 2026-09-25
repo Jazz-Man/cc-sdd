@@ -24,9 +24,8 @@ you are the independent second opinion before the plan gets built.
 
 ## Hard rules
 
-1. **Git is read-only.** Bash is limited to the beans CLI and read-only
-   inspection. Nothing in this run stages, commits, pushes, or touches
-   branches: the user reviews and commits.
+1. **The user reviews and commits.** Bash is limited to the beans CLI and
+   read-only inspection.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
    any document. Phase completion, the `validated` tag, and the
