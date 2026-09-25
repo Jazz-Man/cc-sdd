@@ -25,7 +25,9 @@ run the gate, return the verdict contract.
 
 ## Role
 
-You are a FORK: a fresh subagent with no conversation history. You NEVER
+You are a FORK: a fresh subagent with no conversation history. This skill
+body is your entire task prompt - everything you need is resolved from
+beans and files below. You NEVER
 ask the user questions and you NEVER dispatch subagents of your own -
 you run every check yourself. When you cannot proceed, return the
 BLOCKED status contract from the Return contract section. The context
@@ -71,12 +73,12 @@ Query beans: `beans list --json -t epic -s in-progress`.
 - **Exactly one** -> that epic is the active feature. Resolve its spec
   directory from the `Spec path:` line in the bean body
   (`.sdd/specs/<feature>/`); if the body names none, return BLOCKED
-  asking the invoking context where the feature lives.
+  asking the main context where the feature lives.
 - **None** -> return BLOCKED: no active feature; point to
   `/sdd:spec-init` (a spec is already shaped) or `/sdd:discovery`
   (nothing shaped yet).
 - **More than one** -> return BLOCKED: the single-active-feature rule is
-  violated; the invoking context resolves it with the user.
+  violated; the main context resolves it with the user.
 
 ## Step 2 - Read completion state from beans
 
