@@ -558,3 +558,14 @@ gating; etags on concurrent-capable paths; status changes via CLI only.
 rounds — feature-level verdicts (validate-impl DECISION etc.) record there; the
 section-header set is identical, the bean differs (task = per-task lifecycle,
 epic = feature-level). Mirror tags apply on the epic for decision-* family.
+
+## Revision 8 (2026-09-25) — git prohibition prose delegated to the global constitution
+
+The global rule `~/.claude/rules/git-readonly.md` (hook-enforced) now governs
+agent-git writes in every project, so project-level prohibition prose is
+removed from CLAUDE.md, README.md, the workflow map, 11 skills, the 5 impl
+templates, and the guides. Workflow-ROLE phrases are retained (the user
+reviews, tests, and commits at each stop point); read-only git uses
+(`git status`/`git diff`/`git merge-base` in impl flows) are untouched;
+`skills/steering/**` was ruled out (verbatim port). The §10 git-write grep is
+retained as a regression guard.

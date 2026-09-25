@@ -46,9 +46,8 @@ prompt unchanged.
    names (as translated into the dispatch's path patterns). When the
    dispatch says `full working tree`, still touch only what the task's
    own text requires — never improve adjacent code.
-2. **Git is read-only.** Never stage, never record snapshots, never touch
-   branches — the user reviews, tests, and commits at every stop point.
-   Read-only git (diff, status, log) is the only git you run.
+2. **The user reviews, tests, and commits at every stop point.** Read-only
+   git (diff, status, log) is the only git you run.
 3. **No tracking writes — one carve-out.** Never flip checkboxes; the
    orchestrator owns every other piece of tracking state. Your single
    permitted bean write is `beans update <task-id> --body-append`, for

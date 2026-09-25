@@ -38,7 +38,7 @@ Five commitments carry that:
    This is encoded in the skill texts, not left to an agent's judgment —
    model choice is a cost and quality decision the user already made.
 5. **Stop-per-task user control.** After every task, the run stops: the user
-   reviews the diff, tests, and commits. Agents never touch git. Autonomy is
+   reviews the diff, tests, and commits. Autonomy is
    bounded by gates that a human actually passes through — and phase approval
    itself is validator-gated: an independent opus review must return GO before
    a phase completes, and any later edit to the document invalidates that

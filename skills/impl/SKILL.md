@@ -25,14 +25,12 @@ Division of labor:
 
 ## Hard rules
 
-1. **Git is read-only.** Bash use is limited to read-only git (`git diff`,
-   `git status`, `git log`, `git merge-base`), the beans CLI, the plugin's
+1. **The user reviews, tests, and commits at every stop point.** Bash use is
+   limited to read-only git (`git diff`, `git status`, `git log`,
+   `git merge-base`), the beans CLI, the plugin's
    `bin/` helpers (`sdd-gate` and `sdd-verdict` are read-only; `sdd-promote`
    is the sole write helper — strictly `beans update <id> -s todo`), and
-   file operations. Nothing in
-   this skill stages, commits, pushes, or touches branches: the user reviews,
-   tests, and commits at every stop point. The feature branch is created and
-   deleted by the user.
+   file operations. The feature branch is created and deleted by the user.
 2. **Paths and ids, never contents.** Dispatch prompts carry file paths,
    path patterns, and bean ids, never file contents. Subagents read
    files, run `beans show` on the ids, and Glob-expand patterns
@@ -306,9 +304,8 @@ family in the same call).
      under remediation (rounds 2+), the scoped diffstat and diff
      (`git diff -- <paths>`), and full contents of untracked in-scope files
      (from `git status --porcelain`).
-   - `git diff` and `git status` are the only git calls used here; agents
-     never commit, so the working tree vs HEAD is always the task's complete
-     change set.
+   - `git diff` and `git status` are the only git calls used here; the
+     working tree vs HEAD is always the task's complete change set.
 2. **Dispatch** the task-reviewer. Read
    `${CLAUDE_SKILL_DIR}/templates/task-reviewer-prompt.md`, resolve paths, and
    dispatch:

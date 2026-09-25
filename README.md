@@ -133,9 +133,8 @@ Three small helpers in the plugin's `bin/` guard the mechanical parts:
 ## Stop-per-task: the user holds git
 
 After every implementation task, `/sdd:impl` stops. The user reviews the diff,
-runs what they want to run, and commits. Agents never stage, commit, push, or
-touch branches — git is read-only for them, enforced by the skill texts and the
-user's hooks. The stop report is deliberately short: task ID, final status,
+runs what they want to run, and commits. The stop report is deliberately short:
+task ID, final status,
 review verdict, verification result, and optionally one line of test results.
 No diff summaries or file lists — the user watches changes live in the IDE.
 
@@ -226,8 +225,8 @@ dispatches five roles via prompt templates kept in the skill
    section is the brief; no brief file exists — and parse its status contract.
    The implementer appends its own `## Report` (and any `## Notes` one-liners)
    to the bean.
-3. Build a scoped review package (working-tree diff vs HEAD, since agents never
-   commit; the file stays in `workspace/`) and dispatch an opus task-reviewer
+3. Build a scoped review package (working-tree diff vs HEAD; the file stays in
+   `workspace/`) and dispatch an opus task-reviewer
    applying the review protocol. Each verdict is recorded on the task bean as
    a `## Validation` line with the package pointer and a mirror tag.
 4. **Fix loop, max 5 rounds**: rounds 1–3 resume the same implementer; rounds

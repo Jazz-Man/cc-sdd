@@ -51,9 +51,8 @@ ad-hoc use.
 
 Contracts every skill shares, regardless of shape:
 
-- **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and read-only
-  inspection. Nothing stages, commits, pushes, or touches branches — you review
-  and commit at every stop.
+- **The user reviews and commits at every stop.** Bash is limited to the
+  beans CLI, `mkdir`, and read-only inspection.
 - **beans is the only tracker.** No skill writes progress, approvals, or
   checkbox flips into documents.
 - **AskUserQuestion, always** (where the skill talks to you at all): prose
@@ -202,7 +201,7 @@ The task cycle:
    and returns a status contract
    (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
 4. **Review** — build `workspace/review-package-<N>.md` (scoped diff vs HEAD;
-   agents never commit, so the working tree is always the task's full change
+   the working tree is always the task's full change
    set) and dispatch the task-reviewer. Verdict: `APPROVED` or `REJECTED` with
    blocking/minor-marked findings. Every verdict round lands on the task bean
    as a `## Validation` line (with the package pointer) plus a mirror tag

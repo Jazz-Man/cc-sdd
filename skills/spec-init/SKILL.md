@@ -23,9 +23,8 @@ name/description - the moment a feature is born.
 
 ## Hard rules
 
-1. **Git is read-only.** Bash is limited to the beans CLI, `mkdir`, and
-   read-only inspection. Nothing in this skill stages, commits, pushes,
-   or touches branches: the user reviews and commits.
+1. **The user reviews and commits.** Bash is limited to the beans CLI,
+   `mkdir`, and read-only inspection.
 2. **beans is the only tracker.** Never write progress, approval, or
    blocked state into documents. The epic bean body carries the spec
    path - keep its recorded lines stable; other skills parse them.

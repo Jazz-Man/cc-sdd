@@ -26,9 +26,8 @@ time); the beans record structure, never progress.
 
 ## Hard rules
 
-1. **Git is read-only.** Bash is limited to the beans CLI and read-only
-   inspection. Nothing in this run stages, commits, pushes, or touches
-   branches: the user reviews and commits.
+1. **The user reviews and commits.** Bash is limited to the beans CLI and
+   read-only inspection.
 2. **beans is the only tracker - and it stays that way.** This skill
    writes no document and no progress or approval state. Its only bean
    writes are the task-bean sync of Step 6 under the active epic;
