@@ -41,7 +41,7 @@ ad-hoc use.
 | `/sdd:spec-tasks` | fork: draft one task bean (`## Brief`) per sub-task |
 | `/sdd:impl` | orchestrator: subagent implement/review, stop-per-task |
 | `/sdd:review` | adversarial task-local review protocol |
-| `/sdd:debug` | root-cause-first debug protocol |
+| `/sdd:debug` | root-cause-first debugging protocol |
 | `/sdd:verify-completion` | fresh-evidence gate for completion claims |
 | `/sdd:validate-requirements` | requirements gate: EARS, completeness, contradictions |
 | `/sdd:validate-gap` | requirements vs codebase gap analysis (`research.md`) |

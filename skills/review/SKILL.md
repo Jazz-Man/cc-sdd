@@ -76,7 +76,7 @@ Run these checks and use the result as primary signal.
 - Reject if the implementation introduces hidden cross-boundary coordination inside what should be a local task.
 
 ### 5. RED Phase Evidence
-- For behavioral tasks, verify that the implementer status report includes `RED_PHASE_OUTPUT`.
+- For behavioral tasks, verify that the implementer status report includes `RED_EVIDENCE`.
 - Reject if RED evidence is missing, empty, or unrelated to the task's acceptance criteria.
 
 ### 6. Runtime-Sensitive Static Checks

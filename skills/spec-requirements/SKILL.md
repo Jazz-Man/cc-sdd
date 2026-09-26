@@ -210,9 +210,9 @@ Agent(
 ```
 
 Parse discipline: only the exact `## Draft Summary` block and its
-`- STATUS:` line count. If the block is missing or replaced with prose,
-resume the drafter once (SendMessage) requesting the structured block
-only.
+`- STATUS:` line count. If the block is missing,
+ambiguous, or replaced with prose, resume the drafter once
+(SendMessage) requesting the structured block only.
 
 - **DONE** -> Phase 3.
 - **AMBIGUITY** -> verify, do not assume: check whether
@@ -258,7 +258,8 @@ AskUserQuestion:
      ```
      Parse discipline: only the exact summary block and its
      `- STATUS:` and `- VERDICT:` lines count; resume the fork once
-     (SendMessage) if the block is missing. Present its verdict, any
+     (SendMessage) if the block is missing,
+     ambiguous, or replaced with prose. Present its verdict, any
      criterion verdicts, findings, and fixes to the user - short
      lists in chat, the file when PATH names one.
    - **GO** - the phase closes in this order (the requirements phase-bean

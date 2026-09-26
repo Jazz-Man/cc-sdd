@@ -28,7 +28,7 @@ rest on.
 1. Bash is limited to the beans CLI and read-only inspection.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
-   any document.
+   documents.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **Quoted evidence or it did not happen.** Every finding about the
    codebase cites `file:line` and quotes the relevant snippet verbatim.
@@ -103,9 +103,9 @@ Apply the gap-analysis framework:
 Write `.sdd/specs/<feature>/research.md`. If the file already exists
 (prior discovery or a previous run), APPEND your analysis as a new
 `## Gap Analysis - <date>` section after a `---` separator - earlier
-content survives untouched. Follow the gap-analysis rule's output
-checklist for the section's structure. Verify the write by reading the
-file back.
+content survives untouched (the workspace is append-only). Follow the
+gap-analysis rule's output checklist for the section's structure.
+Verify the write by reading the file back.
 
 ## Return contract
 

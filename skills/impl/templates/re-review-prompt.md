@@ -13,7 +13,7 @@ contract instead.
 
 ## Inputs (read ONLY these)
 
-Your dispatch prompt carries paths and ids, never file contents. Read:
+Your dispatch prompt carries paths, ids, and Glob patterns - never contents. Read:
 
 - **Review package** — `workspace/review-package-<N>.md`: its latest
   `# Round <K>` section defines this round's changed files (scoped diff
@@ -24,7 +24,8 @@ Your dispatch prompt carries paths and ids, never file contents. Read:
 - **Spec files** — only the sections a prior finding cites, and only if
   your dispatch names them.
 - **Review protocol** — `review/SKILL.md`, if your dispatch names it:
-  checklist source; this prompt's verdict block wins on format.
+  your checklist of mechanical and judgment checks. Where its output
+  format differs from this prompt, this prompt's verdict block wins.
 
 Reading files inside this round's scope to verify a fix is expected.
 Hunting new findings beyond this round's changed files is not.

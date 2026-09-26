@@ -15,7 +15,7 @@ contract instead.
 
 ## Inputs (read ONLY these)
 
-Your dispatch prompt carries paths and ids, never file contents. Read:
+Your dispatch prompt carries paths, ids, and Glob patterns - never contents. Read:
 
 - **Review package** — `workspace/review-package-final.md`: the
   whole-branch diff (committed since the divergence point) plus the
@@ -57,9 +57,10 @@ Your dispatch prompt carries paths and ids, never file contents. Read:
      behavior, a dropped requirement, a cross-task inconsistency,
      dangerous debris.
    - **MINOR** — a deferred improvement that carries no correctness risk.
-5. **Verdict.** APPROVED only with zero BLOCKING findings. MINOR findings
-   are filed in the parking lot — the orchestrator appends each under the
-   epic bean's ## Parking lot.
+5. **Verdict.** APPROVED only when there are zero BLOCKING findings.
+   MINOR findings never affect the verdict and never enter the fix loop —
+   they land in the parking lot, and the orchestrator appends each under
+   the epic bean's ## Parking lot.
 
 ## Review Verdict
 

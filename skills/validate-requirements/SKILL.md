@@ -32,7 +32,7 @@ decides whether approval may stand.
 1. Bash is limited to the beans CLI and read-only inspection.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
-   any document. Phase completion, the `validated` tag, and the
+   documents. Phase completion, the `validated` tag, and the
    `Doc-hash:` line are the presenting context's writes at the GO
    moment - never yours.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
@@ -70,6 +70,8 @@ Keep the epic bean body at hand - its feature description is a
 completeness input (Step 4).
 
 ## Step 2 - Load inputs
+
+Read, under the spec directory from Step 1:
 
 - `.sdd/specs/<feature>/requirements.md` - REQUIRED, the document under
   validation. Missing -> return BLOCKED pointing to
