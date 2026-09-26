@@ -37,7 +37,7 @@ orchestrator stops - the user reviews, tests, and commits.
 opus. All reviews and validations: opus. Implementation: sonnet, raised to opus in rounds 4-5.
 
 **Escalation - no blind decisions.** Any concern or deviation surfaces in four parts: per plan /
-actual / why it matters / options (accept, fix, abort, other). The user decides via AskUserQuestion.
+actual / why it matters / options (accept as-is / fix now / change the plan / abort). The user decides via AskUserQuestion.
 
 | Skill | Purpose |
 |---|---|

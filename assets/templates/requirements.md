@@ -29,12 +29,7 @@ numeric ID only (for example: "Requirement 1: ...", "1. Overview",
 
 Write every criterion in EARS syntax:
 
-1. When [event], the [system] shall [response/action]
-2. If [trigger], then the [system] shall [response/action]
-3. While [precondition], the [system] shall [response/action]
-4. Where [feature is included], the [system] shall [response/action]
-5. The [system] shall [response/action]
-6. When [event] and [condition], the [system] shall [response/action]
+Patterns: follow `${CLAUDE_PLUGIN_ROOT}/assets/rules/ears-format.md` exactly.
 
 Additional requirements follow the same pattern: heading with the next
 numeric ID, an Objective line, and EARS acceptance criteria. Every

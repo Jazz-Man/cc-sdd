@@ -203,10 +203,8 @@ do not dump it into chat). Then by invocation:
   its `Doc-hash:` line, computed at this moment, after the fork's
   fixes (the fork computed no hash and wrote no beans - those writes
   are yours). The wiring lives in the design approve gate. On NO_GO
-  the four-part escalation is YOURS, never the fork's: how it should
-  have been / what actually happened / why it matters / resolution
-  options, via AskUserQuestion, with the fork's BLOCKING findings as
-  the payload. The phase stays open.
+  present the four-part escalation (impl Step 9 shape) with payload
+  <findings>.
 - **Standalone formative run.** AskUserQuestion:
 
   1. **Accept GO, generate tasks** (Recommended, when VERDICT is GO) -
