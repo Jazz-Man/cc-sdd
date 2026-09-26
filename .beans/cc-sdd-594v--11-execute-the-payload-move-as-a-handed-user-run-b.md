@@ -1,13 +1,15 @@
 ---
 # cc-sdd-594v
 title: 1.1 Execute the payload move as a handed user-run batch
-status: in-progress
+status: completed
 type: task
 priority: normal
 tags:
     - status-done-with-concerns
+    - verdict-approved
+    - verification-verified
 created_at: 2026-09-26T16:49:00Z
-updated_at: 2026-09-26T17:06:19Z
+updated_at: 2026-09-26T17:15:30Z
 parent: cc-sdd-lpx9
 ---
 
@@ -64,3 +66,16 @@ Concerns: none beyond the precondition note (bean-file commit before the batch).
 ## Notes
 
 - The move-to-manifest-edit interval is the designed broken state: `claude plugin validate` stays red until task 1.2's source re-point — a red validate there is the pinned window, not a task-1.1 failure signal.
+
+Learning for 1.2: claude plugin validate . stays GREEN even with a stale marketplace source (./) and no root plugin.json - task 1.2 gates on manifest source content plus 3.3-3.5 behavioral checks, never on validate red->green.
+
+## Validation
+- VERDICT: APPROVED - 2026-09-26, review round 1, package: workspace/review-package-1.1.md
+- STATUS: VERIFIED - 2026-09-26, verification gate: structural evidence fresh-run - 55/55 R100 pure renames, zero content hunks, zero root residue, inventory complete under plugins/sdd, old-path history present (ac70379, 245e547); 4.3 follow-log closing evidence rides the user's stop-point commit
+
+## Parking lot
+- Task 1.2 brief must carry: validate passes even with a stale marketplace source; gate 1.2 on manifest content + 3.3-3.5 behavior, not on validate red->green.
+- At the commit stop point, record the follow-log on plugins/sdd/.claude-plugin/plugin.json and one skill file as 4.3's closing evidence.
+
+## Summary of Changes
+55-file pure-rename payload move (skills, assets, bin, hooks, README, docs/guides, plugin.json) from repo root into plugins/sdd/, executed as a user-run rename batch per the design's migration model; review round 1 APPROVED (2 MINOR parked), structural verification VERIFIED.
