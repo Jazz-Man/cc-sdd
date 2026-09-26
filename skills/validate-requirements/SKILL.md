@@ -227,12 +227,8 @@ chat). Then by verdict:
   recorded as its `Doc-hash:` line, computed at this moment, after the
   fork's fixes (the fork computed no hash and wrote no beans - those
   writes are yours). The wiring lives in the requirements approve gate.
-- **NO_GO** - the four-part escalation is YOURS, never the fork's: how
-  it should have been / what actually happened / why it matters /
-  resolution options, via AskUserQuestion, with the fork's findings as
-  the payload. The phase stays open. The usual path back is revision
-  via `/sdd:spec-requirements` followed by a fresh
-  `/sdd:validate-requirements` run.
+- **NO_GO** - Present the four-part escalation (impl Step 9 shape)
+  with payload <findings>.
 - **BLOCKED** - present the blocker and the named command, then
   AskUserQuestion on how to proceed (resolve via that command / adjust
   inputs / stop).

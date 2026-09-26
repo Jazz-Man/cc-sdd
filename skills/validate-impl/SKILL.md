@@ -252,10 +252,8 @@ verify result. Do not return GO if the feature only works by smearing
 responsibilities across boundaries, even when tests pass.
 
 **Remediation is not yours.** When dispatched by the impl orchestrator
-(feature finish), the orchestrator owns the remediation budget: 3 rounds
-total for the finish phase, shared with the whole-branch review gate -
-each round fixes findings, then re-runs this gate. `GO` plus an approved
-whole-branch review ends the phase.
+(feature finish), the orchestrator owns all loop budgets. `GO` plus an
+approved whole-branch review ends the phase.
 
 **To the presenting main context (standalone entry only).** On DONE:
 present the decision with its evidence highlights (the block above is

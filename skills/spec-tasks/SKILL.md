@@ -132,13 +132,9 @@ Draft in memory - one brief per sub-task, nothing written yet:
 
 ## Step 5 - Review gate (before any bean write)
 
-Run the **Task Plan Review Gate** from tasks-generation.md on the
-drafted briefs: mechanical coverage first (every requirement ID present,
-every design component represented), then executability (1-3 hour
-sub-tasks, verifiable deliverables, observable completion bullets, no
-implicit prerequisites, `_Depends:_`/`_Boundary:_` consistent with the
-design's boundary map). Repair local issues and re-run - at most 2
-repair passes.
+Review gate: apply
+`${CLAUDE_PLUGIN_ROOT}/assets/rules/tasks-generation.md` -
+bounded at 2 repair passes.
 
 If the gate exposes a real requirements or design gap, do NOT invent
 filler tasks: return BLOCKED naming the exact gap and pointing to

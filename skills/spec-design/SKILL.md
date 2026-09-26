@@ -176,12 +176,9 @@ passes. Mandatory content:
 
 ## Step 7 - Review gate
 
-Read and apply
-`${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` to the draft:
-mechanical checks first (requirement ID coverage, boundary sections
-populated, file structure populated, no orphan components), then
-judgment (architecture readiness, boundary readiness, executability).
-Repair local issues and re-run the gate - at most 2 repair passes.
+Review gate: apply
+`${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review-gate.md` -
+bounded at 2 repair passes.
 
 If the gate exposes a real requirements gap or ambiguity, do NOT write a
 patched-over design: return BLOCKED naming the exact gap and pointing
