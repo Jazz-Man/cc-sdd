@@ -65,4 +65,3 @@ coverage/
 .superpowers/
 tmp/
 !bin/*
-!.sdd/*
