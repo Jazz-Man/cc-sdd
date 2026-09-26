@@ -232,7 +232,7 @@ cc-sdd/                              # marketplace root (repo)
 ```
 
 Untracked working directories (`tmp/`, `.superpowers/` content) stay in place;
-only the tracked e2e-runbook file inside `.superpowers/` receives a path edit.
+only the untracked e2e-runbook file inside `.superpowers/` receives a path edit.
 
 ### Modified Files
 
