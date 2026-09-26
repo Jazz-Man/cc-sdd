@@ -1,10 +1,11 @@
 ---
 # cc-sdd-qhkg
 title: 1.2 Re-point the marketplace manifest and validate green
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:00Z
-updated_at: 2026-09-26T16:49:00Z
+updated_at: 2026-09-26T16:54:27Z
 parent: cc-sdd-lpx9
 ---
 

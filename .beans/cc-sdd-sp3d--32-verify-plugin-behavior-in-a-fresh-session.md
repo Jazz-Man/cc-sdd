@@ -1,10 +1,11 @@
 ---
 # cc-sdd-sp3d
 title: 3.2 Verify plugin behavior in a fresh session
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:15Z
-updated_at: 2026-09-26T16:49:15Z
+updated_at: 2026-09-26T16:54:28Z
 parent: cc-sdd-lpx9
 ---
 

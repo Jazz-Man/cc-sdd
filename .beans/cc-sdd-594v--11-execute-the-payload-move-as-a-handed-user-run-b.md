@@ -1,10 +1,11 @@
 ---
 # cc-sdd-594v
 title: 1.1 Execute the payload move as a handed user-run batch
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:00Z
-updated_at: 2026-09-26T16:49:00Z
+updated_at: 2026-09-26T16:54:28Z
 parent: cc-sdd-lpx9
 ---
 

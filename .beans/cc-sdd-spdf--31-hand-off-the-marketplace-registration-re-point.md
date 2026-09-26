@@ -1,10 +1,11 @@
 ---
 # cc-sdd-spdf
 title: 3.1 Hand off the marketplace registration re-point
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:15Z
-updated_at: 2026-09-26T16:49:15Z
+updated_at: 2026-09-26T16:54:27Z
 parent: cc-sdd-lpx9
 ---
 
