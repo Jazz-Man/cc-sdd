@@ -68,6 +68,13 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
   invariants: zero plan-document/notes-file references, NO_GO spelling, six
   forks, 15-skill census) are in
   `docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md` §10.
+- Twin checks (Revision 9, scope `skills/`): the GP-1 fork-resolution and
+  RS-1 FORK-identity count-greps each return exactly 6 — one hit per fork
+  file; the spec-requirements/spec-design approve-gate twin blocks are
+  slot-substitution-identical (diff empty after the four-slot normalization);
+  deleted delegation sentences return zero hits. The working patterns and
+  paired-diff method are pinned in the §4 erratum of
+  `docs/superpowers/specs/2026-09-25-content-normalization-design.md`.
 - After content changes to skills or assets, re-run the greps and
   `claude plugin validate .` before claiming done.
 

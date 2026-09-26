@@ -108,6 +108,27 @@ Battery additions (extend §10.2 convention set):
 5. Existing battery (placeholders/kiro/checkbox/git-write/beans-dup/conventions)
    must stay green throughout.
 
+**§4 erratum (2026-09-26, from Tasks 2–3 execution).** Items 1–2's literal
+patterns are unmatchable as written — the canonical text is wrapped
+mid-sentence and carries bold markers (`**Exactly one** ->`), and the
+`Query beans:` line counts 8, not 6 (spec-requirements:47 and spec-init:47
+carry their own non-twin main-context copies). The adopted battery members
+are these count-greps (use `grep -rIn` — `-I` skips binary files), each
+returning exactly 6, one hit per fork file (spec-design, spec-tasks,
+validate-design, validate-gap, validate-impl, validate-requirements):
+
+- GP-1 twin: `asking the main context where the feature lives` — 6
+- GP-1 twin: `violated; the main context resolves it with the user` — 6
+- RS-1 twin: `body is your entire task prompt - everything you need is resolved from` — 6
+
+Item 3's paired check (Task-3 method): extract each gate block with
+`awk '/^The full document is/{f=1} f{print} /adjust inputs \/ stop\); the phase stays open\./{exit}' <file>`,
+normalize the four slots (`{next-command}` first, then `{validator}`, then
+`{document}`, then `{phase}`) with sed, and diff the two extracts — empty.
+Item 4's absence greps (0 expected in skills/, templates included):
+`only git you run`, the Hard-rule-1 `The user reviews, tests, and commits`
+sentence forms, and `Do not run the next command yourself`.
+
 ## 5. Scope guards
 
 - No behavior changes: every gate, contract, budget, and parse surface keeps its

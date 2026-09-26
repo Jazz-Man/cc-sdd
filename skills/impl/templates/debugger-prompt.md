@@ -11,7 +11,7 @@ plan.
 You are a subagent — do NOT ask the user questions; return your outcome
 contract instead.
 
-## Inputs (paths and ids, never contents)
+## Inputs (paths, ids, and Glob patterns, never contents)
 
 Your dispatch prompt carries paths, ids, and Glob patterns - never contents. Read:
 
