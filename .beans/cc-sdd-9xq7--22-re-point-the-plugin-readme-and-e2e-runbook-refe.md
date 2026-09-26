@@ -1,10 +1,11 @@
 ---
 # cc-sdd-9xq7
 title: 2.2 Re-point the plugin README and e2e runbook references
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:07Z
-updated_at: 2026-09-26T16:49:07Z
+updated_at: 2026-09-26T16:54:27Z
 parent: cc-sdd-lpx9
 ---
 

@@ -1,10 +1,11 @@
 ---
 # cc-sdd-9s0k
 title: 2.3 Run the full verification battery over the restructured tree
-status: draft
+status: todo
 type: task
+priority: normal
 created_at: 2026-09-26T16:49:07Z
-updated_at: 2026-09-26T16:49:07Z
+updated_at: 2026-09-26T16:54:28Z
 parent: cc-sdd-lpx9
 ---
 
