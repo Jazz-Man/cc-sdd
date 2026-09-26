@@ -98,7 +98,7 @@ Query the epic's children, e.g.
 
 ## Step 3 - Load inputs and discover validation commands
 
-Read, under the spec directory:
+Read, under the spec directory from Step 1:
 
 - `.sdd/specs/<feature>/requirements.md` - REQUIRED. Missing -> return
   BLOCKED pointing to `/sdd:spec-requirements`.

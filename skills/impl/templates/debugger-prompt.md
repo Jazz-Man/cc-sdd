@@ -13,7 +13,7 @@ contract instead.
 
 ## Inputs (paths and ids, never contents)
 
-Your dispatch prompt carries paths and ids, never file contents. Read:
+Your dispatch prompt carries paths, ids, and Glob patterns - never contents. Read:
 
 - **Failure summary** — the one-line symptom.
 - **Task bean** — the dispatch carries the task bean id; run

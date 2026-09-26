@@ -30,7 +30,7 @@ WHAT.
    Revision 6 `validated`-tag and `Doc-hash` writes - belongs to the
    presenting main context (Return contract), and task-bean lifecycle
    belongs to `/sdd:spec-tasks`. Never write progress, approval, or
-   blocked state into any document.
+   blocked state into documents.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **Options, not silent picks.** Architecturally significant choices are
    presented as 2-3 approaches with trade-offs and a recommendation -
@@ -236,7 +236,8 @@ AskUserQuestion:
      ```
      Parse discipline: only the exact summary block and its
      `- STATUS:` and `- VERDICT:` lines count; resume the fork once
-     (SendMessage) if the block is missing. Present its verdict, any
+     (SendMessage) if the block is missing,
+     ambiguous, or replaced with prose. Present its verdict, any
      criterion verdicts, findings, and fixes to the user - short
      lists in chat, the file when PATH names one.
    - **GO** - the phase closes in this order (the design phase-bean

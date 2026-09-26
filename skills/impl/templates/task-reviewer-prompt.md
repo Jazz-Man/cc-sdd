@@ -12,7 +12,7 @@ finding or a note in the verdict, never a question to the user.
 
 ## Inputs (read ONLY these)
 
-Your dispatch prompt carries paths and ids, never file contents. Read:
+Your dispatch prompt carries paths, ids, and Glob patterns - never contents. Read:
 
 - **Review protocol** — `review/SKILL.md`: your checklist of mechanical
   and judgment checks. Where its output format differs from this prompt,

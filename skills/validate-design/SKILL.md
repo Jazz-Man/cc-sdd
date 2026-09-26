@@ -27,7 +27,7 @@ you are the independent second opinion before the plan gets built.
 1. Bash is limited to the beans CLI and read-only inspection.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
-   any document. Phase completion, the `validated` tag, and the
+   documents. Phase completion, the `validated` tag, and the
    `Doc-hash:` line are the presenting context's writes at the GO
    moment - never yours.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
@@ -133,8 +133,8 @@ Plus the cross-cutting checks the criteria assume:
 - **Internal consistency**: diagrams and tables match the prose - every
   component, boundary, and flow appears in both, identically.
 - **Boundary readiness**: This Spec Owns / Out of Boundary / Allowed
-  Dependencies are concrete enough for a reviewer to later detect
-  violations.
+  Dependencies / Revalidation Triggers are concrete enough for a
+  reviewer to later detect violations.
 
 Each criterion gets a verdict: `PASS`, `CONCERN` (finding attached), or
 `FAIL` (blocking finding attached). Classify every finding:
@@ -170,7 +170,7 @@ survive untouched (the workspace is append-only). Structure per round:
 - Minor findings: one line each.
 - Fixes applied: one line each.
 - Strengths: 1-2, to keep the assessment balanced.
-- Final assessment: GO or NO_GO with 1-2 sentences of rationale.
+- Verdict: GO or NO_GO with 1-2 sentences of rationale.
 
 Verify the write by reading the file back.
 

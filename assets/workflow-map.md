@@ -33,7 +33,7 @@ ask the user - they return status contracts. Clarifying questions only in discov
 requirements; design and tasks are confirm-only. Stop-per-task: after each impl task the
 orchestrator stops - the user reviews, tests, and commits.
 
-**Models (hardwired, never the agent's choice).** Generation of requirements, design, and tasks:
+**Models (pinned, never the agent's choice).** Generation of requirements, design, and tasks:
 opus. All reviews and validations: opus. Implementation: sonnet, raised to opus in rounds 4-5.
 
 **Escalation - no blind decisions.** Any concern or deviation surfaces in four parts: per plan /
