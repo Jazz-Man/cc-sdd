@@ -15,5 +15,9 @@
     "typescript": "7.0.2"
   },
   "private": true,
+  "scripts": {
+    "lsp:diagnostics": "effect-tsgo diagnostics --project=tsconfig.json",
+    "lsp:prepare": "effect-tsgo patch"
+  },
   "type": "module"
 }

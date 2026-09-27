@@ -1,30 +1,34 @@
 {
+  "$schema": "./node_modules/@effect/tsgo/schema.json",
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "allowJs": true,
-    "jsx": "react-jsx",
-    // Environment setup & latest features
-    "lib": ["ESNext"],
-    "module": "Preserve",
-    "moduleDetection": "force",
-
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "noEmit": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUncheckedIndexedAccess": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "skipLibCheck": true,
-
-    // Best practices
-    "strict": true,
-    "target": "ESNext",
-    "types": ["bun"],
-    "verbatimModuleSyntax": true
-  }
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "plugins": [
+      {
+        "completions": true,
+        "diagnosticSeverity": {
+          "anyUnknownInErrorContext": "warning",
+          "catchUnfailableEffect": "warning",
+          "cryptoRandomUUID": "suggestion",
+          "cryptoRandomUUIDInEffect": "suggestion",
+          "extendsNativeError": "suggestion",
+          "leakingRequirements": "warning",
+          "outdatedApi": "error",
+          "processEnv": "suggestion",
+          "processEnvInEffect": "suggestion",
+          "returnEffectInGen": "warning"
+        },
+        "diagnostics": true,
+        "name": "@effect/language-service",
+        "quickinfo": true
+      }
+    ],
+    "preserveSymlinks": false,
+    "resolveJsonModule": true,
+    "rewriteRelativeImportExtensions": true,
+    "strictNullChecks": true
+  },
+  "exclude": ["node_modules", ".repos"],
+  "extends": "@tsconfig/bun"
 }
