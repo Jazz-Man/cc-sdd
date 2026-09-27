@@ -1,6 +1,6 @@
 # Prompt Patterns
 
-Which methods to use for which kind of prompt. Start here when building a new prompt.
+Which methods to use for which kind of prompt. Start here when building a new prompt. Methods marked `→ /presets` are deprecated class shims (removed in 1.0) — compose the same-named function from `@kasava/prompt-builder/presets` + `.include()` instead; see [api-output.md](api-output.md) § The /presets subpath.
 
 ## Pattern Selection Guide
 
@@ -8,17 +8,17 @@ Which methods to use for which kind of prompt. Start here when building a new pr
 
 Use when the model must evaluate something against criteria and produce a score or classification.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
   .context(...)                          // input data
-  .toolGuidance([...])                   // if RAG/tools needed
+  .toolGuidance([...])                   // if RAG/tools needed → /presets + .include()
   .protocol({ name, steps, followThrough })  // scoring process
   .arrowRules({ title, types })          // decision priority
   .heading("Scoring Rubric")
   .lookupTable(...)                      // each scoring dimension
   .severityScale("Recommendation", [...]) // final classification
-  .analysisRequirements(desc, reqs)      // what to analyze
+  .analysisRequirements(desc, reqs)      // what to analyze → /presets + .include()
   .guidelines([...])                     // behavioral rules
   .instructions("Follow the protocol and return the scoring result.")
   .build()
@@ -32,22 +32,22 @@ prompt()
 
 Use when the model has access to external tools (RAG, search, APIs) and must decide when/how to use them.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
   .context(...)
   .data(...)                             // input schema description
-  .toolGuidance([...])                   // tool reference table
+  .toolGuidance([...])                   // tool reference table → /presets + .include()
   .protocol({ name, steps, followThrough })  // decision process
   .arrowRules({ title, types })          // error handling rules
-  .gracefulDegradation([...])            // fallback behavior
+  .gracefulDegradation([...])            // fallback behavior → /presets + .include()
   .verificationChecklist([...])          // pre-return checks
   .guidelines([...])
   .instructions("Follow the protocol and return results.")
   .build()
 ```
 
-**Key methods:** `toolGuidance`, `protocol`, `gracefulDegradation`
+**Key methods:** `toolGuidance` → `/presets`, `protocol`, `gracefulDegradation` → `/presets`
 
 ---
 
@@ -55,19 +55,19 @@ prompt()
 
 Use when the model must perform a sequence of analysis steps in order.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
   .context(...)
   .protocol({ name, steps, followThrough })
   .investigationStrategy([...])          // numbered phases
-  .gracefulDegradation([...])
+  .gracefulDegradation([...])            // → /presets + .include()
   .guidelines([...])
   .instructions("Follow the protocol and return results.")
   .build()
 ```
 
-**Key methods:** `protocol`, `investigationStrategy`, `gracefulDegradation`
+**Key methods:** `protocol`, `investigationStrategy`, `gracefulDegradation` → `/presets`
 
 ---
 
@@ -75,10 +75,10 @@ prompt()
 
 Use when the model answers questions using available tools without complex scoring.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
-  .toolGuidance([...])                   // or .heading("Tools").list([...])
+  .toolGuidance([...])                   // or .heading("Tools").list([...]) → /presets + .include()
   .guidelines([...])
   .build()
 ```
@@ -91,7 +91,7 @@ prompt()
 
 Use when the model analyzes code changes or diffs.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
   .context(...)
@@ -111,7 +111,7 @@ prompt()
 
 Use when injecting large external content into the prompt. The caller reads the files; the builder receives their contents as parameters.
 
-```typescript
+```typescript fragment
 interface Input {
   document: string; // caller already read the file
   profile: string; // caller already read the file
@@ -136,7 +136,7 @@ function buildPrompt(input: Input): string {
 
 Use when prompt content varies based on runtime data.
 
-```typescript
+```typescript fragment
 prompt()
   .role(...)
   .conditional(data.features?.length, (b, features) => b
@@ -149,7 +149,66 @@ prompt()
   .build()
 ```
 
-**Key methods:** `conditional`
+When the pieces are assembled outside one chain — built in different places, combined by data — use the standalone combinators through `.include()`:
+
+```ts
+import { prompt, all, when, each } from "@kasava/prompt-builder";
+
+const features = ["search", "expand"];
+
+const dynamic = prompt()
+  .role("listing analyzer")
+  .include(all(when(features.length > 0, prompt().list("Features", features))))
+  .include(each(features, (f) => prompt().raw(`Feature available: ${f}`)));
+```
+
+**Key methods:** `conditional` (chain), `when`/`unless`/`all`/`any`/`each` (combinators) — [api-schema.md](api-schema.md) § Combinators
+
+---
+
+### Runtime-Data Prompt
+
+Use when content depends on values known only at render time and you want the variable set typed and checked — a missing required variable is a render-time error, not a silently empty section.
+
+```typescript fragment
+import { bool, definePrompt, list, p, prompt, text, when } from "@kasava/prompt-builder";
+
+const template = definePrompt("listing_review", {
+  itemName: text().notNull(),       // required at render time
+  features: list().default([]),     // optional, with fallback
+  isMobile: bool().default(false),
+}).body((v) =>
+  prompt()
+    .role("listing reviewer")
+    .tag("item", p`Name: ${v.itemName}`)
+    .include(when(v.isMobile, prompt().raw("Keep the reply short.")))
+);
+
+template.render({ itemName: "Vintage lamp" }); // features/isMobile fall back to defaults
+```
+
+**Key methods:** `definePrompt`, `text`/`list`/`bool`, `when` — [api-schema.md](api-schema.md)
+
+---
+
+### Repeated-Render Prompt
+
+Use when the same prompt renders many times and only slot values change — compile the AST once with `prepare()`, then re-render from slots instead of rebuilding.
+
+```typescript fragment
+import { p, placeholder, prompt } from "@kasava/prompt-builder";
+
+const builder = prompt()
+  .role("release announcer")
+  .include(p`Version ${placeholder("version")} is live.`);
+
+const prepared = builder.prepare("announce_v1"); // AST compiled once
+prepared.params;                          // ["version"]
+prepared.render({ version: "2.1.0" });    // each render fills slots only
+prepared.render({ version: "2.2.0" });
+```
+
+**Key methods:** `prepare`, `placeholder` — [api-schema.md](api-schema.md) § Prepared prompts
 
 ---
 
@@ -157,7 +216,7 @@ prompt()
 
 Use when building prompts from shared fragments.
 
-```typescript
+```typescript fragment
 const safetyRules = section("Safety")
   .list(["No harmful content", "Respect privacy"]);
 
@@ -175,24 +234,75 @@ prompt()
 
 ---
 
+### Multi-Target Output
+
+Use when one prompt must ship in more than one shape — a markdown string for one consumer, chat messages for another — or when a provider cache makes the stable/volatile split explicit.
+
+```typescript fragment
+import { toMessages, xml } from "@kasava/prompt-builder";
+
+const builder = prompt()
+  .role("support triage")
+  .context("Triage policy — stable across requests.") // cache-stable half
+  .cacheBoundary()                                    // marker lands on the block BEFORE it
+  .data("Ticket: per-request content");               // volatile half
+
+builder.build();      // markdown string — one consumer
+builder.build(xml()); // XML dialect — another consumer
+toMessages(builder);  // ChatMessage[] with cache_control — chat consumer
+```
+
+**Key methods:** `toMessages`, `cacheBoundary`, `xml` — [api-output.md](api-output.md)
+
+---
+
+### Budget-Constrained Prompt
+
+Use when the prompt must fit a token ceiling — tier sections with `.priority()`, then trim by dropping whole low-value nodes instead of truncating text.
+
+```typescript fragment
+import { prompt } from "@kasava/prompt-builder";
+import { workedExample } from "@kasava/prompt-builder/presets";
+
+const full = prompt()
+  .role("code reviewer")
+  .priority("required")
+  .guidelines(["Answer only from the diff."])  // never dropped
+  .priority("normal")
+  .protocol({ name, steps, followThrough })
+  .priority("low")
+  .include(workedExample(/* long demonstration */)); // first to go
+
+const trimmed = full.$budget({ maxTokens: 4000 }); // NEW builder — full is untouched
+```
+
+**Key methods:** `priority`, `$budget`, `approximateTokens` — [api-output.md](api-output.md) § Token budget
+
+---
+
 ## Method-to-Pattern Matrix
 
-| Method | Scoring | Tool Agent | Analysis | Q&A | Code Review | Context-Heavy |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| `.role()` | Y | Y | Y | Y | Y | Y |
-| `.context()` | Y | Y | Y | - | Y | Y |
-| `.data()` | Y | Y | - | - | - | Y |
-| `.protocol()` | Y | Y | Y | - | Y | - |
-| `.arrowRules()` | Y | Y | - | - | Y | - |
-| `.toolGuidance()` | Y | Y | Y | Y | - | - |
-| `.lookupTable()` | Y | - | - | - | - | - |
-| `.severityScale()` | Y | - | - | - | - | - |
-| `.guidelines()` | Y | Y | Y | Y | Y | Y |
-| `.analysisRequirements()` | Y | - | Y | - | Y | - |
-| `.gracefulDegradation()` | - | Y | Y | - | - | - |
-| `.verificationChecklist()` | - | Y | Y | - | Y | - |
-| `.investigationStrategy()` | - | - | Y | - | Y | - |
-| `.confidenceScale()` | - | - | Y | - | - | - |
-| `.workedExample()` | - | Y | - | - | - | - |
-| `.conditional()` | Y | Y | Y | - | Y | Y |
-| `.include()` | - | - | - | - | - | Y |
+| Method | Scoring | Tool Agent | Analysis | Q&A | Code Review | Context-Heavy | Conditional | Runtime-Data | Repeated-Render | Composable | Multi-Target | Budget |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `.role()` | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `.context()` | Y | Y | Y | - | Y | Y | - | - | - | - | Y | - |
+| `.data()` | Y | Y | - | - | - | Y | - | - | - | - | Y | - |
+| `.protocol()` | Y | Y | Y | - | Y | - | - | - | - | - | - | Y |
+| `.arrowRules()` | Y | Y | - | - | Y | - | - | - | - | - | - | - |
+| `.toolGuidance()` → /presets | Y | Y | Y | Y | - | - | - | - | - | - | - | - |
+| `.lookupTable()` | Y | - | - | - | - | - | - | - | - | - | - | - |
+| `.severityScale()` | Y | - | - | - | - | - | - | - | - | - | - | - |
+| `.guidelines()` | Y | Y | Y | Y | Y | Y | - | - | - | - | - | Y |
+| `.analysisRequirements()` → /presets | Y | - | Y | - | Y | - | - | - | - | - | - | - |
+| `.gracefulDegradation()` → /presets | - | Y | Y | - | - | - | - | - | - | - | - | - |
+| `.verificationChecklist()` | - | Y | Y | - | Y | - | - | - | - | - | - | - |
+| `.investigationStrategy()` | - | - | Y | - | Y | - | - | - | - | - | - | - |
+| `.confidenceScale()` | - | - | Y | - | - | - | - | - | - | - | - | - |
+| `.workedExample()` → /presets | - | Y | - | - | - | - | - | - | - | - | - | Y |
+| `.conditional()` | Y | Y | Y | - | Y | Y | Y | - | - | - | - | - |
+| `.include()` | - | - | - | - | - | Y | Y | Y | Y | Y | - | Y |
+| `definePrompt()` + `.render()` | - | - | - | - | - | - | - | Y | - | - | - | - |
+| `p` / `placeholder()` | - | - | - | - | - | - | - | Y | Y | - | - | - |
+| `when`/`unless`/`all`/`any`/`each` | - | - | - | - | - | - | Y | Y | - | Y | - | - |
+| `toMessages()` + `.cacheBoundary()` | - | - | - | - | - | - | - | - | - | - | Y | - |
+| `.priority()` + `.$budget()` | - | - | - | - | - | - | - | - | - | - | - | Y |

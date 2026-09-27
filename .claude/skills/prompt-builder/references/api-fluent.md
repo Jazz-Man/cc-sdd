@@ -1,6 +1,6 @@
-# API Reference
+# API Reference — Fluent Builder
 
-Every method on `PromptBuilder`. All methods return `this` for chaining. `build()` returns the final string.
+Every method on `PromptBuilder`. All methods return `this` for chaining. `build(dialect?)` returns the final string.
 
 ## Constructors
 
@@ -22,8 +22,12 @@ Sets agent persona. Generates: `You are a/an {title}{, task}.`
 - Do NOT include "a"/"an" in `title` — auto-detected from first character
 - Always call this first in the chain
 
-```typescript
-.role("job-candidate match scorer", "with access to RAG tools")
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .role("job-candidate match scorer", "with access to RAG tools")
+  .build();
 // → "You are a job-candidate match scorer with access to RAG tools."
 ```
 
@@ -50,26 +54,30 @@ End with: "{followThrough}"
 ```
 
 **Usage:**
-```typescript
-.protocol({
-  name: "Job Match Scoring",
-  triggers: ["score this job", "evaluate match"],
-  steps: [
-    {
-      label: "Step 1 — Check hard rejections",
-      description: "Check avoid list against required tech.",
-      actions: [
-        '"Hard pass" tech is primary → score 0, "Auto-rejected", stop.',
-        '"Avoid as primary" appears only as one of several → proceed, note in Key Gaps.',
-      ],
-    },
-    {
-      label: "Step 2 — RAG lookup",
-      actions: ["search_documents for matching REQUIRED tech", "expand_chunk_context for best matches"],
-    },
-  ],
-  followThrough: "Provide final score with breakdown.",
-})
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .protocol({
+    name: "Job Match Scoring",
+    triggers: ["score this job", "evaluate match"],
+    steps: [
+      {
+        label: "Step 1 — Check hard rejections",
+        description: "Check avoid list against required tech.",
+        actions: [
+          '"Hard pass" tech is primary → score 0, "Auto-rejected", stop.',
+          '"Avoid as primary" appears only as one of several → proceed, note in Key Gaps.',
+        ],
+      },
+      {
+        label: "Step 2 — RAG lookup",
+        actions: ["search_documents for matching REQUIRED tech", "expand_chunk_context for best matches"],
+      },
+    ],
+    followThrough: "Provide final score with breakdown.",
+  })
+  .build();
 ```
 
 ### `.investigationStrategy(phases: { name: string, description?: string, steps?: string[] }[], title?: string): this`
@@ -114,17 +122,21 @@ Action → next-step lookup table. Tells the model what to offer after completin
 ```
 
 **Usage:**
-```typescript
-.followThroughMatrix({
-  title: "After Analysis Actions",
-  description: "After completing each analysis type, offer the relevant follow-up.",
-  rows: [
-    { action: "Scored a job listing", followThrough: "Offer to generate cover letter if score >= 50" },
-    { action: "Generated cover letter", followThrough: "Offer to fact-check claims against portfolio" },
-    { action: "Fact-check complete", followThrough: "Offer to humanize and finalize" },
-  ],
-  postRule: "Always wait for user confirmation before proceeding to the next step.",
-})
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .followThroughMatrix({
+    title: "After Analysis Actions",
+    description: "After completing each analysis type, offer the relevant follow-up.",
+    rows: [
+      { action: "Scored a job listing", followThrough: "Offer to generate cover letter if score >= 50" },
+      { action: "Generated cover letter", followThrough: "Offer to fact-check claims against portfolio" },
+      { action: "Fact-check complete", followThrough: "Offer to humanize and finalize" },
+    ],
+    postRule: "Always wait for user confirmation before proceeding to the next step.",
+  })
+  .build();
 ```
 
 ---
@@ -155,23 +167,27 @@ Each `ArrowRule`: `{ name: string, description?: string, rules: string[] }`
 Note: `postRules` render as a numbered list with no label prefix.
 
 **Usage:**
-```typescript
-.arrowRules({
-  title: "Scoring Priority (highest first)",
-  types: [
-    {
-      name: "Hard rejections",
-      description: "From Candidate Job Search Profile",
-      rules: ["Always score 0, no exceptions.", "Do NOT run RAG queries for auto-rejected jobs."],
-    },
-    {
-      name: "Everything else",
-      description: "Score generously",
-      rules: ["Consider transferable skills within the same paradigm."],
-    },
-  ],
-  postRules: ["Never treat cross-paradigm experience as transferable."],
-})
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .arrowRules({
+    title: "Scoring Priority (highest first)",
+    types: [
+      {
+        name: "Hard rejections",
+        description: "From Candidate Job Search Profile",
+        rules: ["Always score 0, no exceptions.", "Do NOT run RAG queries for auto-rejected jobs."],
+      },
+      {
+        name: "Everything else",
+        description: "Score generously",
+        rules: ["Consider transferable skills within the same paradigm."],
+      },
+    ],
+    postRules: ["Never treat cross-paradigm experience as transferable."],
+  })
+  .build();
 ```
 
 ---
@@ -181,32 +197,40 @@ Note: `postRules` render as a numbered list with no label prefix.
 ### `.lookupTable(opts: { title?: string, description?: string, columns: [string, string], rows: [string, string][], postNote?: string }): this`
 Two-column reference table. The foundation for rubrics, score ranges, and reference data.
 
-**Note:** Does NOT skip on empty `rows` — produces a table with headers but no body rows. Ensure you pass data.
+**The table skips when `rows` is empty**, matching `.table()` — no header-only table; a given `title` still renders its heading. (0.2.x emitted the heading plus a header-only table; `markdown({ strict: true })` reproduces those bytes.)
 
-```typescript
-.lookupTable({
-  title: "Technical match (40 pts)",
-  columns: ["Criteria", "Score range"],
-  rows: [
-    ["Primary skill alignment", "15=exact, 12=strong secondary, 8=transferable, 0=none"],
-    ["Framework/tools alignment", "15=perfect, 12=most match, 8=key match some gaps, 0=none"],
-  ],
-})
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .lookupTable({
+    title: "Technical match (40 pts)",
+    columns: ["Criteria", "Score range"],
+    rows: [
+      ["Primary skill alignment", "15=exact, 12=strong secondary, 8=transferable, 0=none"],
+      ["Framework/tools alignment", "15=perfect, 12=most match, 8=key match some gaps, 0=none"],
+    ],
+  })
+  .build();
 ```
 
 ### `.severityScale(title: string, levels: { level: string, description: string }[]): this`
 Tiered classification scale. Use for final recommendations, severity ratings, or any named tier system.
 
-**Note:** Uses heading level 3 (`###`), not level 2 like most other generators. This makes it a sub-section — typically placed under a `## Scoring Rubric` heading.
+**Note:** Uses heading level 3 (`###`), not level 2 like most other generators. This makes it a sub-section — typically placed under a `## Scoring Rubric` heading. Renders as a single tight list (0.2.x left blank lines between bullets).
 
-```typescript
-.severityScale("Recommendation", [
-  { level: "Strong Match", description: "80-100" },
-  { level: "Good Match", description: "70-79" },
-  { level: "Decent Match", description: "60-69" },
-  { level: "Stretch", description: "50-59" },
-  { level: "Weak Match", description: "<50" },
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .severityScale("Recommendation", [
+    { level: "Strong Match", description: "80-100" },
+    { level: "Good Match", description: "70-79" },
+    { level: "Decent Match", description: "60-69" },
+    { level: "Stretch", description: "50-59" },
+    { level: "Weak Match", description: "<50" },
+  ])
+  .build();
 ```
 
 ### `.confidenceScale(tiers?: { range: string, label: string }[]): this`
@@ -221,13 +245,17 @@ Confidence scale for evidence-based assessments. Internally delegates to `.looku
 | Below 0.5 | Do not include — too weak |
 
 **Custom tiers** — `range` is a free-form string, use whatever scale fits:
-```typescript
-.confidenceScale([
-  { range: "90-100", label: "Strong evidence — multiple project matches" },
-  { range: "70-89", label: "Moderate evidence — partial overlap" },
-  { range: "50-69", label: "Weak evidence — tangential relevance" },
-  { range: "Below 50", label: "Insufficient evidence — skip" },
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .confidenceScale([
+    { range: "90-100", label: "Strong evidence — multiple project matches" },
+    { range: "70-89", label: "Moderate evidence — partial overlap" },
+    { range: "50-69", label: "Weak evidence — tangential relevance" },
+    { range: "Below 50", label: "Insufficient evidence — skip" },
+  ])
+  .build();
 ```
 
 ---
@@ -237,11 +265,15 @@ Confidence scale for evidence-based assessments. Internally delegates to `.looku
 ### `.toolGuidance(tools: { tool: string, usage: string }[], title?: string): this`
 Tool reference table. Generates a two-column lookup table with columns `["Tool", "Usage"]`. Use when the agent has access to external tools (RAG, search, APIs). Title defaults to `"Available Tools"`.
 
-```typescript
-.toolGuidance([
-  { tool: "search_documents", usage: "Find candidate's projects matching REQUIRED tech. Use 2-3 focused queries." },
-  { tool: "expand_chunk_context", usage: "Get more context around a search result when you need deeper detail." },
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .toolGuidance([
+    { tool: "search_documents", usage: "Find candidate's projects matching REQUIRED tech. Use 2-3 focused queries." },
+    { tool: "expand_chunk_context", usage: "Get more context around a search result when you need deeper detail." },
+  ])
+  .build();
 ```
 
 ---
@@ -270,13 +302,17 @@ Before returning your output, verify:
 ```
 
 **Usage:**
-```typescript
-.verificationChecklist([
-  "All required technologies have been scored",
-  "Hard rejections were checked before RAG queries",
-  "Total score adds up to exactly 100",
-  "Recommendation tier matches the score range",
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .verificationChecklist([
+    "All required technologies have been scored",
+    "Hard rejections were checked before RAG queries",
+    "Total score adds up to exactly 100",
+    "Recommendation tier matches the score range",
+  ])
+  .build();
 ```
 
 ### `.gracefulDegradation(rules: string[], title?: string): this`
@@ -294,12 +330,16 @@ Error handling / fallback rules. Generates a heading + bulleted list. Use when t
 ### `.guidelines(items: string[], title?: string): this`
 Behavioral rules as a titled bullet list. Use for soft rules that shape agent behavior.
 
-```typescript
-.guidelines([
-  "Always read Candidate Job Search Profile BEFORE scoring.",
-  "If RAG returns no results, score based on CV and profile alone.",
-  "Score generously for transferable skills within the same paradigm.",
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .guidelines([
+    "Always read Candidate Job Search Profile BEFORE scoring.",
+    "If RAG returns no results, score based on CV and profile alone.",
+    "Score generously for transferable skills within the same paradigm.",
+  ])
+  .build();
 ```
 
 ---
@@ -322,15 +362,19 @@ Numbered requirements list with description. Use to define what the model must a
 
 If `jsonStructure` is provided, appends: `Format your response as JSON with the following structure:` + a JSON code block. **Note:** `jsonStructure` parameter is optional and rarely needed — JSON output format is handled at the API level.
 
-```typescript
-.analysisRequirements(
-  "Analyze the job listing against the candidate's profile and portfolio",
-  [
-    "Check hard rejections from Candidate Job Search Profile first",
-    "Use RAG tools to find matching portfolio projects",
-    "Score each dimension according to the rubric",
-  ],
-)
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .analysisRequirements(
+    "Analyze the job listing against the candidate's profile and portfolio",
+    [
+      "Check hard rejections from Candidate Job Search Profile first",
+      "Use RAG tools to find matching portfolio projects",
+      "Score each dimension according to the rubric",
+    ],
+  )
+  .build();
 ```
 
 ---
@@ -338,7 +382,7 @@ If `jsonStructure` is provided, appends: `Format your response as JSON with the 
 ## Examples (Worked Examples)
 
 ### `.workedExample(example: WorkedExample): this`
-Single worked example in `<example>` XML tags. Teaches the model the expected behavior via demonstration.
+Single worked example in `<example>` XML tags. Teaches the model the expected behavior via demonstration. The XML wrapper is tight (0.2.x had blank lines between tag and content).
 
 `WorkedExample` type: `{ mention: string, context: string, protocol: string, toolCalls: string[], response: string }`
 
@@ -358,18 +402,24 @@ Single worked example in `<example>` XML tags. Teaches the model the expected be
 </example>
 ```
 
-```typescript
-.workedExample({
-  context: 'GitHub issue #214, "Add auto-reproduction step"',
-  mention: '@kasava is this still relevant?',
-  protocol: "Issue Closure Assessment",
-  toolCalls: [
-    "commitTool({ action: 'related', repositoryId, query: '...' })",
-    "githubIssueSearchTool({ query: '...', repositoryId })",
-  ],
-  response: "**NO** — still relevant, not implemented.\n\n- No commits found...",
-})
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .workedExample({
+    context: 'GitHub issue #214, "Add auto-reproduction step"',
+    mention: '@kasava is this still relevant?',
+    protocol: "Issue Closure Assessment",
+    toolCalls: [
+      "commitTool({ action: 'related', repositoryId, query: '...' })",
+      "githubIssueSearchTool({ query: '...', repositoryId })",
+    ],
+    response: "**NO** — still relevant, not implemented.\n\n- No commits found...",
+  })
+  .build();
 ```
+
+> **Deprecated shim:** the canonical form is the `/presets` functions (`workedExample`, `workedExamples`) + `.include()`. The class methods are deprecated shims until 1.0.
 
 ### `.workedExamples(examples: WorkedExample[], title?: string): this`
 Multiple examples wrapped in `<examples>` tags with a heading. Title defaults to `"Worked Examples"`.
@@ -414,10 +464,12 @@ Simple building blocks. Prefer high-level generators above over these.
 | `.heading(text, level?)` | Markdown heading. Default level 2 (`##`). |
 | `.section(title, content)` | Bold field with value. Skipped if content is null/undefined. |
 | `.raw(content)` | Raw text, no formatting. |
-| `.separator()` | Horizontal rule (`---`). |
+| `.separator()` | Horizontal rule (`---`), normalized spacing (0.2.x emitted excess blank lines). |
 | `.delimiter(style?)` | Section delimiter. Default: `dash` (`---`). Options: `'dash'`, `'hash'`, `'quote'`. |
 | `.field(label, value)` | Bold label + value. Skipped if value is null/undefined. |
 | `.booleanField(label, value)` | Yes/No field. |
+
+`.section(title, content)` and `.field(label, value)` both render `**Title:** value` — unified (0.2.x used two different formats).
 
 ---
 
@@ -432,6 +484,10 @@ Simple building blocks. Prefer high-level generators above over these.
 | `.keyValues(pairs)` | Key-value pairs as bulleted list. |
 | `.table(columns, rows)` | Generic markdown table. Skipped if rows is empty. |
 
+Cell content is escaped in `.table()` and `.lookupTable()` — a `|` in a cell cannot break the row (0.2.x corrupted the table silently).
+
+`.keyValues(pairs)` and `.limitedList(items, max, overflowMsg?)`: empty input pushes nothing (0.2.x left a stray blank line).
+
 ---
 
 ## Code & Diff
@@ -440,19 +496,19 @@ Simple building blocks. Prefer high-level generators above over these.
 |---|---|
 | `.codeBlock(content, language?)` | Fenced code block. |
 | `.diffBlock(content, maxLength?)` | Diff code block with optional truncation. |
-| `.filesList(title, files)` | Files changed section with counts. `files`: `{ filename, status?, additions?, deletions? }[]` |
+| `.filesList(title, files)` | Files changed section with counts. `files`: `{ filename, status?, additions?, deletions? }[]`. Counts are pluralized correctly (`1 file` / `2 files`; 0.2.x printed `1 files`). |
 
 ---
 
 ## Composition
 
-### `.include(other: PromptBuilder|string): this`
-Merge another builder's content. **Snapshot, not lazy** — changes to source after include are not reflected.
+### `.include(other: PromptBuilder | Fragment | string): this`
+Merge another builder's content — splices the child's AST nodes, so the prompt stays walkable. **Snapshot, not lazy** — changes to source after include are not reflected.
 
 ### `.conditional<T>(condition: T|null|undefined|false|0|'', builder: (b, value: NonNullable<T>) => PromptBuilder): this`
 Conditionally add content. Builder only runs when condition is truthy. Type-safe access to narrowed value.
 
-```typescript
+```typescript fragment
 .conditional(config.skills, (b, skills) => b
   .list("Required Skills", skills)
 )
@@ -462,8 +518,8 @@ Conditionally add content. Builder only runs when condition is truthy. Type-safe
 
 ## Output
 
-### `.build(): string`
-Final prompt string. Parts joined with `\n\n` (paragraph breaks).
+### `.build(dialect?: Dialect): string`
+Final prompt string. Parts joined with `\n\n` (paragraph breaks). Defaults to corrected markdown. `markdown({ strict: true })` reproduces pre-0.3 bytes exactly.
 
 ---
 
@@ -474,6 +530,11 @@ Final prompt string. Parts joined with `\n\n` (paragraph breaks).
 - `.blankLine()` — no-op, kept for compat
 - `.bullets(items)` — use `.list(items)` without title
 - `.steps(items)` — use `.numberedList(items)` without title
+- `.toolGuidance()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
+- `.gracefulDegradation()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
+- `.analysisRequirements()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
+- `.followThroughMatrix()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
+- `.workedExample()` / `.workedExamples()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
 
 ---
 
@@ -489,7 +550,7 @@ Format limited list without pushing to builder. Use with `.raw()`.
 
 ## Exported Types
 
-```typescript
+```typescript fragment
 interface ArrowRule {
   name: string;           // Bold type label (e.g., "Misunderstanding")
   description?: string;   // Optional description after the label
@@ -520,11 +581,15 @@ interface WorkedExample {
 ### `.outputFormat(fields: { field: string, type: string, description: string }[], title?: string): this`
 A simple structured-output field list. Generates a heading + "You must return structured output with:" + one bullet per field: `**field** (type): description`.
 
-```typescript
-.outputFormat([
-  { field: "score", type: "number", description: "0-100" },
-  { field: "summary", type: "string", description: "One-line rationale" },
-])
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+prompt()
+  .outputFormat([
+    { field: "score", type: "number", description: "0-100" },
+    { field: "summary", type: "string", description: "One-line rationale" },
+  ])
+  .build();
 ```
 
 **Limitation — flat fields only.** Each entry is a single `{ field, type, description }` rendered as one bullet. `.outputFormat()` cannot express nested objects, arrays of objects, `$ref`, `anyOf`/`oneOf`, `enum`, `required` vs optional, `additionalProperties`, or nullable fields. If your output is a rich/validated JSON Schema (e.g. derived from Effect, Zod, or Pydantic), do not flatten it into `.outputFormat()` — inject the full schema document directly (e.g. via `.codeBlock(schemaJson, "json")` plus `.guidelines()` on how to fill it) and drive actual JSON output at the API layer (`response_format: { type: "json_object" }` or equivalent).

@@ -67,6 +67,8 @@ export function buildScoringPrompt(input: MatchInput): PromptBuilder {
 ## Tool-Using Agent Prompt
 
 ```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
 export function buildAgentPrompt(topic: string): PromptBuilder {
   return prompt()
     .role("research agent", "with access to a document store")
@@ -94,6 +96,8 @@ export function buildAgentPrompt(topic: string): PromptBuilder {
 ## Multi-Step Analysis Prompt
 
 ```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
 export function buildAnalysisPrompt(target: string): PromptBuilder {
   return prompt()
     .role("code analyst", "mapping the impact of a planned change")
@@ -115,6 +119,8 @@ export function buildAnalysisPrompt(target: string): PromptBuilder {
 ## Context-Heavy Prompt (file content passed in)
 
 ```typescript
+import { prompt } from "@kasava/prompt-builder";
+
 interface ReviewInput {
   document: string; // caller already read the file
   profile: string; // caller already read the file
@@ -135,6 +141,8 @@ export function buildReviewPrompt(input: ReviewInput): string {
 ## Conditional / Dynamic Prompt
 
 ```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
 interface ListingInput {
   title: string;
   skills?: string[];
@@ -155,7 +163,7 @@ export function buildListingPrompt(input: ListingInput): PromptBuilder {
 ## Composable Prompt (shared fragments)
 
 ```typescript
-import { prompt, section } from "@kasava/prompt-builder";
+import { type PromptBuilder, prompt, section } from "@kasava/prompt-builder";
 
 const safetyRules = section("Safety Guidelines").guidelines([
   "Never expose personal data.",
@@ -183,6 +191,8 @@ export function buildAnalyzerPrompt(): PromptBuilder {
 ## Confidence-Scaled Prompt
 
 ```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
 export function buildMatchPrompt(): PromptBuilder {
   return prompt()
     .role("portfolio analyst", "rating how well prior work matches requirements")
@@ -210,9 +220,11 @@ export function buildMatchPrompt(): PromptBuilder {
 
 ## Rich JSON-Schema Output (do NOT use `.outputFormat()`)
 
-When the output is a rich JSON Schema, `.outputFormat()` can't express it (flat fields only — see [api-reference.md](api-reference.md)). Inject the schema directly and drive JSON output at the API layer.
+When the output is a rich JSON Schema, `.outputFormat()` can't express it (flat fields only — see [api-fluent.md](api-fluent.md)). Inject the schema directly and drive JSON output at the API layer.
 
 ```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
 export function buildStructuredPrompt(schemaJson: string): PromptBuilder {
   return prompt()
     .role("data extractor")
@@ -228,5 +240,92 @@ export function buildStructuredPrompt(schemaJson: string): PromptBuilder {
       "No extra keys (additionalProperties: false).",
     ])
     .instructions("Extract the data matching the schema above.");
+}
+```
+
+## Schema-Driven Prompt (definePrompt)
+
+```ts
+import { definePrompt, text, list, bool, prompt, p, when } from "@kasava/prompt-builder";
+
+interface ListingInput {
+  title: string;
+  skills: string[];
+  isRemote: boolean;
+}
+
+const listingAnalyzer = definePrompt("listing_analyzer", {
+  title: text().notNull(),
+  skills: list().default([]),
+  isRemote: bool().default(false),
+}).body((v) =>
+  prompt()
+    .role("listing analyzer")
+    .tag("listing", p`Title: ${v.title}`)
+    .include(when(v.skills.length > 0, prompt().list("Required Skills", v.skills)))
+    .include(when(v.isRemote, prompt().section("Work Arrangement", "Remote"))),
+);
+
+console.log(listingAnalyzer.render({ title: "Platform Engineer", skills: ["ts", "sql"] }));
+```
+
+## Prepared Prompt (placeholders)
+
+```ts
+import { prompt, p, placeholder } from "@kasava/prompt-builder";
+
+export function buildPreparedReportPrompt(): string {
+  const prepared = prompt()
+    .role("report writer")
+    .include(p`Write the ${placeholder("kind")} report for ${placeholder("quarter")}.`)
+    .prepare("report_v1");
+
+  console.log(prepared.params); // ["kind", "quarter"]
+  return prepared.render({ kind: "quarterly", quarter: "Q3" });
+}
+```
+
+## Combinator Composition (all / when / unless / each)
+
+```ts
+import { prompt, all, when, unless, each } from "@kasava/prompt-builder";
+
+export function buildFlagGatedPrompt(flags: { tools: boolean; verbose: boolean }): string {
+  return all(
+    prompt().role("assistant"),
+    when(flags.tools, prompt().heading("Tool Search", 2).raw("Prefer targeted queries.")),
+    unless(flags.tools, prompt().heading("Tool Catalog", 2).raw("Full catalog below.")),
+    each(["safety", "privacy"], (topic) => prompt().guidelines([`Respect ${topic}.`])),
+  ).build();
+}
+```
+
+## Chat Messages + Cache Boundary
+
+```ts
+import { prompt, toMessages } from "@kasava/prompt-builder";
+
+const builder = prompt()
+  .include(prompt().role("support agent").guidelines(["Be direct.", "Cite sources."]))
+  .cacheBoundary()
+  .include(prompt().tag("request", "How do I reset a token?"));
+
+export const messages = toMessages(builder);
+// messages[0] carries cache_control (stable prefix); messages[1] does not
+```
+
+## Token-Budgeted Prompt ($budget)
+
+```ts
+import { prompt } from "@kasava/prompt-builder";
+
+export function buildBudgetedPrompt(maxTokens: number): string {
+  const full = prompt()
+    .priority("required")
+    .include(prompt().role("analyst").guidelines(["Answer only from the context."]))
+    .priority("low")
+    .include(prompt().heading("Worked Examples", 2).raw("…long demonstrations…"));
+
+  return full.$budget({ maxTokens }).build();
 }
 ```
