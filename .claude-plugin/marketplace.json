@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "sdd",
-      "source": "./",
+      "source": "./plugins/sdd",
       "description": "Kiro-style spec-driven development for Claude Code with subagent-first execution"
     }
   ]
