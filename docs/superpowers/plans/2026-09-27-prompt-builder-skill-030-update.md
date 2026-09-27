@@ -35,14 +35,14 @@
 ### Task 1: Extraction test harness
 
 **Files:**
-- Create: `.claude/skills/prompt-builder/tests/helpers/extract.ts`
-- Create: `.claude/skills/prompt-builder/tests/extract.test.ts`
-- Create: `.claude/skills/prompt-builder/tests/examples-run.test.ts`
+- Create: `tests/helpers/extract.ts`
+- Create: `tests/extract.test.ts`
+- Create: `tests/examples-run.test.ts`
 - Modify: `.claude/skills/prompt-builder/SKILL.md`, `references/*.md` (re-tag non-runnable blocks as `fragment`)
 
 **Interfaces:**
 - Consumes: the skill's markdown files as they exist today.
-- Produces: `extractBlocks(mdPath): ExampleBlock[]` and `skillMarkdownFiles(): string[]` (helpers/extract.ts); the runner contract of Global Constraints; command `bun test .claude/skills/prompt-builder/tests/` used by every later task.
+- Produces: `extractBlocks(mdPath): ExampleBlock[]` and `skillMarkdownFiles(): string[]` (helpers/extract.ts); the runner contract of Global Constraints; command `bun test tests/` used by every later task.
 
 - [ ] **Step 1: Write the failing extraction test**
 
@@ -90,7 +90,7 @@ describe("extractBlocks", () => {
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `bun test .claude/skills/prompt-builder/tests/extract.test.ts`
+Run: `bun test tests/extract.test.ts`
 Expected: FAIL — cannot resolve `./helpers/extract`.
 
 - [ ] **Step 3: Implement the helper**
@@ -141,7 +141,7 @@ export function extractBlocks(mdPath: string): ExampleBlock[] {
 
 - [ ] **Step 4: Run the extraction test**
 
-Run: `bun test .claude/skills/prompt-builder/tests/extract.test.ts`
+Run: `bun test tests/extract.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Add the runner over the real skill files**
@@ -182,13 +182,13 @@ describe("skill examples execute against the installed library", () => {
 
 Rule: a block stays runnable ONLY if it is self-contained (own imports, no undefined identifiers like `AnalyzerInput`, top level executes cleanly). In today's files that means: `references/examples.md` blocks that start with `export function` but lack a library import get ` fragment` added to their fence; every snippet in `api-reference.md`, `patterns.md`, `best-practices.md`, `anti-patterns.md` and the builder-shape block in `SKILL.md` (references `AnalyzerInput`) get ` fragment` too. (These tags mostly disappear again in Tasks 6–10 when content is rewritten.)
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS (extraction test + at least one executed example from `examples.md` block #1 which already imports and defines everything).
 
 - [ ] **Step 7: Commit (user-run stop point)**
 
 ```bash
-git add .claude/skills/prompt-builder/tests/ .claude/skills/prompt-builder/SKILL.md .claude/skills/prompt-builder/references/ .beans/
+git add tests/ .claude/skills/prompt-builder/SKILL.md .claude/skills/prompt-builder/references/ .beans/
 git commit -m "Add example-extraction test harness to prompt-builder skill"
 ```
 
@@ -230,7 +230,7 @@ Delete `api-reference.md`; replace `api-reference.md` → `api-fluent.md` in all
 
 - [ ] **Step 3: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS (runnable blocks unchanged or improved; any block made runnable in step 1.15 executes).
 
 - [ ] **Step 4: Version-string check**
@@ -341,7 +341,7 @@ console.log(
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS — the four new blocks above execute (they are self-contained with imports).
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -441,7 +441,7 @@ Prose: required variables (`.notNull()`, no `.default()`) are required in the Zo
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS — the four runnable blocks execute; the zod block is skipped (fragment).
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -508,7 +508,7 @@ console.log(ast.map((n) => n.kind).join(","));
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS — the four minis execute.
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -543,7 +543,7 @@ Structure (frontmatter byte-identical):
 
 - [ ] **Step 2: Run the harness + version check**
 
-Run: `bun test .claude/skills/prompt-builder/tests/ && (grep -rn '0\.3\.0' .claude/skills/prompt-builder/ || echo CLEAN)`
+Run: `bun test tests/ && (grep -rn '0\.3\.0' .claude/skills/prompt-builder/ || echo CLEAN)`
 Expected: PASS + CLEAN.
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -590,7 +590,7 @@ const dynamic = prompt()
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS.
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -619,7 +619,7 @@ git commit -m "Add 0.3.0 patterns (runtime data, prepared, multi-target, budget)
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS.
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -650,7 +650,7 @@ git commit -m "Extend best practices with budget, cache boundaries, p honesty"
 
 - [ ] **Step 2: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS.
 
 - [ ] **Step 3: Commit (user-run stop point)**
@@ -756,7 +756,7 @@ export function buildBudgetedPrompt(maxTokens: number): string {
 
 - [ ] **Step 3: Run the harness**
 
-Run: `bun test .claude/skills/prompt-builder/tests/`
+Run: `bun test tests/`
 Expected: PASS — thirteen runnable example blocks.
 
 - [ ] **Step 4: Commit (user-run stop point)**
@@ -771,12 +771,12 @@ git commit -m "Make examples runnable; add schema/prepared/combinator/messages/b
 ### Task 11: Snapshot tests + `test` script
 
 **Files:**
-- Create: `.claude/skills/prompt-builder/tests/snapshots.test.ts`
+- Create: `tests/snapshots.test.ts`
 - Modify: `package.json` (scripts only)
 
 **Interfaces:**
 - Consumes: the library's installed 0.3.0 behavior.
-- Produces: `bun test` at repo root running the skill suite (`"test": "bun test .claude/skills/prompt-builder/tests/"`).
+- Produces: `bun test` at repo root running the skill suite (`"test": "bun test tests/"`).
 
 - [ ] **Step 1: Load the `bun-test` skill, then write the tests**
 
@@ -847,12 +847,12 @@ describe("canonical outputs", () => {
 
 - [ ] **Step 2: Run, read actual outputs, freeze**
 
-Run: `bun test .claude/skills/prompt-builder/tests/snapshots.test.ts`
+Run: `bun test tests/snapshots.test.ts`
 Expected: PASS. If any expectation mismatches real behavior, read the actual output (`console.log` the case), verify the behavior against the library source (`node_modules/@kasava/prompt-builder/dist/`), and correct the test to the verified reality — never weaken a test just to go green; a genuine mismatch is a finding to surface.
 
 - [ ] **Step 3: Add the root script**
 
-`package.json` `scripts` gains: `"test": "bun test .claude/skills/prompt-builder/tests/"` (Edit tool; scripts only — no dependency changes).
+`package.json` `scripts` gains: `"test": "bun test tests/"` (Edit tool; scripts only — no dependency changes).
 
 Run: `bun test`
 Expected: the whole skill suite green.
@@ -860,7 +860,7 @@ Expected: the whole skill suite green.
 - [ ] **Step 4: Commit (user-run stop point)**
 
 ```bash
-git add .claude/skills/prompt-builder/tests/snapshots.test.ts package.json
+git add tests/snapshots.test.ts package.json
 git commit -m "Add canonical snapshot tests and root test script"
 ```
 
