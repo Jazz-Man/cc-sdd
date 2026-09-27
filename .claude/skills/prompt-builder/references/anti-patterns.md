@@ -1,0 +1,237 @@
+# Anti-Patterns
+
+Common mistakes when using @kasava/prompt-builder and how to avoid them.
+
+## Using Basic Methods When Generators Exist
+
+**Wrong:**
+```typescript
+prompt()
+  .heading("Step 1 — Check rejections")
+  .list(["Check hard reject list", "Score 0 if matched"])
+  .heading("Step 2 — RAG lookup")
+  .list(["search_documents", "expand_chunk_context"])
+```
+
+**Right:**
+```typescript
+prompt()
+  .protocol({
+    name: "Job Match Scoring",
+    steps: [
+      { label: "Step 1 — Check hard rejections", actions: ["Check hard reject list", "Score 0 if matched"] },
+      { label: "Step 2 — RAG lookup", actions: ["search_documents", "expand_chunk_context"] },
+    ],
+  })
+```
+
+`.protocol()` produces consistent, parseable output that the model handles better than ad-hoc headings and lists.
+
+## Including "a"/"an" in `.role()`
+
+**Wrong:**
+```typescript
+.role("a job-candidate match scorer")
+```
+
+**Right:**
+```typescript
+.role("job-candidate match scorer")
+```
+
+The library auto-detects articles from the first character.
+
+## Using Deprecated Methods
+
+**Avoid:**
+- `.bullets(items)` → use `.list(items)` without title
+- `.steps(items)` → use `.numberedList(items)` without title
+- `.newline()` / `.paragraph()` / `.blankLine()` → all no-ops, `build()` joins with `\n\n` automatically
+
+## Flattening a rich JSON Schema into `.outputFormat()`
+
+`.outputFormat()` renders a flat `{ field, type, description }[]` bullet list. It can't express rich JSON Schemas (nested objects, `$ref`, `anyOf`/`enum`, nullable) — full list in [api-reference.md](api-reference.md).
+
+**Wrong** (lossy — drops structure):
+```typescript
+.outputFormat([
+  { field: "user", type: "object", description: "???" }, // nested shape lost
+  { field: "tags", type: "array", description: "???" }, // item schema lost
+])
+```
+
+**Right** — inject the full schema document directly and drive JSON output at the API layer:
+```typescript
+.codeBlock(schemaJsonString, "json")
+.guidelines(["Match the schema exactly; emit only declared properties."])
+// + set response_format / JSON mode on the API call itself
+```
+
+## Passing Empty Arrays
+
+Most methods silently skip on empty/null input. This is fine for optional data, but be aware:
+
+```typescript
+.list("Skills", [])       // produces nothing — no heading, no empty list
+.toolGuidance([])         // produces nothing — no tool table
+```
+
+**Exception:** `.lookupTable({ rows: [] })` does NOT skip — it renders the header and divider with no body rows. Always pass real data to `.lookupTable()`.
+
+If you expect content and get nothing, check your data.
+
+## Building After `.include()`
+
+`.include()` takes a snapshot of the source builder at call time. Changes to the source after `.include()` are NOT reflected:
+
+```typescript
+const shared = section("Rules").list(["Rule 1"]);
+
+prompt()
+  .role("agent")
+  .include(shared)        // snapshots current state
+  .build()
+
+// Later adding to shared won't affect the already-built prompt
+shared.list(["Rule 2"])   // NOT reflected
+```
+
+Build shared sections completely before including them, or use `.conditional()` for dynamic content.
+
+## Manual String Concatenation
+
+**Wrong:**
+```typescript
+const systemPrompt = `You are a ${role}.\n\n${context}\n\n## Rules\n${rules.join("\n")}`;
+```
+
+**Right:**
+```typescript
+const systemPrompt = prompt()
+  .role(role)
+  .context(context)
+  .guidelines(rules)
+  .build();
+```
+
+The builder handles spacing, formatting, and XML tags consistently.
+
+## Mixing Markdown Formatting with XML Tags Inconsistently
+
+The library uses XML tags for semantic boundaries (`<context>`, `<data>`, `<instructions>`) and markdown for display (headings, lists, tables). Don't fight this:
+
+**Wrong:**
+```typescript
+.tag("context", "## My Context\nSome text")
+```
+
+**Right:**
+```typescript
+.context("Some text")
+.heading("My Context")  // heading outside XML
+```
+
+XML tags wrap content. Markdown structures content within or between tags.
+
+## Calling a Tag Method Twice (non-example tags)
+
+`.context()`, `.data()`, `.instructions()`, and the other non-example XML shorthands each emit one fixed-name tag. Calling the same one twice produces two identical tags, which can confuse the model about which block is which.
+
+> **Exception:** the example family — `.example()`, `.examples()`, `.workedExample()`, `.workedExamples()` — is exempt. Multiple `<example>` tags are a valid few-shot pattern.
+
+**Wrong:**
+```typescript
+.context(cv)
+.context(profile)   // a second <context> tag
+```
+
+**Right** — give each source a unique tag name via `.tag()`:
+```typescript
+.tag("candidate_cv", cv)
+.tag("job_profile", profile)
+```
+
+## Preceding a Generator with `.heading()`
+
+`.guidelines()`, `.protocol()`, `.arrowRules()`, `.lookupTable()` (when titled), `.severityScale()`, and the other generators each emit their own `##` heading (`.severityScale()` emits `###`). Adding `.heading()` in front produces two consecutive headings — often a generic default like `## Important Guidelines` — which confuses the model and litters the prompt with same-named sections.
+
+**Wrong:**
+```typescript
+.heading("Scoring Rubric")
+.lookupTable({ title: "Technical match", columns: [...], rows: [...] })   // → ## Technical match too
+// or:
+.heading("Hard Rejections")
+.guidelines(rules)   // → ## Important Guidelines (a second heading)
+```
+
+**Right** — let the generator carry the label via its `title`:
+```typescript
+.lookupTable({ title: "Technical match", columns: [...], rows: [...] })   // → ## Technical match only
+.guidelines(rules, "Hard Rejections")                                     // → ## Hard Rejections only
+```
+
+This anti-pattern is only about *duplicate `##` headings*. `.heading()` itself is fine when the following method emits no `##`: `.heading("Notes").raw(...)`, a title-less `.lookupTable({...})`, or `.heading("Rubric").severityScale(...)` (`###` nests under the `##`). `.severityScale()` emits `###` — it's meant to nest under a `##`. A higher-level `.heading(..., 1)` parent is fine but rare.
+
+## Using a Tag Method for Plain Prose
+
+`.data()`, `.context()`, `.instructions()` wrap content in XML tags. Using one for an ordinary paragraph wraps the prose in `<data>…</data>` (or similar) for no reason.
+
+**Wrong:**
+```typescript
+.data("First, read the profile carefully.")   // wrapped in <data>…</data>
+```
+
+**Right** — use `.raw()` for unformatted text:
+```typescript
+.raw("First, read the profile carefully.")
+```
+
+## Doing I/O Inside the Builder
+
+A builder should be a pure synchronous function. Reading files (or any I/O) inside it makes it async, non-deterministic, and hard to test.
+
+**Wrong:**
+```typescript
+export async function buildPrompt(): Promise<string> {
+  const doc = await Bun.file("doc.md").text(); // I/O inside the builder
+  return prompt().context(doc).build();
+}
+```
+
+**Right** — the caller reads the file and passes the content in:
+```typescript
+import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+
+// builder — pure, synchronous, no I/O
+export function buildPrompt(document: string): PromptBuilder {
+  return prompt().context(document);
+}
+
+// caller — does the I/O
+const doc = await readFile("doc.md");
+const p = buildPrompt(doc).build();
+```
+
+This keeps the builder deterministic, fast, and trivially testable (`buildPrompt(fakeDoc)`).
+
+## Over-Abstracting with `section()` + `include()`
+
+Don't create sections for content used only once:
+
+**Wrong:**
+```typescript
+const header = section("Header").role("agent");
+const rules = section("Rules").guidelines([...]);
+prompt().include(header).include(rules).build();
+```
+
+**Right:**
+```typescript
+prompt().role("agent").guidelines([...]).build();
+```
+
+Use `section()` + `include()` only for content shared across multiple prompts.
+
+## Forgetting `.build()`
+
+Every chain must end with `.build()`. Without it, you get a `PromptBuilder` instance, not a string. TypeScript will catch this in most cases but worth noting.
