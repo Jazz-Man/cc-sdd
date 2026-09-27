@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-27T13:14:53Z
-updated_at: 2026-09-27T14:14:11Z
+updated_at: 2026-09-27T17:19:49Z
 ---
 
 Deep-analyze changes between library versions 0.2.2 (skill's baseline) and 0.3.0 (installed), then brainstorm and update .claude/skills/prompt-builder/ accordingly. Source: node_modules/@kasava/prompt-builder + github.com/Kasava-AI/prompt-builder (tags v0.2.2, v0.3.0). LSP mandatory for source exploration.
@@ -31,3 +31,7 @@ Design approved in brainstorming (4 sections, all confirmed): neutral map + arch
 ## Notes
 
 Implementation plan written and self-reviewed (spec coverage complete; budget maxTokens corrected 15->30 after token math; KISS/DRY/YAGNI added as global constraint per user reminder): docs/superpowers/plans/2026-09-27-prompt-builder-skill-030-update.md. 12 tasks: extraction harness, api-fluent rename+fixes, api-schema, api-output, architectures, SKILL.md router, patterns, best-practices, anti-patterns, examples, snapshots+script, final battery. Awaiting user plan review + execution-method choice (native vs subagent-driven).
+
+## Notes
+
+Battery T12 green: greps zero-hit, warnings present in 3 files, suite 47/0, plugin validate exit 0, routing audit clean
