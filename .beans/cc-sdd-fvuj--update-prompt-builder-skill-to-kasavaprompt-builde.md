@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-09-27T13:14:53Z
-updated_at: 2026-09-27T14:05:14Z
+updated_at: 2026-09-27T14:14:11Z
 ---
 
 Deep-analyze changes between library versions 0.2.2 (skill's baseline) and 0.3.0 (installed), then brainstorm and update .claude/skills/prompt-builder/ accordingly. Source: node_modules/@kasava/prompt-builder + github.com/Kasava-AI/prompt-builder (tags v0.2.2, v0.3.0). LSP mandatory for source exploration.
@@ -27,3 +27,7 @@ Goal clarified by user: the skill must FULLY cover all usage patterns of library
 ## Notes
 
 Design approved in brainstorming (4 sections, all confirmed): neutral map + architectures menu (D1), mechanically tested examples via bun-test skill (D2), module-mirror file structure (D3), unchanged frontmatter description (D4), four library-only architectures with no external context (D5, MD/Claude-Code-skill generation content explicitly rejected). Spec written: docs/superpowers/specs/2026-09-27-prompt-builder-skill-030-update-design.md — awaiting user review, then writing-plans. User commits the spec.
+
+## Notes
+
+Implementation plan written and self-reviewed (spec coverage complete; budget maxTokens corrected 15->30 after token math; KISS/DRY/YAGNI added as global constraint per user reminder): docs/superpowers/plans/2026-09-27-prompt-builder-skill-030-update.md. 12 tasks: extraction harness, api-fluent rename+fixes, api-schema, api-output, architectures, SKILL.md router, patterns, best-practices, anti-patterns, examples, snapshots+script, final battery. Awaiting user plan review + execution-method choice (native vs subagent-driven).

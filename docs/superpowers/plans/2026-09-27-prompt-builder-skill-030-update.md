@@ -20,6 +20,7 @@
 - Code-block fence conventions (the runner's contract): ```` ```ts ```` or ```` ```typescript ```` = self-contained, top-level-executes-cleanly, imports included; ```` ```ts fragment ```` / ```` ```typescript fragment ```` = skipped fragment. No other fence language carries example code.
 - Test files are written with the `bun-test` skill loaded (spec D2).
 - Beans is the tracker: task progress goes into bean `cc-sdd-fvuj` (append-only `## Report`/`## Notes`), never TodoWrite, never checkboxes in the skill files.
+- KISS / DRY / YAGNI govern the content edits: each rule or fact has ONE canonical home in the skill — the file that owns it; other files carry one-line pointers ("see api-schema.md §The p tag"), not restatements. Sanctioned exception: the `p`-is-not-injection-defense warning may appear as a single sentence at each point of risk (api-schema, best-practices, anti-patterns), the canonical wording living in api-schema. Nothing speculative: no content for unshipped versions (prompt-kit) or imagined futures. Never silence a failing check to finish a task — surface it (no-workarounds).
 
 ## Review Focus
 
@@ -405,7 +406,7 @@ const full = prompt()
   .priority("low")
   .include(prompt().heading("Worked Examples", 2).raw("…long demonstration content…"));
 
-const trimmed = full.$budget({ maxTokens: 15 });
+const trimmed = full.$budget({ maxTokens: 30 });
 
 console.log(full.build().length > trimmed.build().length); // true — low dropped
 ```
@@ -836,7 +837,7 @@ describe("canonical outputs", () => {
       .include(prompt().guidelines(["Answer only from the context."]))
       .priority("low")
       .include(prompt().heading("Examples", 2).raw("…".repeat(400)));
-    const trimmed = full.$budget({ maxTokens: 15 });
+    const trimmed = full.$budget({ maxTokens: 30 });
     expect(trimmed).not.toBe(full);
     expect(trimmed.build().length).toBeLessThan(full.build().length);
     expect(full.build()).toContain("Examples"); // original untouched
