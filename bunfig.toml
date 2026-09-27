@@ -1,0 +1,16 @@
+logLevel = "debug" # "debug" | "warn" | "error"
+telemetry = false
+
+[test]
+coverage = false
+
+
+[install.lockfile]
+save = true
+
+[install]
+exact = true
+optional = true
+dev = true
+peer = true
+auto = "auto"
