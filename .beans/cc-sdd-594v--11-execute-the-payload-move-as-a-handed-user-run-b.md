@@ -9,7 +9,7 @@ tags:
     - verdict-approved
     - verification-verified
 created_at: 2026-09-26T16:49:00Z
-updated_at: 2026-09-26T17:15:30Z
+updated_at: 2026-09-26T17:16:58Z
 parent: cc-sdd-lpx9
 ---
 
@@ -79,3 +79,5 @@ Learning for 1.2: claude plugin validate . stays GREEN even with a stale marketp
 
 ## Summary of Changes
 55-file pure-rename payload move (skills, assets, bin, hooks, README, docs/guides, plugin.json) from repo root into plugins/sdd/, executed as a user-run rename batch per the design's migration model; review round 1 APPROVED (2 MINOR parked), structural verification VERIFIED.
+
+- 4.3 closing evidence (stop point, commit f86d1c3): follow-log on plugins/sdd/.claude-plugin/plugin.json reaches a33f6ad; on plugins/sdd/skills/impl/SKILL.md reaches e91d159.
