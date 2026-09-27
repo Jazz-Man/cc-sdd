@@ -1,8 +1,9 @@
 # sdd — Kiro-style Spec-Driven Development (Claude Code plugin)
 
-This repo IS the plugin. It ships prompt-only skills for spec-driven development
-(discovery → requirements → design → tasks → implementation → validation) with
-subagent-first execution. Skills are invoked as `/sdd:<name>`; skill texts resolve
+This repository is a local Claude Code plugin marketplace; the sdd plugin lives
+at `plugins/sdd/` and is its only plugin today. The plugin ships prompt-only
+skills for spec-driven development (discovery → requirements → design → tasks →
+implementation → validation) with subagent-first execution. Skills are invoked as `/sdd:<name>`; skill texts resolve
 shared files via `${CLAUDE_PLUGIN_ROOT}`. There is no installer and no runtime data
 directory created in user projects — specs live under `.sdd/` in whatever project
 the plugin is used on.
@@ -12,37 +13,54 @@ This file is development context for THIS repository, not user documentation.
 ## Layout
 
 ```
-.claude-plugin/plugin.json      plugin manifest (name: sdd)
-skills/                         one directory per skill, bare names
-  init/                         writes the user-owned .claude/rules/sdd.md (opt-in)
-  discovery/                    action-path triage; writes the workstream brief
-                                (.sdd/brief.md); queues follow-up features as milestone/epic beans
-  spec-init/                    creates spec skeleton under .sdd/specs/<feature>/
-  spec-requirements/            EARS requirements + review gate
-  validate-requirements/        EARS/completeness/contradictions gate (generative fork)
-  spec-design/                  design + discovery + review gate (generative fork)
-  spec-tasks/                   task plan + sanity review (generative fork)
-  impl/                         orchestrator; templates/ holds subagent prompts
-  review/                       task-local adversarial review protocol
-  debug/                        root-cause-first debug protocol
-  verify-completion/            fresh-evidence completion gate
-  validate-gap/                 requirements vs existing codebase analysis
-  validate-design/              interactive design quality review
-  validate-impl/                feature-level GO/NO_GO validation
-  steering/                     manages .claude/rules/ in target projects
-assets/                         shared content referenced by skills
-  rules/                        rule files (EARS format, review gates, …)
-  templates/                    document templates (requirements, design, research, …)
-bin/                            sdd-gate, sdd-verdict, sdd-promote helpers (Revision 7)
-hooks/                          SessionStart hook (bootstrap map injection)
-docs/guides/                    user-facing guides
-docs/superpowers/               this conversion's spec and plan (self-referential;
-                                excluded from invariant greps)
+cc-sdd/                          marketplace root (this repository)
+├── .claude-plugin/
+│   └── marketplace.json        marketplace manifest; the sdd entry's source
+│                               resolves the plugin at plugins/sdd
+├── plugins/
+│   └── sdd/                    the sdd plugin — complete, self-contained unit;
+│                               future plugins land as sibling subfolders
+│       ├── .claude-plugin/
+│       │   └── plugin.json     plugin manifest (name: sdd)
+│       ├── skills/             one directory per skill, bare names
+│       │   ├── init/           writes the user-owned .claude/rules/sdd.md (opt-in)
+│       │   ├── discovery/      action-path triage; writes the workstream brief
+│       │   │                   (.sdd/brief.md); queues follow-up features as
+│       │   │                   milestone/epic beans
+│       │   ├── spec-init/      creates spec skeleton under .sdd/specs/<feature>/
+│       │   ├── spec-requirements/  EARS requirements + review gate
+│       │   ├── validate-requirements/  EARS/completeness/contradictions gate (generative fork)
+│       │   ├── spec-design/    design + discovery + review gate (generative fork)
+│       │   ├── spec-tasks/     task plan + sanity review (generative fork)
+│       │   ├── impl/           orchestrator; templates/ holds subagent prompts
+│       │   ├── review/         task-local adversarial review protocol
+│       │   ├── debug/          root-cause-first debug protocol
+│       │   ├── verify-completion/  fresh-evidence completion gate
+│       │   ├── validate-gap/   requirements vs existing codebase analysis
+│       │   ├── validate-design/  interactive design quality review
+│       │   ├── validate-impl/  feature-level GO/NO_GO validation
+│       │   └── steering/       manages .claude/rules/ in target projects
+│       ├── assets/             shared content referenced by skills
+│       │   ├── rules/          rule files (EARS format, review gates, …)
+│       │   ├── templates/      document templates (requirements, design, research, …)
+│       │   ├── workflow-map.md the default workflow map (SessionStart injection)
+│       │   └── design-system_flow.png  design-system flow diagram
+│       ├── bin/                sdd-gate, sdd-verdict, sdd-promote helpers (Revision 7)
+│       ├── hooks/              SessionStart hook (bootstrap map injection)
+│       ├── docs/guides/        user-facing guides
+│       └── README.md           plugin README
+├── CLAUDE.md                   development context (this file)
+├── LICENSE                     repository-level license for the whole tree
+├── docs/superpowers/           this conversion's spec and plan (self-referential;
+│                               excluded from invariant greps)
+└── .sdd/  .beans/  .superpowers/  .claude/  .zed/  .beans.yml  .gitignore
+                                working state and repo config
 ```
 
 Skill texts reference assets as `${CLAUDE_PLUGIN_ROOT}/assets/rules/...` and
 `${CLAUDE_PLUGIN_ROOT}/assets/templates/...`. In-skill prompt templates used by the
-impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
+impl orchestrator live beside its `SKILL.md` under
+`plugins/sdd/skills/impl/templates/`.
 
 ## Editing rules
 
@@ -60,21 +78,29 @@ impl orchestrator live beside its `SKILL.md` under `skills/impl/templates/`.
   "missing `author`" accepted-warning is gone (the field exists; the marketplace
   manifest also changes what validate reports on). This root `CLAUDE.md` still
   does not load as plugin context.
-- Invariant greps (must return zero hits; scope `skills/ assets/ hooks/ README.md
-  CLAUDE.md docs/guides/`, plus `bin/` for the convention set): unresolved
-  double-brace placeholders, the old Kiro settings-directory convention, and
-  old skill names carrying the Kiro prefix. Exact patterns and the full battery
-  (checkbox-flip, git-write, beans-duplication, and the Revisions 4-7 convention
-  invariants: zero plan-document/notes-file references, NO_GO spelling, six
-  forks, 15-skill census) are in
+- Invariant greps (must return zero hits; scope `plugins/sdd/skills/
+  plugins/sdd/assets/ plugins/sdd/hooks/ plugins/sdd/README.md CLAUDE.md
+  plugins/sdd/docs/guides/`, plus `plugins/sdd/bin/` for the convention set):
+  unresolved double-brace placeholders, the old Kiro settings-directory
+  convention, and old skill names carrying the Kiro prefix. Exact patterns and
+  the full battery (checkbox-flip, git-write, beans-duplication, and the
+  Revisions 4-7 convention invariants: zero plan-document/notes-file
+  references, NO_GO spelling, six forks, 15-skill census) are in
   `docs/superpowers/specs/2026-09-22-sdd-plugin-conversion-design.md` §10.
-- Twin checks (Revision 9, scope `skills/`): the GP-1 fork-resolution and
-  RS-1 FORK-identity count-greps each return exactly 6 — one hit per fork
-  file; the spec-requirements/spec-design approve-gate twin blocks are
-  slot-substitution-identical (diff empty after the four-slot normalization);
-  deleted delegation sentences return zero hits. The working patterns and
-  paired-diff method are pinned in the §4 erratum of
+- Twin checks (Revision 9, scope `plugins/sdd/skills/`): the GP-1
+  fork-resolution and RS-1 FORK-identity count-greps each return exactly 6 —
+  one hit per fork file; the spec-requirements/spec-design approve-gate twin
+  blocks (`plugins/sdd/skills/spec-requirements/SKILL.md` and
+  `plugins/sdd/skills/spec-design/SKILL.md`) are slot-substitution-identical
+  (diff empty after the four-slot normalization); deleted delegation sentences
+  return zero hits; the 15-skill census over `plugins/sdd/skills/` returns
+  exactly 15. The working patterns and paired-diff method are pinned in the
+  §4 erratum of
   `docs/superpowers/specs/2026-09-25-content-normalization-design.md`.
+- The pattern texts pinned in the two historical design documents above apply
+  with the `plugins/sdd/` prefix; those documents are append-only records and
+  are not edited.
+- e2e dry run per the re-pointed runbook.
 - After content changes to skills or assets, re-run the greps and
   `claude plugin validate .` before claiming done.
 
