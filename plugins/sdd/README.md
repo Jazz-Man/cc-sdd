@@ -21,7 +21,7 @@ support.
 From the plugin checkout:
 
 ```bash
-claude --plugin-dir /path/to/cc-sdd
+claude --plugin-dir /path/to/cc-sdd/plugins/sdd
 ```
 
 Inside a running session, `/reload-plugins` picks up edits to skill texts. Run
@@ -257,10 +257,10 @@ sections.
 | [Spec-Driven Workflow](docs/guides/spec-driven.md) | the phase-by-phase walkthrough |
 | [Why sdd?](docs/guides/why-cc-sdd.md) | design rationale and trade-offs |
 
-The conversion's own spec and task plan live in `docs/superpowers/` — this
+The conversion's own spec and task plan live in `../../docs/superpowers/` — this
 repository was migrated from the multi-agent `cc-sdd` toolkit, and that
 directory records how.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](../../LICENSE).
