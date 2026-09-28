@@ -1,12 +1,12 @@
 {
-  "name": "sdd-local",
   "description": "Local marketplace for the sdd plugin",
+  "name": "sdd-local",
   "owner": { "name": "Vasyl Sokolyk" },
   "plugins": [
     {
+      "description": "Kiro-style spec-driven development for Claude Code with subagent-first execution",
       "name": "sdd",
-      "source": "./plugins/sdd",
-      "description": "Kiro-style spec-driven development for Claude Code with subagent-first execution"
+      "source": "./plugins/sdd"
     }
   ]
 }
