@@ -1,11 +1,11 @@
 ---
 # cc-sdd-fvuj
 title: Update prompt-builder skill to @kasava/prompt-builder 0.3.0
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-09-27T13:14:53Z
-updated_at: 2026-09-27T17:19:49Z
+updated_at: 2026-09-28T08:46:40Z
 ---
 
 Deep-analyze changes between library versions 0.2.2 (skill's baseline) and 0.3.0 (installed), then brainstorm and update .claude/skills/prompt-builder/ accordingly. Source: node_modules/@kasava/prompt-builder + github.com/Kasava-AI/prompt-builder (tags v0.2.2, v0.3.0). LSP mandatory for source exploration.
@@ -35,3 +35,7 @@ Implementation plan written and self-reviewed (spec coverage complete; budget ma
 ## Notes
 
 Battery T12 green: greps zero-hit, warnings present in 3 files, suite 47/0, plugin validate exit 0, routing audit clean
+
+## Summary of Changes
+
+prompt-builder skill rewritten to fully cover @kasava/prompt-builder 0.3.0: neutral-map SKILL.md router + api-fluent (renamed, corrected) + NEW api-schema/api-output/architectures + updated patterns/best-practices/anti-patterns/examples; extraction harness at root tests/ executes every runnable example block (47/0 via bun test, biome clean) + structural snapshots. Executed subagent-driven: 12/12 tasks review-approved, final whole-branch review With-fixes satisfied (4 one-liners + scoped re-review). All commits user-made on feature/prompt-builder; final fix-wave findings triaged ship-as-is in the plan workspace ledger (deleted after this write; git history is the record).
