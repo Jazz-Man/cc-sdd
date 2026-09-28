@@ -34,11 +34,10 @@ export function extractBlocks(mdPath: string): ExampleBlock[] {
   const text = readFileSync(mdPath, "utf8");
   const blocks: ExampleBlock[] = [];
   const re = /```(?:ts|typescript)( fragment)?\n([\s\S]*?)```/g;
-  let m: RegExpExecArray | null;
   let i = 0;
-  while ((m = re.exec(text)) !== null) {
+  for (const m of text.matchAll(re)) {
     blocks.push({
-      code: m[2],
+      code: m[2] ?? "",
       file: mdPath.slice(REPO_ROOT.length + 1),
       fragment: m[1] !== undefined,
       index: i++,
