@@ -72,8 +72,8 @@ interface Policy {
 
 - All Bash policies share one `parseCommand` per invocation (one unbash parse;
   both views — `units` and `words` — are precomputed).
-- Router order (fixed): git-readonly → no-deps → filesystem. First non-null
-  decision wins; a decision is final.
+- Router order (fixed, by owner's priority): filesystem → no-deps →
+  git-readonly. First non-null decision wins; a decision is final.
 
 ```ts
 // main.ts
@@ -107,10 +107,10 @@ units included). Deny when the subcommand matches:
   cherry-pick am apply rm mv clean init clone gc prune update-ref
   update-index worktree bundle checkout switch restore bisect.
 - `branch`: deny on a mutating flag (-d -D -m -M -c -C -f --delete --move
-  --copy --force) or on any bare non-flag arg (branch creation); otherwise
-  allow (`branch`, `branch -l`, `branch -v` …).
+  --copy --force) or on a bare FIRST arg (branch creation); otherwise
+  allow (`branch`, `branch -l`, `branch -v`, `branch --list 'pat*'` …).
 - `tag`: same shape (-a -d -s -f -u --annotate --sign --delete --force, or a
-  bare arg).
+  bare first arg).
 - `stash`: deny bare `stash` (≡ push) and stash push pop apply drop clear save
   store create; allow `stash list`, `stash show`, …
 - `remote`: deny add remove rename set-url set-head prune; allow `-v`, `show`.
