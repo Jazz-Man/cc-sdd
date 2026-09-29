@@ -1,4 +1,3 @@
-// src/core/decision.ts
 import type {
   PreModelSwitchHookSpecificOutput,
   PreToolUseHookSpecificOutput,
