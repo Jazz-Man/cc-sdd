@@ -44,10 +44,8 @@ Input classes the spec implies but task tests must be shown to cover (each pinne
 - Consumes: type `SyncHookJSONOutput` from `@anthropic-ai/claude-agent-sdk`.
 - Produces: `type Permission = "allow" | "deny" | "ask"`; `type PermissionEvent = Extract<NonNullable<SyncHookJSONOutput["hookSpecificOutput"]>, { permissionDecision?: unknown }>["hookEventName"]` (today `"PreToolUse" | "PreModelSwitch"`); `decision` with two overloads narrowing the returned `hookSpecificOutput` per event (default `"PreToolUse"`); `deny(reason)` returning the narrowed PreToolUse shape. Design spike verified: plain generics with `Extract<..., {hookEventName: E}>` do NOT compile (deferred-conditional assignment, TS2322) — the cast-free shape is overloads + an if-narrowed body.
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/decision.test.ts`**
 ```ts
-// tests/decision.test.ts
 import { describe, expect, it } from "bun:test";
 import { decision, deny } from "../src/core/decision.ts";
 
@@ -89,10 +87,8 @@ describe("decision", () => {
 Run: `bun test tests/decision.test.ts`
 Expected: FAIL — module `../src/core/decision.ts` not found.
 
-- [ ] **Step 3: Write minimal implementation**
-
+- [ ] **Step 3: Write minimal implementation — `src/core/decision.ts`**
 ```ts
-// src/core/decision.ts
 import type {
   PreModelSwitchHookSpecificOutput,
   PreToolUseHookSpecificOutput,
@@ -169,10 +165,8 @@ Hand off for commit (suggested: `feat: extract decision emitter into core/decisi
 - Consumes: nothing from earlier tasks.
 - Produces: `interface ParsedHookInput { hookEventName: string; toolName: string; command: string | undefined }` (renamed from `HookInput` by controller ruling after Task 2 review — the name collided with the SDK's exported `HookInput` union); `parseHookInput(raw: string): ParsedHookInput | null` (null on invalid JSON, non-object, or missing/non-string `hook_event_name`/`tool_name`; `command` is a string only when `tool_input.command` is a string — Review Focus 1 & 2).
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/payload.test.ts`**
 ```ts
-// tests/payload.test.ts
 import { describe, expect, it } from "bun:test";
 import { parseHookInput } from "../src/core/payload.ts";
 
@@ -221,10 +215,8 @@ describe("parseHookInput", () => {
 Run: `bun test tests/payload.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write minimal implementation**
-
+- [ ] **Step 3: Write minimal implementation — `src/core/payload.ts`**
 ```ts
-// src/core/payload.ts
 export interface HookInput {
   hookEventName: string;
   toolName: string;
@@ -280,10 +272,8 @@ Battery green. Hand off (suggested: `feat: add stdin payload guard in core/paylo
 - Consumes: `parse`, `ParsedScript` from `unbash`.
 - Produces: `interface CommandUnit { name: string; args: string[] }`; `interface ParsedCommand { raw: string; units: CommandUnit[]; words: string[] }`; `parseCommand(command: string): ParsedCommand | null` (null when unbash throws). The walk semantics are exactly today's `src/index.ts` `words()` (Word-like = string `.text` AND string `.value`, includes quoted-literal fragments; explicit `.parts` descent — unbash's `WordImpl` keeps `.value`/`.parts` on the prototype; own + prototype-own-names recursion for nodes like `ArithmeticCommandImpl`).
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/ast.test.ts`**
 ```ts
-// tests/ast.test.ts
 import { describe, expect, it } from "bun:test";
 import { parseCommand } from "../src/core/ast.ts";
 
@@ -342,10 +332,8 @@ describe("parseCommand", () => {
 Run: `bun test tests/ast.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write minimal implementation**
-
+- [ ] **Step 3: Write minimal implementation — `src/core/ast.ts`**
 ```ts
-// src/core/ast.ts
 import { type ParsedScript, parse } from "unbash";
 
 export interface CommandUnit {
@@ -436,10 +424,8 @@ Battery green. Hand off (suggested: `feat: shared unbash parse with units and wo
 - Consumes: `ParsedCommand` from `./ast.ts`; `SyncHookJSONOutput`.
 - Produces: `interface Policy { name: string; check(cmd: ParsedCommand): SyncHookJSONOutput | null }` — null means "no opinion" (allow). The ordered registry is assembled in `main.ts` (Task 8).
 
-- [ ] **Step 1: Write the contract**
-
+- [ ] **Step 1: Write the contract — `src/core/policy.ts`**
 ```ts
-// src/core/policy.ts
 import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
 import type { ParsedCommand } from "./ast.ts";
 
@@ -495,14 +481,12 @@ with imports `import { filesystemPolicy } from "../src/policies/filesystem.ts";`
 Run: `bun test tests/find-violation.test.ts`
 Expected: FAIL — `../src/policies/filesystem.ts` not found.
 
-- [ ] **Step 3: Move the implementation**
-
+- [ ] **Step 3: Move the implementation — `src/policies/filesystem.ts`**
 Create `src/policies/filesystem.ts` containing, moved verbatim from today's `src/index.ts`: the `Violation` class, `SAFE_DEVICES`, `OUTSIDE_VAR`, `classify` (raw-token var check → `=`/`@` decomposition → absolute/tilde/`..` checks), `relativeEscapes`, `isUnderProject`, `findViolation`. Changes during the move:
 
 - `findViolation` keeps its public signature but delegates to a new shared core so the policy does not re-parse:
 
 ```ts
-// src/policies/filesystem.ts (additions to the moved code)
 import { parseCommand, type ParsedCommand } from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
@@ -545,10 +529,8 @@ export const filesystemPolicy: Policy = {
 
 (`classify` becomes module-private; the old inline `words()` generator, `parse` import, and the commented stdin entrypoint are deleted — `main.ts` in Task 8 is the real entrypoint.)
 
-- [ ] **Step 4: Rewrite src/index.ts as the partial barrel**
-
+- [ ] **Step 4: Rewrite src/index.ts as the partial barrel — `src/index.ts`**
 ```ts
-// src/index.ts — public API of the hooks security module (future plugin surface)
 export { decision, deny } from "./core/decision.ts";
 export type { Permission } from "./core/decision.ts";
 export { parseCommand } from "./core/ast.ts";
@@ -582,10 +564,8 @@ Battery green. Hand off (suggested: `refactor: move filesystem guard into polici
 - Consumes: `Policy` from `../core/policy.ts`, `deny` from `../core/decision.ts`, `CommandUnit` via `cmd.units`.
 - Produces: `gitReadonlyPolicy: Policy` (name `"git-readonly"`).
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/git`**
 ```ts
-// tests/git-readonly.test.ts
 import { describe, expect, it } from "bun:test";
 import { parseCommand } from "../src/core/ast.ts";
 import { gitReadonlyPolicy } from "../src/policies/git-readonly.ts";
@@ -670,10 +650,8 @@ describe("git-readonly policy", () => {
 Run: `bun test tests/git-readonly.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write the implementation**
-
+- [ ] **Step 3: Write the implementation — `src/policies/git`**
 ```ts
-// src/policies/git-readonly.ts
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
@@ -765,10 +743,8 @@ Battery green. Hand off (suggested: `feat: git-readonly policy on argv tables`).
 - Consumes: `Policy`, `deny`, `cmd.units`.
 - Produces: `noDepsPolicy: Policy` (name `"no-deps"`).
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/no`**
 ```ts
-// tests/no-deps.test.ts
 import { describe, expect, it } from "bun:test";
 import { parseCommand } from "../src/core/ast.ts";
 import { noDepsPolicy } from "../src/policies/no-deps.ts";
@@ -856,10 +832,8 @@ describe("no-deps policy", () => {
 Run: `bun test tests/no-deps.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write the implementation**
-
+- [ ] **Step 3: Write the implementation — `src/policies/no`**
 ```ts
-// src/policies/no-deps.ts
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
@@ -933,10 +907,8 @@ Battery green. Hand off (suggested: `feat: no-deps policy on manager prefix tabl
 - Consumes: everything from Tasks 1–7.
 - Produces: `runHook(raw: string): SyncHookJSONOutput | null`; direct execution under `import.meta.main` reads stdin, writes decision JSON + newline, exits 0 silently when allowed.
 
-- [ ] **Step 1: Write the failing test**
-
+- [ ] **Step 1: Write the failing test — `tests/run`**
 ```ts
-// tests/run-hook.test.ts
 import { describe, expect, it } from "bun:test";
 import { runHook } from "../src/main.ts";
 
@@ -1047,10 +1019,8 @@ describe("runHook (e2e via spawned main.ts)", () => {
 Run: `bun test tests/run-hook.test.ts`
 Expected: FAIL — `../src/main.ts` not found.
 
-- [ ] **Step 3: Write the implementation**
-
+- [ ] **Step 3: Write the implementation — `src/main.ts`**
 ```ts
-// src/main.ts
 import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
 import { parseCommand } from "./core/ast.ts";
 import type { Policy } from "./core/policy.ts";
@@ -1121,10 +1091,8 @@ Battery green. Hand off (suggested: `feat: runHook router + stdin entrypoint in 
 
 Delete `tests/helpers/hook-driver.ts` — `src/main.ts` is the real entrypoint and `tests/run-hook.test.ts` spawns it directly.
 
-- [ ] **Step 2: Finalize the barrel**
-
+- [ ] **Step 2: Finalize the barrel — `src/index.ts`**
 ```ts
-// src/index.ts — public API of the hooks security module (future plugin surface)
 export { parseCommand } from "./core/ast.ts";
 export type { CommandUnit, ParsedCommand } from "./core/ast.ts";
 export { decision, deny } from "./core/decision.ts";
