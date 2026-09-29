@@ -37,6 +37,12 @@ const DENY = [
   "echo $(git push)",
   "git add . && git commit",
   "git bisect start",
+  "GIT PUSH",
+  "Git Add .",
+  "git COMMIT -m x",
+  "git tag -m msg v1.0",
+  "git tag -F notes v1.0",
+  "git stash branch newbr",
 ];
 
 const ALLOW = [
@@ -62,6 +68,7 @@ const ALLOW = [
   "cat README.md",
   "echo 'git add .'",
   "grep 'git push' log",
+  "GIT STATUS",
 ];
 
 describe("git-readonly policy", () => {

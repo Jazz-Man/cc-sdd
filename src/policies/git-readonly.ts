@@ -56,6 +56,10 @@ const MUTATING_FLAGS: Record<string, Set<string>> = {
     "-s",
     "-f",
     "-u",
+    "-m",
+    "--message",
+    "-F",
+    "--file",
     "--annotate",
     "--sign",
     "--delete",
@@ -72,6 +76,7 @@ const MUTATING_SUBS: Record<string, Set<string>> = {
     "pop",
     "apply",
     "drop",
+    "branch",
     "clear",
     "save",
     "store",
@@ -124,8 +129,10 @@ function mutating(sub: string, args: string[]): boolean {
 export const gitReadonlyPolicy: Policy = {
   check(cmd) {
     for (const unit of cmd.units) {
-      if (unit.name !== "git" || unit.args.length === 0) continue;
-      if (mutating(unit.args[0] ?? "", unit.args.slice(1))) return deny(REASON);
+      if (unit.name.toLowerCase() !== "git" || unit.args.length === 0) continue;
+      if (mutating(unit.args[0]?.toLowerCase() ?? "", unit.args.slice(1))) {
+        return deny(REASON);
+      }
     }
     return null;
   },
