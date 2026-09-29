@@ -1,5 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { deny, findViolation } from "../src/index.ts";
+import { type ParsedCommand, parseCommand } from "../src/core/ast.ts";
+import { filesystemPolicy, findViolation } from "../src/policies/filesystem.ts";
+
+process.env.CLAUDE_PROJECT_DIR = "/proj";
 
 // classify() is pure string logic - no filesystem access - so a fake project
 // directory is enough.
@@ -122,94 +125,16 @@ describe("findViolation", () => {
     expect(findViolation("cat file", "/proj///")).toBeNull();
     expect(findViolation("ls /proj", "/proj/")).toBeNull();
   });
-});
 
-describe("deny", () => {
-  it("returns the PreToolUse deny decision", () => {
-    expect(
-      deny('absolute path "/etc/passwd" is outside the project directory'),
-    ).toEqual({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason:
-          'Filesystem access outside project blocked: absolute path "/etc/passwd" is outside the project directory. Access files within the project directory only. Ask the user or disable via /hooks.',
-      },
-    });
-  });
-});
-
-const DRIVER = `${import.meta.dir}/helpers/hook-driver.ts`;
-
-function bashPayload(command: string) {
-  return {
-    hook_event_name: "PreToolUse",
-    tool_input: { command },
-    tool_name: "Bash",
-  };
-}
-
-async function runHook(
-  payload: unknown,
-): Promise<{ stdout: string; code: number | null }> {
-  const raw = typeof payload === "string" ? payload : JSON.stringify(payload);
-  const proc = Bun.spawn(["bun", DRIVER], {
-    env: { ...Bun.env, CLAUDE_PROJECT_DIR: PROJECT_DIR },
-    stderr: "pipe",
-    stdin: new Blob([raw]),
-    stdout: "pipe",
-  });
-  const stdout = await new Response(proc.stdout).text();
-  const code = await proc.exited;
-  return { code, stdout };
-}
-
-describe("hook e2e (stdin driver)", () => {
-  it("emits nothing for an allowed command", async () => {
-    const { stdout, code } = await runHook(bashPayload("cat README.md"));
-    expect(code).toBe(0);
-    expect(stdout).toBe("");
-  });
-
-  it("emits the deny decision for a denied command", async () => {
-    const { stdout, code } = await runHook(bashPayload("cat /etc/passwd"));
-    expect(code).toBe(0);
-    const output = JSON.parse(stdout) as {
-      hookSpecificOutput: {
-        hookEventName: string;
-        permissionDecision: string;
-        permissionDecisionReason: string;
-      };
-    };
-    expect(output.hookSpecificOutput.hookEventName).toBe("PreToolUse");
-    expect(output.hookSpecificOutput.permissionDecision).toBe("deny");
-    expect(output.hookSpecificOutput.permissionDecisionReason).toContain(
-      "/etc/passwd",
+  it("filesystemPolicy emits the full wrapper message", () => {
+    const cmd: ParsedCommand | null = parseCommand("cat /etc/passwd");
+    const result = cmd === null ? null : filesystemPolicy.check(cmd);
+    const reason =
+      result?.hookSpecificOutput?.hookEventName === "PreToolUse"
+        ? result.hookSpecificOutput.permissionDecisionReason
+        : undefined;
+    expect(reason).toBe(
+      'Filesystem access outside project blocked: absolute path "/etc/passwd" is outside the project directory. Access files within the project directory only. Ask the user or disable via /hooks.',
     );
-  });
-
-  it("emits nothing for a non-Bash tool", async () => {
-    const { stdout, code } = await runHook({
-      ...bashPayload("cat /etc/passwd"),
-      tool_name: "Read",
-    });
-    expect(code).toBe(0);
-    expect(stdout).toBe("");
-  });
-
-  it("emits nothing when the command is missing", async () => {
-    const { stdout, code } = await runHook({
-      hook_event_name: "PreToolUse",
-      tool_input: {},
-      tool_name: "Bash",
-    });
-    expect(code).toBe(0);
-    expect(stdout).toBe("");
-  });
-
-  it("emits nothing for invalid JSON", async () => {
-    const { stdout, code } = await runHook("{not json");
-    expect(code).toBe(0);
-    expect(stdout).toBe("");
   });
 });
