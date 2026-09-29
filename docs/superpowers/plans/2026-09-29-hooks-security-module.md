@@ -1195,7 +1195,7 @@ Battery green. Hand off (suggested: `feat: runHook router + stdin entrypoint in 
 - Modify: `src/index.ts` (final barrel, adds policies re-exports)
 
 **Interfaces:**
-- Produces the complete public API: `runHook`, `findViolation`, `decision`, `deny`, `parseHookInput`, `parseCommand`, and the shared types (`Permission`, `HookInput`, `CommandUnit`, `ParsedCommand`, `Policy`).
+- Produces the complete public API: `runHook`, `findViolation`, `decision`, `deny`, `parseHookInput`, `parseCommand`, and the shared types (`Permission`, `ParsedHookInput`, `CommandUnit`, `ParsedCommand`, `Policy`).
 
 - [ ] **Step 1: Delete the retired driver**
 

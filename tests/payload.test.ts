@@ -1,4 +1,3 @@
-// tests/payload.test.ts
 import { describe, expect, it } from "bun:test";
 import { parseHookInput } from "../src/core/payload.ts";
 

@@ -1,5 +1,3 @@
-// tests/decision.test.ts
-
 import { describe, expect, it } from "bun:test";
 import type { PreModelSwitchHookSpecificOutput } from "@anthropic-ai/claude-agent-sdk";
 import { decision, deny } from "../src/core/decision.ts";

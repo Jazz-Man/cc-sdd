@@ -91,10 +91,12 @@ export function runHook(raw: string): SyncHookJSONOutput | null
 ```
 
 1. `parseHookInput` — null → allow (exit silently).
-2. `toolName !== "Bash"` or `command === undefined` → allow.
-3. `parseCommand` — null → allow (fail-open, single place).
-4. Policies in order; first non-null decision returned.
-5. Any internal throw → null (fail-open).
+2. `hookEventName !== "PreToolUse"` → allow (a decision must not wear another
+   event's tag; present in the plan, noted here for completeness).
+3. `toolName !== "Bash"` or `command === undefined` → allow.
+4. `parseCommand` — null → allow (fail-open, single place).
+5. Policies in order; first non-null decision returned.
+6. Any internal throw → null (fail-open).
 
 Direct execution under `if (import.meta.main)`: read stdin, `runHook`,
 write the decision JSON + newline, exit 0. Silent exit 0 when allowed.
@@ -190,7 +192,9 @@ guard must not break Bash usage; silence is the failure mode.
   (`echo 'git add .'` ALLOW, `FOO=1 git push` DENY, `npm i` DENY,
   `npm info` ALLOW, `go mod tidy` DENY, `git stash` DENY, `git config user.name` ALLOW).
 - Router unit: `runHook` directly (Bash deny, Bash allow, non-Bash, missing
-  command, invalid JSON, parse-throw fail-open).
+  command, invalid JSON; parse-throw fail-open is noted-but-unpinned — unbash
+  4.0.11 never throws, the catch-all is defensively unreachable from string
+  input).
 - E2E: `Bun.spawn` on `src/main.ts` with JSON stdin (allow → empty stdout;
   deny → decision JSON; exit 0). `tests/helpers/hook-driver.ts` retires —
   `main.ts` is the real entry now.
