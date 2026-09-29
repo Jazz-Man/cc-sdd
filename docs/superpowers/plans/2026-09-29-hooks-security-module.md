@@ -270,7 +270,7 @@ Battery green. Hand off (suggested: `feat: add stdin payload guard in core/paylo
 
 **Interfaces:**
 - Consumes: `parse`, `ParsedScript` from `unbash`.
-- Produces: `interface CommandUnit { name: string; args: string[] }`; `interface ParsedCommand { raw: string; units: CommandUnit[]; words: string[] }`; `parseCommand(command: string): ParsedCommand | null` (null when unbash throws). The walk semantics are exactly today's `src/index.ts` `words()` (Word-like = string `.text` AND string `.value`, includes quoted-literal fragments; explicit `.parts` descent — unbash's `WordImpl` keeps `.value`/`.parts` on the prototype; own + prototype-own-names recursion for nodes like `ArithmeticCommandImpl`).
+- Produces: `interface CommandUnit { name: string; args: string[] }` — args are ALL words after the command name, subcommand included (`git commit -m x` → name "git", args ["commit","-m","x"]); `interface ParsedCommand { raw: string; units: CommandUnit[]; words: string[] }`; `parseCommand(command: string): ParsedCommand | null` — null ONLY on an actual parse throw; unbash 4.0.11 never throws on malformed input (it returns a best-effort script with a non-empty `errors` array), and those partial ASTs are DELIBERATELY still walked — the conservative direction (a typo'd quote must not let /etc/passwd through; verified in the fix-wave re-review). The walk semantics are exactly today's `src/index.ts` `words()` (Word-like = string `.text` AND string `.value`, includes quoted-literal fragments; explicit `.parts` descent — unbash's `WordImpl` keeps `.value`/`.parts` on the prototype; own + prototype-own-names recursion for nodes like `ArithmeticCommandImpl`).
 
 - [ ] **Step 1: Write the failing test — `tests/ast.test.ts`**
 ```ts
@@ -278,8 +278,8 @@ import { describe, expect, it } from "bun:test";
 import { parseCommand } from "../src/core/ast.ts";
 
 describe("parseCommand", () => {
-  it("returns null for unparseable input", () => {
-    expect(parseCommand('cat "')).toBeNull();
+  it("walks best-effort ASTs from malformed input (unbash reports errors, never throws)", () => {
+    expect(parseCommand('cat "')?.words).toContain("cat");
   });
 
   it("collects units across && and pipelines", () => {
@@ -309,7 +309,8 @@ describe("parseCommand", () => {
   });
 
   it("keeps quoted args as single values", () => {
-    expect(parseCommand("git commit -m 'a b'")?.units[0].args).toEqual([
+    expect(parseCommand("git commit -m 'a b'")?.units[0]?.args).toEqual([
+      "commit",
       "-m",
       "a b",
     ]);
@@ -354,6 +355,10 @@ function wordLike(obj: Record<string, unknown>): boolean {
 // One unbash parse, two views: `units` (name+args per Command node — pipelines,
 // &&/||, subshells, function bodies, $(...) scripts, env-prefixed commands)
 // and `words` (every word-like string, including quoted-literal fragments).
+// unbash 4.0.11 never throws on malformed input — it returns a best-effort
+// script with a non-empty `errors` array. Partial ASTs are deliberately still
+// walked (a typo'd quote must not let /etc/passwd through); null is returned
+// only on an actual throw.
 // unbash quirks this walk already handles: WordImpl keeps .value/.parts on the
 // PROTOTYPE (so .parts needs explicit descent, Object.values never sees it),
 // and ArithmeticCommand/ArithmeticFor hide children behind non-enumerable

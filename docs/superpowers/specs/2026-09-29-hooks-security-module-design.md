@@ -48,9 +48,14 @@ src/
                   full event list); deny(reason) sugar. The port of deny.sh's
                   emitter role.
     payload.ts    parseHookInput(raw): unknown -> { hookEventName, toolName, command? } | null
-    ast.ts        parseCommand(command): ParsedCommand | null  (null = cannot parse)
+    ast.ts        parseCommand(command): ParsedCommand | null  (null only on an actual
+                  parse throw: unbash 4.0.11 never throws on malformed input — it returns
+                  a best-effort script with a non-empty errors[] array, and those partial
+                  ASTs are deliberately still walked; the conservative direction)
                   ParsedCommand = { raw: string; units: CommandUnit[]; words: string[] }
-                  CommandUnit = { name: string; args: string[] }
+                  CommandUnit = { name: string; args: string[] }  (args = ALL words after
+                  the command name, subcommand included: git commit -m x -> name "git",
+                  args ["commit","-m","x"])
                   units: every Command node reachable (pipelines, AndOr, subshells,
                   function bodies, $(...)/<(...) scripts, env-prefix commands);
                   words: flat word+fragment walk (filesystem's view)
