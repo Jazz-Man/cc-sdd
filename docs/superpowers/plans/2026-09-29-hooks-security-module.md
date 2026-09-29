@@ -42,7 +42,7 @@ Input classes the spec implies but task tests must be shown to cover (each pinne
 
 **Interfaces:**
 - Consumes: type `SyncHookJSONOutput` from `@anthropic-ai/claude-agent-sdk`.
-- Produces: `type Permission = "allow" | "deny" | "ask"`; `decision(permission: Permission, reason: string, hookEventName?: string): SyncHookJSONOutput`; `deny(reason: string): SyncHookJSONOutput` (defaults: event `"PreToolUse"`, permission `"deny"`).
+- Produces: `type Permission = "allow" | "deny" | "ask"`; `type PermissionEvent = Extract<NonNullable<SyncHookJSONOutput["hookSpecificOutput"]>, { permissionDecision?: unknown }>["hookEventName"]` (today `"PreToolUse" | "PreModelSwitch"`); `decision` with two overloads narrowing the returned `hookSpecificOutput` per event (default `"PreToolUse"`); `deny(reason)` returning the narrowed PreToolUse shape. Design spike verified: plain generics with `Extract<..., {hookEventName: E}>` do NOT compile (deferred-conditional assignment, TS2322) — the cast-free shape is overloads + an if-narrowed body.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -62,10 +62,20 @@ describe("decision", () => {
     });
   });
 
-  it("carries event and permission through", () => {
-    expect(decision("ask", "why", "PermissionRequest")).toEqual({
+  it("defaults to PreToolUse and passes the permission through", () => {
+    expect(decision("ask", "why")).toEqual({
       hookSpecificOutput: {
-        hookEventName: "PermissionRequest",
+        hookEventName: "PreToolUse",
+        permissionDecision: "ask",
+        permissionDecisionReason: "why",
+      },
+    });
+  });
+
+  it("narrows the event through the SDK union", () => {
+    expect(decision("ask", "why", "PreModelSwitch")).toEqual({
+      hookSpecificOutput: {
+        hookEventName: "PreModelSwitch",
         permissionDecision: "ask",
         permissionDecisionReason: "why",
       },
@@ -83,27 +93,56 @@ Expected: FAIL — module `../src/core/decision.ts` not found.
 
 ```ts
 // src/core/decision.ts
-import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
+import type {
+  PreModelSwitchHookSpecificOutput,
+  PreToolUseHookSpecificOutput,
+  SyncHookJSONOutput,
+} from "@anthropic-ai/claude-agent-sdk";
 
 export type Permission = "allow" | "deny" | "ask";
 
+type HookSpecificOutput = NonNullable<SyncHookJSONOutput["hookSpecificOutput"]>;
+
+// Only events whose SDK output type carries permissionDecision are valid
+// here (see HOOK_EVENTS in sdk.d.ts for the full event list); the SDK union
+// is the source of truth, so new permission-bearing events widen this
+// automatically.
+export type PermissionEvent = Extract<
+  HookSpecificOutput,
+  { permissionDecision?: unknown }
+>["hookEventName"];
+
 // The port of ~/.claude/hooks/deny.sh's emitter: one place builds the
-// hookSpecificOutput contract every policy returns.
+// hookSpecificOutput contract every policy returns. Overloads (not a
+// generic Extract) because TypeScript cannot assign an object literal to a
+// deferred conditional type — the if-narrowed body is the cast-free shape.
 export function decision(
   permission: Permission,
   reason: string,
-  hookEventName = "PreToolUse",
+): { hookSpecificOutput: PreToolUseHookSpecificOutput };
+export function decision(
+  permission: Permission,
+  reason: string,
+  hookEventName: "PreModelSwitch",
+): { hookSpecificOutput: PreModelSwitchHookSpecificOutput };
+export function decision(
+  permission: Permission,
+  reason: string,
+  hookEventName: PermissionEvent = "PreToolUse",
 ): SyncHookJSONOutput {
-  return {
-    hookSpecificOutput: {
-      hookEventName,
-      permissionDecision: permission,
-      permissionDecisionReason: reason,
-    },
+  const fields = {
+    permissionDecision: permission,
+    permissionDecisionReason: reason,
   };
+  if (hookEventName === "PreModelSwitch") {
+    return { hookSpecificOutput: { hookEventName, ...fields } };
+  }
+  return { hookSpecificOutput: { hookEventName: "PreToolUse", ...fields } };
 }
 
-export function deny(reason: string): SyncHookJSONOutput {
+export function deny(
+  reason: string,
+): { hookSpecificOutput: PreToolUseHookSpecificOutput } {
   return decision("deny", reason);
 }
 ```

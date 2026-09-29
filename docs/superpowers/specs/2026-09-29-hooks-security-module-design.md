@@ -40,8 +40,13 @@ filesystem policy stands for the whole module.
 ```
 src/
   core/
-    decision.ts   Decision emitter: decision(permission, reason, event?) -> SyncHookJSONOutput;
-                  deny(reason) sugar. The port of deny.sh's emitter role.
+    decision.ts   Decision emitter: decision(permission, reason[, hookEventName])
+                  with overloads narrowing hookSpecificOutput per event. Only events
+                  whose SDK output type carries permissionDecision are accepted —
+                  derived from SyncHookJSONOutput's union via Extract, today
+                  "PreToolUse" | "PreModelSwitch" (see sdk.d.ts HOOK_EVENTS for the
+                  full event list); deny(reason) sugar. The port of deny.sh's
+                  emitter role.
     payload.ts    parseHookInput(raw): unknown -> { hookEventName, toolName, command? } | null
     ast.ts        parseCommand(command): ParsedCommand | null  (null = cannot parse)
                   ParsedCommand = { raw: string; units: CommandUnit[]; words: string[] }
