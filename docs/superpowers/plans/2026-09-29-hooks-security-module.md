@@ -167,7 +167,7 @@ Hand off for commit (suggested: `feat: extract decision emitter into core/decisi
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
-- Produces: `interface HookInput { hookEventName: string; toolName: string; command: string | undefined }`; `parseHookInput(raw: string): HookInput | null` (null on invalid JSON, non-object, or missing/non-string `hook_event_name`/`tool_name`; `command` is a string only when `tool_input.command` is a string — Review Focus 1 & 2).
+- Produces: `interface ParsedHookInput { hookEventName: string; toolName: string; command: string | undefined }` (renamed from `HookInput` by controller ruling after Task 2 review — the name collided with the SDK's exported `HookInput` union); `parseHookInput(raw: string): ParsedHookInput | null` (null on invalid JSON, non-object, or missing/non-string `hook_event_name`/`tool_name`; `command` is a string only when `tool_input.command` is a string — Review Focus 1 & 2).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -554,7 +554,7 @@ export type { Permission } from "./core/decision.ts";
 export { parseCommand } from "./core/ast.ts";
 export type { CommandUnit, ParsedCommand } from "./core/ast.ts";
 export { parseHookInput } from "./core/payload.ts";
-export type { HookInput } from "./core/payload.ts";
+export type { ParsedHookInput } from "./core/payload.ts";
 export type { Policy } from "./core/policy.ts";
 export { findViolation } from "./policies/filesystem.ts";
 ```
@@ -1130,7 +1130,7 @@ export type { CommandUnit, ParsedCommand } from "./core/ast.ts";
 export { decision, deny } from "./core/decision.ts";
 export type { Permission } from "./core/decision.ts";
 export { parseHookInput } from "./core/payload.ts";
-export type { HookInput } from "./core/payload.ts";
+export type { ParsedHookInput } from "./core/payload.ts";
 export type { Policy } from "./core/policy.ts";
 export { runHook } from "./main.ts";
 export { findViolation } from "./policies/filesystem.ts";
