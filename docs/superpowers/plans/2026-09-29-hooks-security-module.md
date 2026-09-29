@@ -901,6 +901,111 @@ Battery green. Hand off (suggested: `feat: no-deps policy on manager prefix tabl
 
 ---
 
+### Task 7.5: case-insensitive name matching for git-readonly and no-deps
+
+**Files:**
+- Modify: `src/policies/git-readonly.ts` (check: fold name + subcommand)
+- Modify: `src/policies/no-deps.ts` (mutates: fold name + prefix head)
+- Test: `tests/git-readonly.test.ts`, `tests/no-deps.test.ts` (new fixtures)
+
+**Interfaces:**
+- Consumes: existing units (`args[0]` = subcommand), established idioms (`args[0]?.toLowerCase() ?? ""` under noUncheckedIndexedAccess).
+- Produces: no signature changes — behavior only: mixed-case spellings of blocked commands deny (macOS case-insensitive filesystems execute them; the bash gates' `grep -Ei` behavior). Flags, package names, and paths stay case-exact; the filesystem policy is untouched (absolute paths deny regardless of case).
+
+- [ ] **Step 1: Write the failing tests — add fixtures**
+
+In `tests/git-readonly.test.ts` append to DENY: `"GIT PUSH"`, `"Git Add ."`, `"git COMMIT -m x"`; append to ALLOW: `"GIT STATUS"` (folded subcommand is read-only).
+
+In `tests/no-deps.test.ts` append to DENY: `"NPM i"`, `"Pip3 install x"`, `"Cargo ADD serde"`; append to DENY also the bare unconditional forms: `"npx"`, `"bunx"` (zero args — pins that `[[]]` denies the bare invocation); append to ALLOW: `"NPM info x"` (read command in mixed case stays allowed).
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `bun test tests/git-readonly.test.ts tests/no-deps.test.ts`
+Expected: the new DENY rows FAIL (policies currently allow mixed case), ALLOW rows pass.
+
+- [ ] **Step 3: Fold the matched surface only**
+
+In `src/policies/git-readonly.ts`, the policy loop:
+
+```ts
+  check(cmd) {
+    for (const unit of cmd.units) {
+      if (unit.name.toLowerCase() !== "git" || unit.args.length === 0) continue;
+      if (mutating(unit.args[0]?.toLowerCase() ?? "", unit.args.slice(1))) {
+        return deny(REASON);
+      }
+    }
+    return null;
+  },
+```
+
+(The subcommand folds; flags inside `mutating` stay case-exact — the deny sets already carry both cases of the ambiguous letters.)
+
+In `src/policies/no-deps.ts`, the matcher:
+
+```ts
+function mutates(name: string, args: string[]): boolean {
+  const prefixes = MUTATIONS[name.toLowerCase()];
+  if (prefixes === undefined) return false;
+  return prefixes.some(
+    (prefix) =>
+      prefix.length <= args.length &&
+      prefix.every((w, i) => w === args[i]?.toLowerCase()),
+  );
+}
+```
+
+(Prefix table entries are lowercase; only the prefix-length head of args folds — package names beyond the matched prefix stay case-exact.)
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `bun test` — full suite green (239 + 11 new = 250).
+
+- [ ] **Step 5: Battery + hand off**
+
+Battery green. Hand off (suggested: `fix: case-insensitive command matching in git-readonly and no-deps`).
+
+---
+
+### Task 7.6: git-readonly deny-set completion (tag -m/-F, stash branch)
+
+**Files:**
+- Modify: `src/policies/git-readonly.ts` (two Set entries)
+- Test: `tests/git-readonly.test.ts` (three DENY fixtures)
+
+**Interfaces:** none — Set contents only, no signature changes. Rationale: man-verified bash-source gaps surfaced by the Task 7.5 review — `git tag -m msg v1` creates an annotated tag (`-m`/`-F` imply `-a`), `git stash branch newbr` creates and checks out a branch; both were ALLOW in the ERE and the port.
+
+- [ ] **Step 1: Write the failing tests — add fixtures**
+
+Append to DENY in `tests/git-readonly.test.ts`:
+
+```ts
+  "git tag -m msg v1.0",
+  "git tag -F notes v1.0",
+  "git stash branch newbr",
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `bun test tests/git-readonly.test.ts`
+Expected: the three new rows FAIL (currently allowed).
+
+- [ ] **Step 3: Extend the two sets**
+
+In `src/policies/git-readonly.ts`:
+- `MUTATING_FLAGS.tag` gains `"-m", "--message", "-F", "--file"`.
+- `MUTATING_SUBS.stash` gains `"branch"`.
+
+- [ ] **Step 4: Run test to verify they pass**
+
+Run: `bun test` — full suite green (249 + 3 = 252).
+
+- [ ] **Step 5: Battery + hand off**
+
+Battery green. Hand off (suggested: `fix: deny tag -m/-F and stash branch in git-readonly`).
+
+---
+
 ### Task 8: main.ts — the router
 
 **Files:**

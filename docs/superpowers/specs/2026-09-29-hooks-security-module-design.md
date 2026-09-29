@@ -101,6 +101,13 @@ write the decision JSON + newline, exit 0. Silent exit 0 when allowed.
 
 ## 5. Policy semantics
 
+Name matching in the git-readonly and no-deps policies is case-insensitive: the
+bash gates ran `grep -Ei`, and on macOS case-insensitive filesystems mixed-case
+spellings of blocked commands resolve to the same executables. Only the command
+name, the git subcommand, and the matched prefix head fold — flags, package
+names, and paths stay case-exact. The filesystem policy needs no folding: any
+absolute path outside the project denies regardless of case (fail-closed).
+
 ### filesystem (port 1:1 from src/index.ts)
 
 `classify` / `findViolation` / `OUTSIDE_VAR` / `SAFE_DEVICES` / `Violation`
@@ -119,10 +126,12 @@ units included). Deny when the subcommand matches:
 - `branch`: deny on a mutating flag (-d -D -m -M -c -C -f --delete --move
   --copy --force) or on a bare FIRST arg (branch creation); otherwise
   allow (`branch`, `branch -l`, `branch -v`, `branch --list 'pat*'` …).
-- `tag`: same shape (-a -d -s -f -u --annotate --sign --delete --force, or a
-  bare first arg).
+- `tag`: same shape (-a -d -s -f -u -m -F --annotate --sign --delete --force
+  --message --file, or a bare first arg). `-m`/`-F` imply `-a` (annotated tag
+  creation) per man git-tag — a bash-source gap, closed here deliberately.
 - `stash`: deny bare `stash` (≡ push) and stash push pop apply drop clear save
-  store create; allow `stash list`, `stash show`, …
+  store create branch; allow `stash list`, `stash show`, … (`stash branch`
+  creates and checks out a branch — also a closed bash-source gap).
 - `remote`: deny add remove rename set-url set-head prune; allow `-v`, `show`.
 - `config`: deny mutating flags (-e --global --local --system --add --unset
   --unset-all --replace-all --file --get-url) or ≥2 positional args (key +
