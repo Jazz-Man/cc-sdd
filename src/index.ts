@@ -1,32 +1,17 @@
-import type {
-  PreToolUseHookInput as PreToolUseHookInputBase,
-  SyncHookJSONOutput,
-} from "@anthropic-ai/claude-agent-sdk";
-import type { BashInput } from "@anthropic-ai/claude-agent-sdk/sdk-tools";
+import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
 
-import { type Node, type ParsedScript, parse, type Statement } from "unbash";
-import { debug } from "./debug.ts";
-import {
-  AbsolutePathError,
-  HomeDirectoryError,
-  HomeVariableError,
-  ParentDirectoryError,
-} from "./error.ts";
+import { type ParsedScript, parse } from "unbash";
 
-type PreToolUseHookInput<T = unknown> = Omit<
-  PreToolUseHookInputBase,
-  "tool_input"
-> & { tool_input: T };
+// classify()'s throws; lets findViolation tell a deny reason apart from a
+// failure inside the walk (lazy getters can throw while parsing on access).
+class Violation extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "Violation";
+  }
+}
 
-const HOME_DIR = process.env.HOME as string;
-
-const CURRENT_PROJ_DIR = `${HOME_DIR}/www/cc-sdd`;
-
-const CWD_DIR = process.cwd();
-
-const CLAUDE_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR ?? CWD_DIR;
-
-// console.log(HOME_DIR);
+const CLAUDE_PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 
 const SAFE_DEVICES = new Set([
   "/dev/null",
@@ -38,120 +23,40 @@ const SAFE_DEVICES = new Set([
   "/dev/random",
 ]);
 
-const ALLOW = [
-  "ls -la",
-  "ls src/",
-  "cat README.md",
-  "find . -name *.js",
-  "grep -r pattern .",
-  "rg pattern src/",
-  "head -5 CLAUDE.md",
-  "tree -L 2",
-  "cat file 2>/dev/null",
-  "echo hello",
-  "bun test",
-  "bun run stage:0",
-  "printf %s hello",
-  `ls ${CURRENT_PROJ_DIR}`,
-  `cat ${CURRENT_PROJ_DIR}/CLAUDE.md`,
-  `find ${CURRENT_PROJ_DIR} -name x`,
-  "wc -l src/api.ts",
-  "diff src/a.ts src/b.ts",
-  "mkdir -p src/new",
-  // .. that resolve back inside the project must be allowed
-  "foo/../bar",
-  "cat /dev/null",
-  "rg pattern .",
-  "ls -la .git",
-];
+// Variable references that resolve outside the project (unbash keeps parameter
+// text literal in Word.value): $HOME/${HOME} plus their operator spellings
+// (${HOME:0}, ${HOME^}, ${HOME+x}, ...), and the other outside-resolving env
+// vars. ${#HOME} (length) does not match - the # intervenes.
+const OUTSIDE_VAR = /\$\{?(HOME|OLDPWD|TMPDIR|TMP)(?![A-Za-z0-9_])/;
 
-const DENY = [
-  "find / -name test.txt",
-  "ls /etc",
-  "ls -la /usr/local",
-  "cat /etc/passwd",
-  "head /var/log/syslog",
-  "tail -5 /var/log/syslog",
-  "grep -r pattern /var/log",
-  "rg pattern /usr",
-  "tree /Users",
-  "cp /etc/hosts .",
-  "rm /tmp/file",
-  "find ~ -name x",
-  "ls ~",
-  "cat ~/secret",
-  "find .. -name x",
-  "ls ../other",
-  "cat $HOME/secret",
-  "find ${HOME}",
-  "cd /tmp && ls /etc",
-  "cat /etc/passwd /etc/shadow",
-  "stat /etc/hosts",
-  "file /usr/bin/python3",
-  "du -sh /var",
-  // extra structural cases the bash version missed
-  'cat "/etc/passwd"',
-  "FOO=/etc/passwd ls",
-  "cat < /etc/hosts",
-  "for f in /etc/*; do cat $f; done",
-  "echo hi | grep foo /var/log/x",
-  "../../etc/passwd",
-  "a/b/../../../etc",
-  "./../x/../y",
-  "/bin/ls",
-];
-
-// $HOME / ${HOME} reference (kept literally by unbash, which does not expand params).
-const HOME_REF = /\$(\{HOME\}|HOME(?![A-Za-z0-9_]))/;
-
-// Yield the .value of every Word in the AST. A Word is an object with string
-// .text AND string .value; AssignmentPrefix.value is a Word object (not a string),
-// and Redirect/Command lack a string .text+.value, so they are naturally excluded.
-function* words(commands: Statement[] | Node): Generator<string> {
-  if (Array.isArray(commands) && commands.length > 0) {
-    for (const command of commands) {
-      if (command.type === "Statement" && typeof command.command === "object") {
-        switch (command.command.type) {
-          case "Command":
-            yield* command.command.name?.value as string;
-            break;
-          case "Pipeline":
-            // yield* command.command.commands as Statement[];
-
-            // console.log(command.command);
-            break;
-          default:
-            debug(command.command, {
-              depth: 6,
-            });
-            // console.log(typeof command.command["commands"] === "object");
-            break;
-        }
-      } else {
-        console.log(command);
-      }
-
-      yield* "test";
-    }
-  } else {
+// Yield every word-like string reachable from the node. Any node with string
+// .text AND string .value is treated as word-like and yielded - that is Words,
+// and deliberately also quoted-literal WordParts (LiteralPart, SingleQuoted,
+// AnsiCQuoted): their values are real path fragments, and quoting a path in
+// pieces ("cat "/et"c/passwd") must not hide it. Cost, accepted: a variable
+// reference with an absolute-looking suffix ($A/$B, ${TMPDIR}x) yields the
+// suffix fragment and denies - unresolvable paths are denied, like ~.
+//
+// unbash hides some children behind non-enumerable prototype accessors
+// (WordImpl .value/.parts, ArithmeticCommand .expression, ArithmeticFor
+// .initialize/.test/.update), so Object.values alone never reaches them:
+// after the own properties, the prototype's own property names are walked too
+// (methods are skipped naturally - they are not objects).
+function* words(node: unknown): Generator<string> {
+  if (node === null || typeof node !== "object") return;
+  const obj = node as Record<string, unknown>;
+  if (typeof obj.text === "string" && typeof obj.value === "string") {
+    yield obj.value;
   }
-
-  //   if (!commands || typeof commands !== "object") return;
-  //
-  //   // const obj = commands as Record<string, unknown>;
-  //
-  //   if (typeof obj.text === "string" && typeof obj.value === "string") {
-  //     yield obj.value as string;
-  //     return; // a Word's children are WordParts, not Words; .value already holds the text
-  //   }
-  //
-  //   for (const v of Array.isArray(commands)
-  //     ? commands
-  //     : Object.values(commands)) {
-  //     console.log(v);
-  //
-  //     yield* words(v);
-  //   }
+  for (const child of Object.values(obj)) {
+    yield* words(child);
+  }
+  const proto = Object.getPrototypeOf(obj);
+  if (proto !== null) {
+    for (const name of Object.getOwnPropertyNames(proto)) {
+      yield* words(obj[name]);
+    }
+  }
 }
 
 function isUnderProject(absPath: string, projectDir: string): boolean {
@@ -173,10 +78,34 @@ function relativeEscapes(value: string): boolean {
   return false;
 }
 
-// Classify a single word. Returns a deny reason, or null if the word is allowed.
-function classify(value: string, projectDir: string) {
-  if (value === "") {
+// Classify a single word. Throws a Violation with the deny reason when the
+// word reaches outside the project directory.
+//
+// Classify a single word. Throws a Violation with the deny reason when the
+// word reaches outside the project directory.
+function classify(raw: string, projectDir: string): void {
+  if (raw === "") {
     return;
+  }
+
+  // The variable check runs on the RAW token: = -bearing operator spellings
+  // (${HOME:=x}, ${HOME?=x}) would discard the variable name in the split
+  // below. Any match in the decomposed value implies a match here, so this
+  // one test covers both.
+  if (OUTSIDE_VAR.test(raw)) {
+    throw new Violation(
+      `environment-variable path "${raw}" resolves outside the project`,
+    );
+  }
+
+  // Argument tokens that embed a path are decomposed: the RHS of the first =
+  // is classified (tar --file=/tmp/x.tar, env DIR=/etc ls), then one leading
+  // @ is stripped (curl -d @/etc/passwd, curl -F f=@/etc/hosts).
+  // Trade-off, accepted: prose mentions (echo foo=/etc) deny too.
+  const eq = raw.indexOf("=");
+  let value = eq === -1 ? raw : raw.slice(eq + 1);
+  if (value.startsWith("@")) {
+    value = value.slice(1);
   }
 
   // 1. Absolute path
@@ -187,67 +116,58 @@ function classify(value: string, projectDir: string) {
     if (isUnderProject(value, projectDir)) {
       return;
     }
-    throw new AbsolutePathError(
+    throw new Violation(
       `absolute path "${value}" is outside the project directory`,
     );
   }
 
   // 2. Tilde (home directory)
   if (value.startsWith("~")) {
-    throw new HomeDirectoryError(
+    throw new Violation(
       `home-directory path "${value}" resolves outside the project`,
     );
   }
 
-  // 3. $HOME / ${HOME}
-  if (HOME_REF.test(value)) {
-    throw new HomeVariableError(
-      `HOME-variable path "${value}" resolves outside the project`,
-    );
-  }
-
-  // 4. Relative path whose .. components escape above the project root
+  // 3. Relative path whose .. components escape above the project root
   if (relativeEscapes(value)) {
-    throw new ParentDirectoryError(
+    throw new Violation(
       `parent-directory path "${value}" escapes the project root`,
     );
   }
 }
 
-// Inspect a parsed command string. Returns a deny reason, or null to allow.
+// Inspect a parsed command string. Returns the deny reason, or null to allow.
+// Fail-open by policy: if unbash cannot parse the command, or the walk itself
+// fails, there is nothing to reason about and the command is allowed.
+//
+// Static-analysis boundary (documented, deliberate): commands that build
+// their paths at runtime inside interpreters (eval "...", sh -c '...',
+// python3 -c "...", heredoc bodies), file:// URLs, and symlinks that point
+// out of the project are NOT catchable here - substring heuristics for them
+// would deny prose mentions of paths, so they are left to the human.
 // Exported so it can be unit-tested directly.
 export function findViolation(
   command: string,
-  projectDir: string = CLAUDE_PROJECT_DIR.replace(/\/+$/, ""),
+  projectDir: string = CLAUDE_PROJECT_DIR,
 ): string | null {
   const project = projectDir.replace(/\/+$/, "");
   let ast: ParsedScript;
   try {
     ast = parse(command);
-    console.log("\n");
-    console.log("__START__");
-    console.log(`cmd: "${command}"`);
-    // debug(ast.commands, {
-    //   depth: 10,
-    // });
   } catch {
-    // Cannot parse -> cannot reason about it -> allow (matches prior behavior).
     return null;
   }
-  for (const value of words(ast.commands)) {
-    try {
+  try {
+    for (const value of words(ast.commands)) {
       classify(value, project);
-    } catch (e) {
-      if (e instanceof ParentDirectoryError) {
-        return e.message;
-      }
-      // throw e;
     }
+  } catch (e) {
+    return e instanceof Violation ? e.message : null;
   }
   return null;
 }
 
-function deny(reason: string): SyncHookJSONOutput {
+export function deny(reason: string): SyncHookJSONOutput {
   return {
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
@@ -255,13 +175,6 @@ function deny(reason: string): SyncHookJSONOutput {
       permissionDecisionReason: `Filesystem access outside project blocked: ${reason}. Access files within the project directory only. Ask the user or disable via /hooks.`,
     },
   };
-}
-
-for (const command of DENY) {
-  const reason = findViolation(command);
-  // if (reason) {
-  //   console.log(reason);
-  // }
 }
 
 // // --- stdin hook entrypoint ---
@@ -284,7 +197,7 @@ for (const command of DENY) {
 //     process.exit(0);
 //   }
 //
-//   if (data.tool_input.command === undefined) {
+//   if (data.tool_input?.command === undefined) {
 //     process.exit(0);
 //   }
 //
