@@ -1,4 +1,3 @@
-// tests/helpers/extract.ts
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
