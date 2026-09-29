@@ -26,7 +26,7 @@ Goals:
   AST argv inspection (sharper: no prose false-positives, natural handling of
   env prefixes, pipelines, `&&`, subshells, substitutions).
 - Extract the deny-decision emitter (today `deny.sh` + `deny()` in index.ts)
-  into a shared module; ad-hoc tool denials become a declarative config.
+  into a shared module used by every policy.
 - Preserve user-facing deny messages verbatim.
 - Unit + e2e tests (bun test, TDD).
 
@@ -50,13 +50,10 @@ src/
                   function bodies, $(...)/<(...) scripts, env-prefix commands);
                   words: flat word+fragment walk (filesystem's view)
     policy.ts     Policy contract + ordered Bash-policy registry
-                  (tool-block is a config list, not a Policy: it matches
-                  toolName and never parses a command)
   policies/
     filesystem.ts classify/findViolation moved 1:1 from src/index.ts
     git-readonly.ts  argv tables ported from git-readonly.sh
     no-deps.ts       manager tables ported from no-deps.sh
-    tool-block.ts    declarative { match, reason, permission } config
   main.ts         runHook(raw): SyncHookJSONOutput | null; stdin/stdout under import.meta.main
   index.ts        barrel re-export of the public API
 ```
@@ -75,8 +72,8 @@ interface Policy {
 
 - All Bash policies share one `parseCommand` per invocation (one unbash parse;
   both views — `units` and `words` — are precomputed).
-- Router order (fixed): tool-block (no parse needed, runs first) → git-readonly
-  → no-deps → filesystem. First non-null decision wins; a decision is final.
+- Router order (fixed): git-readonly → no-deps → filesystem. First non-null
+  decision wins; a decision is final.
 
 ```ts
 // main.ts
@@ -84,11 +81,10 @@ export function runHook(raw: string): SyncHookJSONOutput | null
 ```
 
 1. `parseHookInput` — null → allow (exit silently).
-2. tool-block match on `toolName` → its configured decision.
-3. `toolName !== "Bash"` or `command === undefined` → allow.
-4. `parseCommand` — null → allow (fail-open, single place).
-5. Policies in order; first non-null decision returned.
-6. Any internal throw → null (fail-open).
+2. `toolName !== "Bash"` or `command === undefined` → allow.
+3. `parseCommand` — null → allow (fail-open, single place).
+4. Policies in order; first non-null decision returned.
+5. Any internal throw → null (fail-open).
 
 Direct execution under `if (import.meta.main)`: read stdin, `runHook`,
 write the decision JSON + newline, exit 0. Silent exit 0 when allowed.
@@ -158,21 +154,6 @@ match its mutation subcommands:
 Alias safety is structural (args compare as whole words), so `npm info` /
 `npm run` stay ALLOW. Deny message verbatim from `no-deps.sh`.
 
-### tool-block (declarative)
-
-```ts
-const TOOL_BLOCKS = [
-  {
-    match: /^(WebSearch|WebFetch)$/,
-    permission: "deny",
-    reason:
-      "User policy: use the web-search-prime MCP for web search and the web-reader MCP for reading pages — do NOT use built-in WebSearch/WebFetch.",
-  },
-];
-```
-
-Reason text verbatim from today's settings.json args.
-
 ## 6. Error handling
 
 Fail-open everywhere, decided in one place each: unparsable payload → allow;
@@ -189,8 +170,8 @@ guard must not break Bash usage; silence is the failure mode.
   tables built from the bash semantics plus the AST-sharpening cases
   (`echo 'git add .'` ALLOW, `FOO=1 git push` DENY, `npm i` DENY,
   `npm info` ALLOW, `go mod tidy` DENY, `git stash` DENY, `git config user.name` ALLOW).
-- Router unit: `runHook` directly (tool-block hit, Bash deny, Bash allow,
-  non-Bash, missing command, invalid JSON, parse-throw fail-open).
+- Router unit: `runHook` directly (Bash deny, Bash allow, non-Bash, missing
+  command, invalid JSON, parse-throw fail-open).
 - E2E: `Bun.spawn` on `src/main.ts` with JSON stdin (allow → empty stdout;
   deny → decision JSON; exit 0). `tests/helpers/hook-driver.ts` retires —
   `main.ts` is the real entry now.
@@ -222,5 +203,8 @@ here.
   submodule goal.
 - **ERE ported 1:1 into TS** — rejected: keeps the compound-safety workarounds
   and prose false-positives the AST removes; loses the shared-parse win.
+- **tool-block config in the module** — descoped by the owner: ad-hoc tool
+  denials (WebSearch/WebFetch) need a settings-level matcher per case anyway;
+  the global bash `deny.sh` covers them simply and cheaply, so it stays.
 - **Deployment/rollout work this round** — descoped by the owner: bash scripts
   and settings.json stay; integration happens later via a dedicated plugin.
