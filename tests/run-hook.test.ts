@@ -5,11 +5,8 @@ const MAIN = `${import.meta.dir}/../src/main.ts`;
 
 function bashPayload(command: string) {
   return {
-    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     hook_event_name: "PreToolUse",
-    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     tool_input: { command },
-    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     tool_name: "Bash",
   };
 }
@@ -23,15 +20,11 @@ function decisionOf(result: ReturnType<typeof runHook>) {
 
 describe("runHook (unit)", () => {
   it("denies git writes through the router", () => {
-    expect(decisionOf(runHook(JSON.stringify(bashPayload("git push"))))).toBe(
-      "deny",
-    );
+    expect(decisionOf(runHook(bashPayload("git push")))).toBe("deny");
   });
 
   it("returns the FIRST policy's reason on dual violations", () => {
-    const result = runHook(
-      JSON.stringify(bashPayload("npm install /etc/passwd")),
-    );
+    const result = runHook(bashPayload("npm install /etc/passwd"));
     const out = result?.hookSpecificOutput;
     let reason: string | undefined;
     if (out?.hookEventName === "PreToolUse") {
@@ -41,53 +34,42 @@ describe("runHook (unit)", () => {
   });
 
   it("denies filesystem escapes", () => {
-    expect(
-      decisionOf(runHook(JSON.stringify(bashPayload("cat /etc/passwd")))),
-    ).toBe("deny");
+    expect(decisionOf(runHook(bashPayload("cat /etc/passwd")))).toBe("deny");
   });
 
   it("allows ordinary commands", () => {
-    expect(runHook(JSON.stringify(bashPayload("ls -la")))).toBeNull();
+    expect(runHook(bashPayload("ls -la"))).toBeNull();
   });
 
   it("ignores non-Bash tools and non-PreToolUse events", () => {
     expect(
-      runHook(
-        JSON.stringify({
-          ...bashPayload("git push"),
-          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
-          tool_name: "Read",
-        }),
-      ),
+      runHook({
+        ...bashPayload("git push"),
+        tool_name: "Read",
+      }),
     ).toBeNull();
     expect(
-      runHook(
-        JSON.stringify({
-          ...bashPayload("git push"),
-          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
-          hook_event_name: "PostToolUse",
-        }),
-      ),
+      runHook({
+        ...bashPayload("git push"),
+        hook_event_name: "PostToolUse",
+      }),
     ).toBeNull();
   });
 });
 
 describe("runHook (unit — fail-open)", () => {
-  it("fails open on invalid JSON and missing/empty command", () => {
+  it("fails open on non-object input and missing/empty command", () => {
     expect(runHook("{not json")).toBeNull();
+    // biome-ignore lint/style/noMagicNumbers: 42 is an arbitrary non-object scalar probe
+    expect(runHook(42)).toBeNull();
     expect(
-      runHook(
-        JSON.stringify({
-          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
-          hook_event_name: "PreToolUse",
-          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
-          tool_input: {},
-          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
-          tool_name: "Bash",
-        }),
-      ),
+      runHook({
+        hook_event_name: "PreToolUse",
+        tool_input: {},
+        tool_name: "Bash",
+      }),
     ).toBeNull();
-    expect(runHook(JSON.stringify(bashPayload("")))).toBeNull();
+    expect(runHook(bashPayload(""))).toBeNull();
   });
 });
 
@@ -136,6 +118,18 @@ describe("runHook (e2e via spawned main.ts)", () => {
 
   it("emits nothing for invalid JSON", async () => {
     const { code, stdout } = await spawnHook("{not json");
+    expect(code).toBe(0);
+    expect(stdout).toBe("");
+  });
+
+  it("emits nothing and exits 0 for empty stdin", async () => {
+    const { code, stdout } = await spawnHook("");
+    expect(code).toBe(0);
+    expect(stdout).toBe("");
+  });
+
+  it("emits nothing and exits 0 for valid-JSON non-object input", async () => {
+    const { code, stdout } = await spawnHook("42");
     expect(code).toBe(0);
     expect(stdout).toBe("");
   });

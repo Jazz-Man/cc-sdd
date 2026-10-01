@@ -4,15 +4,10 @@ export interface ParsedHookInput {
   toolName: string;
 }
 
-// Read the hook's stdin JSON into a typed shape, or null when it is not a
-// hook payload we can reason about (fail-open starts here).
-export function parseHookInput(raw: string): ParsedHookInput | null {
-  let data: unknown;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    return null;
-  }
+// Narrow the runtime-parsed hook payload (Bun.stdin.json() output) into a
+// typed shape, or null when it is not a hook payload we can reason about
+// (fail-open starts here). Nothing parses text: the runtime already did.
+export function toHookInput(data: unknown): ParsedHookInput | null {
   if (data === null || typeof data !== "object") {
     return null;
   }
