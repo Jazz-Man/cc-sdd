@@ -35,11 +35,21 @@
     },
     "enabled": true,
     "rules": {
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "error"
+      },
       "correctness": {
         "noNodejsModules": "off",
         "useQwikValidLexicalScope": "off"
       },
+      "performance": {
+        "noBarrelFile": "error"
+      },
       "preset": "all",
+      "style": {
+        "useBlockStatements": "error",
+        "useExportsLast": "error"
+      },
       "suspicious": {
         "noConsole": "off"
       }
