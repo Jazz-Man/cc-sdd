@@ -24,7 +24,8 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "double"
-    }
+    },
+    "globals": ["Bun"]
   },
 
   "linter": {
@@ -40,6 +41,12 @@
       },
       "correctness": {
         "noNodejsModules": "off",
+        "noUndeclaredVariables": {
+          "level": "on",
+          "options": {
+            "checkTypes": true
+          }
+        },
         "useQwikValidLexicalScope": "off"
       },
       "performance": {
