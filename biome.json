@@ -36,9 +36,13 @@
     "enabled": true,
     "rules": {
       "correctness": {
-        "noUnresolvedImports": "off"
+        "noNodejsModules": "off",
+        "useQwikValidLexicalScope": "off"
       },
-      "preset": "all"
+      "preset": "all",
+      "suspicious": {
+        "noConsole": "off"
+      }
     }
   },
   "vcs": {
