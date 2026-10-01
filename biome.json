@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -29,14 +29,16 @@
 
   "linter": {
     "domains": {
-      "project": "all"
+      "project": "all",
+      "test": "all",
+      "types": "all"
     },
     "enabled": true,
     "rules": {
       "correctness": {
         "noUnresolvedImports": "off"
       },
-      "preset": "recommended"
+      "preset": "all"
     }
   },
   "vcs": {
