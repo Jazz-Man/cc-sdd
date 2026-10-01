@@ -53,7 +53,6 @@ describe("canonical outputs", () => {
       prompt().guidelines(["Be direct."]).cacheBoundary().tag("req", "x"),
     );
     expect(msgs).toHaveLength(2);
-    // biome-ignore lint/style/useNamingConvention: Anthropic API field name
     expect(msgs[0]).toMatchObject({ cache_control: { type: "ephemeral" } });
     expect(msgs[1]).not.toHaveProperty("cache_control");
   });
