@@ -61,6 +61,12 @@
           "options": {
             "conventions": [
               {
+                "match": "(?:hook_event_name|tool_input|tool_name|cache_control)|(.+)",
+                "selector": {
+                  "kind": "objectLiteralProperty"
+                }
+              },
+              {
                 "formats": ["CONSTANT_CASE", "camelCase"],
                 "selector": {
                   "kind": "objectLiteralProperty"
