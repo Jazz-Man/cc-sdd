@@ -32,7 +32,8 @@ describe("extractBlocks", () => {
       ].join("\n"),
     );
     const blocks = extractBlocks(md);
-    expect(blocks).toHaveLength(3);
+    const expectedBlockCount = 3;
+    expect(blocks).toHaveLength(expectedBlockCount);
     expect(blocks[0]).toMatchObject({ fragment: false, index: 0 });
     expect(blocks[1]).toMatchObject({ fragment: false, index: 1 });
     expect(blocks[2]).toMatchObject({ fragment: true, index: 2 });

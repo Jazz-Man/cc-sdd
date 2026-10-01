@@ -4,9 +4,9 @@ import type {
   SyncHookJSONOutput,
 } from "@anthropic-ai/claude-agent-sdk";
 
-export type Permission = "allow" | "deny" | "ask";
-
 type HookSpecificOutput = NonNullable<SyncHookJSONOutput["hookSpecificOutput"]>;
+
+export type Permission = "allow" | "deny" | "ask";
 
 // Only events whose SDK output type carries permissionDecision are valid
 // here (see HOOK_EVENTS in sdk.d.ts for the full event list); the SDK union
@@ -39,6 +39,7 @@ export function decision(
     permissionDecision: permission,
     permissionDecisionReason: reason,
   };
+  // biome-ignore lint/security/noSecrets: SDK event name, not a secret
   if (hookEventName === "PreModelSwitch") {
     return { hookSpecificOutput: { hookEventName, ...fields } };
   }

@@ -1,5 +1,20 @@
 import { type ParsedScript, parse } from "unbash";
 
+function wordLike(obj: Record<string, unknown>): boolean {
+  return typeof obj.text === "string" && typeof obj.value === "string";
+}
+
+function wordValues(node: unknown): string[] {
+  if (node === null || typeof node !== "object") {
+    return [];
+  }
+  const obj = node as Record<string, unknown>;
+  if (wordLike(obj)) {
+    return [obj.value as string];
+  }
+  return Object.values(obj).flatMap(wordValues);
+}
+
 export interface CommandUnit {
   args: string[];
   name: string;
@@ -9,10 +24,6 @@ export interface ParsedCommand {
   raw: string;
   units: CommandUnit[];
   words: string[];
-}
-
-function wordLike(obj: Record<string, unknown>): boolean {
-  return typeof obj.text === "string" && typeof obj.value === "string";
 }
 
 // One unbash parse, two views: `units` (name+args per Command node — pipelines,
@@ -36,8 +47,11 @@ export function parseCommand(command: string): ParsedCommand | null {
   const units: CommandUnit[] = [];
   const words: string[] = [];
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: walk semantics frozen by two reviews; splitting risks reordering the units/words traversal
   const visit = (node: unknown): void => {
-    if (node === null || typeof node !== "object") return;
+    if (node === null || typeof node !== "object") {
+      return;
+    }
     const obj = node as Record<string, unknown>;
     if (wordLike(obj)) {
       words.push(obj.value as string);
@@ -66,11 +80,4 @@ export function parseCommand(command: string): ParsedCommand | null {
   };
   visit(ast.commands);
   return { raw: command, units, words };
-}
-
-function wordValues(node: unknown): string[] {
-  if (node === null || typeof node !== "object") return [];
-  const obj = node as Record<string, unknown>;
-  if (wordLike(obj)) return [obj.value as string];
-  return Object.values(obj).flatMap(wordValues);
 }

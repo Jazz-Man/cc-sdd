@@ -1,21 +1,24 @@
 import { describe, expect, it } from "bun:test";
-import { runHook } from "../src/main.ts";
+import { runHook } from "../src/run-hook.ts";
 
 const MAIN = `${import.meta.dir}/../src/main.ts`;
 
 function bashPayload(command: string) {
   return {
+    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     hook_event_name: "PreToolUse",
+    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     tool_input: { command },
+    // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
     tool_name: "Bash",
   };
 }
 
 function decisionOf(result: ReturnType<typeof runHook>) {
   const out = result?.hookSpecificOutput;
-  return out?.hookEventName === "PreToolUse"
-    ? out.permissionDecision
-    : undefined;
+  if (out?.hookEventName === "PreToolUse") {
+    return out.permissionDecision;
+  }
 }
 
 describe("runHook (unit)", () => {
@@ -30,11 +33,11 @@ describe("runHook (unit)", () => {
       JSON.stringify(bashPayload("npm install /etc/passwd")),
     );
     const out = result?.hookSpecificOutput;
-    expect(
-      out?.hookEventName === "PreToolUse"
-        ? out.permissionDecisionReason
-        : undefined,
-    ).toContain("Filesystem access outside project blocked");
+    let reason: string | undefined;
+    if (out?.hookEventName === "PreToolUse") {
+      reason = out.permissionDecisionReason;
+    }
+    expect(reason).toContain("Filesystem access outside project blocked");
   });
 
   it("denies filesystem escapes", () => {
@@ -50,26 +53,36 @@ describe("runHook (unit)", () => {
   it("ignores non-Bash tools and non-PreToolUse events", () => {
     expect(
       runHook(
-        JSON.stringify({ ...bashPayload("git push"), tool_name: "Read" }),
+        JSON.stringify({
+          ...bashPayload("git push"),
+          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
+          tool_name: "Read",
+        }),
       ),
     ).toBeNull();
     expect(
       runHook(
         JSON.stringify({
           ...bashPayload("git push"),
+          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
           hook_event_name: "PostToolUse",
         }),
       ),
     ).toBeNull();
   });
+});
 
+describe("runHook (unit — fail-open)", () => {
   it("fails open on invalid JSON and missing/empty command", () => {
     expect(runHook("{not json")).toBeNull();
     expect(
       runHook(
         JSON.stringify({
+          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
           hook_event_name: "PreToolUse",
+          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
           tool_input: {},
+          // biome-ignore lint/style/useNamingConvention: wire-format key (hook payload contract)
           tool_name: "Bash",
         }),
       ),
@@ -83,7 +96,10 @@ describe("runHook (e2e via spawned main.ts)", () => {
     raw: string,
   ): Promise<{ code: number | null; stdout: string }> {
     const proc = Bun.spawn(["bun", MAIN], {
-      env: { ...Bun.env, CLAUDE_PROJECT_DIR: "/proj" },
+      env: {
+        ...Bun.env,
+        CLAUDE_PROJECT_DIR: "/proj",
+      },
       stderr: "pipe",
       stdin: new Blob([raw]),
       stdout: "pipe",

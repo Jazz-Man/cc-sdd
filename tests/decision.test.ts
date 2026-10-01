@@ -25,9 +25,11 @@ describe("decision", () => {
 
   it("narrows the event through the SDK union", () => {
     const out: { hookSpecificOutput: PreModelSwitchHookSpecificOutput } =
+      // biome-ignore lint/security/noSecrets: SDK event name, not a secret
       decision("ask", "why", "PreModelSwitch");
     expect(out).toEqual({
       hookSpecificOutput: {
+        // biome-ignore lint/security/noSecrets: SDK event name, not a secret
         hookEventName: "PreModelSwitch",
         permissionDecision: "ask",
         permissionDecisionReason: "why",

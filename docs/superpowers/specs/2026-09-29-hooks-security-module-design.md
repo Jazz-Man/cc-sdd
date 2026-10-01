@@ -203,10 +203,11 @@ guard must not break Bash usage; silence is the failure mode.
 
 ## 8. Public API (future plugin surface)
 
-`src/index.ts` barrel re-exports: `runHook`, `findViolation`, `deny`,
-`decision`, `parseHookInput`, `parseCommand`, and the shared types. The
-plugin integrates by importing these — no settings or packaging decisions
-here.
+Dropped the barrel: `src/index.ts` is a placeholder. Consumers import the
+modules directly (`main.ts` for the router, `core/` and `policies/` for
+pieces). The owner's direction (2026-10-01): future hook commands become
+separate entry points per hook — the module grows entrypoints, not a central
+re-export; noBarrelFile stays enabled by design.
 
 ## 9. Migration inside the repo
 
