@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
 import { parseCommand } from "./core/ast.ts";
 import { parseHookInput } from "./core/payload.ts";
