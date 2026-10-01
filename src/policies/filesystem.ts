@@ -1,3 +1,4 @@
+import process from "node:process";
 import { type ParsedCommand, parseCommand } from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
