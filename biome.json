@@ -55,7 +55,20 @@
       "preset": "all",
       "style": {
         "useBlockStatements": "error",
-        "useExportsLast": "error"
+        "useExportsLast": "error",
+        "useNamingConvention": {
+          "level": "on",
+          "options": {
+            "conventions": [
+              {
+                "formats": ["CONSTANT_CASE", "camelCase"],
+                "selector": {
+                  "kind": "objectLiteralProperty"
+                }
+              }
+            ]
+          }
+        }
       },
       "suspicious": {
         "noConsole": "off"
