@@ -101,36 +101,47 @@ const SYMBOLIC_REF_FLAGS = new Set(["-d", "--delete"]);
 const REPLACE_FLAGS = new Set(["-d", "--delete", "--edit", "-g", "--graft"]);
 
 function mutating(sub: string, args: string[]): boolean {
-  if (UNCONDITIONAL.has(sub)) return true;
+  if (UNCONDITIONAL.has(sub)) {
+    return true;
+  }
+  const [firstArg] = args;
   const flags = MUTATING_FLAGS[sub];
   if (flags !== undefined) {
-    const first = args[0];
     return (
       args.some((a) => flags.has(a)) ||
-      (first !== undefined && !first.startsWith("-"))
+      (firstArg !== undefined && !firstArg.startsWith("-"))
     );
   }
   const subs = MUTATING_SUBS[sub];
   if (subs !== undefined) {
-    return sub === "stash" && args.length === 0
-      ? true
-      : subs.has(args[0] ?? "");
+    if (sub === "stash" && args.length === 0) {
+      return true;
+    }
+    return subs.has(firstArg ?? "");
   }
   if (sub === "config") {
-    if (args.some((a) => CONFIG_MUTATING_FLAGS.has(a))) return true;
+    if (args.some((a) => CONFIG_MUTATING_FLAGS.has(a))) {
+      return true;
+    }
     return args.filter((a) => !a.startsWith("-")).length >= 2;
   }
-  if (sub === "symbolic-ref")
+  if (sub === "symbolic-ref") {
     return args.some((a) => SYMBOLIC_REF_FLAGS.has(a));
-  if (sub === "replace") return args.some((a) => REPLACE_FLAGS.has(a));
+  }
+  if (sub === "replace") {
+    return args.some((a) => REPLACE_FLAGS.has(a));
+  }
   return false;
 }
 
 export const gitReadonlyPolicy: Policy = {
   check(cmd) {
     for (const unit of cmd.units) {
-      if (unit.name.toLowerCase() !== "git" || unit.args.length === 0) continue;
-      if (mutating(unit.args[0]?.toLowerCase() ?? "", unit.args.slice(1))) {
+      if (
+        unit.name.toLowerCase() === "git" &&
+        unit.args.length > 0 &&
+        mutating(unit.args[0]?.toLowerCase() ?? "", unit.args.slice(1))
+      ) {
         return deny(REASON);
       }
     }

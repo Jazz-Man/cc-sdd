@@ -147,7 +147,9 @@ const MUTATIONS: Record<string, readonly (readonly string[])[]> = {
 
 function mutates(name: string, args: string[]): boolean {
   const prefixes = MUTATIONS[name.toLowerCase()];
-  if (prefixes === undefined) return false;
+  if (prefixes === undefined) {
+    return false;
+  }
   return prefixes.some(
     (prefix) =>
       prefix.length <= args.length &&
@@ -158,7 +160,9 @@ function mutates(name: string, args: string[]): boolean {
 export const noDepsPolicy: Policy = {
   check(cmd) {
     for (const unit of cmd.units) {
-      if (mutates(unit.name, unit.args)) return deny(REASON);
+      if (mutates(unit.name, unit.args)) {
+        return deny(REASON);
+      }
     }
     return null;
   },

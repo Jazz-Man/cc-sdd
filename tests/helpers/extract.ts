@@ -1,13 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-export interface ExampleBlock {
-  code: string;
-  file: string; // repo-relative markdown path
-  fragment: boolean; // true → not runnable standalone, skip
-  index: number; // nth code block in the file
-}
-
 const SKILL_DIR = join(
   import.meta.dir,
   "..",
@@ -39,8 +32,16 @@ export function extractBlocks(mdPath: string): ExampleBlock[] {
       code: m[2] ?? "",
       file: mdPath.slice(REPO_ROOT.length + 1),
       fragment: m[1] !== undefined,
-      index: i++,
+      index: i,
     });
+    i += 1;
   }
   return blocks;
+}
+
+export interface ExampleBlock {
+  code: string;
+  file: string; // repo-relative markdown path
+  fragment: boolean; // true → not runnable standalone, skip
+  index: number; // nth code block in the file
 }

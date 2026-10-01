@@ -7,7 +7,10 @@ const REASON =
 
 const check = (command: string) => {
   const cmd = parseCommand(command);
-  return cmd === null ? null : noDepsPolicy.check(cmd);
+  if (cmd === null) {
+    return null;
+  }
+  return noDepsPolicy.check(cmd);
 };
 
 const DENY = [
@@ -76,11 +79,11 @@ const ALLOW = [
 describe("no-deps policy", () => {
   it.each(DENY)("denies %s", (command) => {
     const out = check(command)?.hookSpecificOutput;
-    expect(
-      out?.hookEventName === "PreToolUse"
-        ? out.permissionDecisionReason
-        : undefined,
-    ).toBe(REASON);
+    let reason: string | undefined;
+    if (out?.hookEventName === "PreToolUse") {
+      reason = out.permissionDecisionReason;
+    }
+    expect(reason).toBe(REASON);
   });
 
   it.each(ALLOW)("allows %s", (command) => {

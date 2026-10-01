@@ -36,20 +36,20 @@ function isUnderProject(absPath: string, projectDir: string): boolean {
 function relativeEscapes(value: string): boolean {
   let depth = 0;
   for (const part of value.split("/")) {
-    if (part === "" || part === ".") continue;
-    if (part === "..") {
-      depth--;
-      if (depth < 0) return true;
-    } else {
-      depth++;
+    if (part !== "" && part !== ".") {
+      if (part === "..") {
+        depth -= 1;
+        if (depth < 0) {
+          return true;
+        }
+      } else {
+        depth += 1;
+      }
     }
   }
   return false;
 }
 
-// Classify a single word. Throws a Violation with the deny reason when the
-// word reaches outside the project directory.
-//
 // Classify a single word. Throws a Violation with the deny reason when the
 // word reaches outside the project directory.
 function classify(raw: string, projectDir: string): void {
@@ -72,7 +72,10 @@ function classify(raw: string, projectDir: string): void {
   // @ is stripped (curl -d @/etc/passwd, curl -F f=@/etc/hosts).
   // Trade-off, accepted: prose mentions (echo foo=/etc) deny too.
   const eq = raw.indexOf("=");
-  let value = eq === -1 ? raw : raw.slice(eq + 1);
+  let value = raw;
+  if (eq !== -1) {
+    value = raw.slice(eq + 1);
+  }
   if (value.startsWith("@")) {
     value = value.slice(1);
   }
@@ -108,14 +111,19 @@ function classify(raw: string, projectDir: string): void {
 const WRAPPER =
   "Filesystem access outside project blocked: %s. Access files within the project directory only. Ask the user or disable via /hooks.";
 
+const TRAILING_SLASHES = /\/+$/;
+
 function violationIn(words: string[], projectDir: string): string | null {
-  const project = projectDir.replace(/\/+$/, "");
+  const project = projectDir.replace(TRAILING_SLASHES, "");
   try {
     for (const value of words) {
       classify(value, project);
     }
   } catch (e) {
-    return e instanceof Violation ? e.message : null;
+    if (e instanceof Violation) {
+      return e.message;
+    }
+    return null;
   }
   return null;
 }
@@ -132,10 +140,13 @@ function violationIn(words: string[], projectDir: string): string | null {
 // Exported so it can be unit-tested directly.
 export function findViolation(
   command: string,
+  // biome-ignore lint/style/noProcessEnv: designed config channel (CLAUDE_PROJECT_DIR)
   projectDir: string = process.env.CLAUDE_PROJECT_DIR ?? process.cwd(),
 ): string | null {
   const parsed: ParsedCommand | null = parseCommand(command);
-  if (parsed === null) return null;
+  if (parsed === null) {
+    return null;
+  }
   return violationIn(parsed.words, projectDir);
 }
 
@@ -143,9 +154,13 @@ export const filesystemPolicy: Policy = {
   check(cmd) {
     const reason = violationIn(
       cmd.words,
+      // biome-ignore lint/style/noProcessEnv: designed config channel (CLAUDE_PROJECT_DIR)
       process.env.CLAUDE_PROJECT_DIR ?? process.cwd(),
     );
-    return reason === null ? null : deny(WRAPPER.replace("%s", reason));
+    if (reason === null) {
+      return null;
+    }
+    return deny(WRAPPER.replace("%s", reason));
   },
   name: "filesystem",
 };

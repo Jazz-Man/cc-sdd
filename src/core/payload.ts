@@ -13,17 +13,25 @@ export function parseHookInput(raw: string): ParsedHookInput | null {
   } catch {
     return null;
   }
-  if (data === null || typeof data !== "object") return null;
+  if (data === null || typeof data !== "object") {
+    return null;
+  }
   const obj = data as Record<string, unknown>;
-  if (typeof obj.hook_event_name !== "string") return null;
-  if (typeof obj.tool_name !== "string") return null;
+  if (typeof obj.hook_event_name !== "string") {
+    return null;
+  }
+  if (typeof obj.tool_name !== "string") {
+    return null;
+  }
   const toolInput = obj.tool_input;
-  const command =
+  let command: string | undefined;
+  if (
     toolInput !== null &&
     typeof toolInput === "object" &&
     typeof (toolInput as Record<string, unknown>).command === "string"
-      ? ((toolInput as Record<string, unknown>).command as string)
-      : undefined;
+  ) {
+    command = (toolInput as Record<string, unknown>).command as string;
+  }
   return {
     command,
     hookEventName: obj.hook_event_name,
