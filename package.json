@@ -1,25 +1,53 @@
 {
   "dependencies": {
-    "@kasava/prompt-builder": "0.3.0",
-    "unbash": "4.0.11"
+    "@effect/platform-bun": "catalog:effect",
+    "@kasava/prompt-builder": "catalog:core",
+    "effect": "catalog:effect",
+    "unbash": "catalog:core"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.284",
-    "@effect/tsgo": "0.46.1",
-    "@tsconfig/bun": "1.0.11",
-    "@types/bun": "1.4.2",
-    "@types/node": "26.6.3",
-    "bun-types": "1.4.2"
+    "@anthropic-ai/claude-agent-sdk": "catalog:types",
+    "@effect/tsgo": "catalog:lsp",
+    "@tsconfig/bun": "catalog:types",
+    "@types/bun": "catalog:types",
+    "@types/node": "catalog:types",
+    "bun-types": "catalog:types"
   },
   "module": "src/index.ts",
   "name": "cc-sdd",
   "peerDependencies": {
-    "typescript": "7.0.2"
+    "typescript": "catalog:lsp"
   },
   "private": true,
   "scripts": {
     "lsp:diagnostics": "effect-tsgo diagnostics --project=tsconfig.json",
     "lsp:prepare": "effect-tsgo patch"
   },
-  "type": "module"
+  "type": "module",
+  "workspaces": {
+    "catalogs": {
+      "core": {
+        "@kasava/prompt-builder": "0.3.0",
+        "unbash": "4.0.11"
+      },
+      "effect": {
+        "@effect/platform-bun": "4.0.0",
+        "effect": "4.0.0"
+      },
+      "lsp": {
+        "@effect/tsgo": "0.46.1",
+        "typescript": "7.0.2"
+      },
+      "types": {
+        "@anthropic-ai/claude-agent-sdk": "0.3.284",
+        "@tsconfig/bun": "1.0.11",
+        "@types/bun": "1.4.2",
+        "@types/node": "26.6.3",
+        "bun-types": "1.4.2"
+      }
+    },
+    "packages": [
+      "packages/*"
+    ]
+  }
 }
