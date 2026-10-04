@@ -30,6 +30,7 @@
       "name": "@cc-sdd/skill-builder",
       "dependencies": {
         "@effect/platform-bun": "catalog:effect",
+        "@kasava/prompt-builder": "catalog:core",
         "effect": "catalog:effect",
       },
       "devDependencies": {
