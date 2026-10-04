@@ -83,6 +83,28 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/skill-builder/index.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["vitest.config.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ],
   "root": true,
   "vcs": {
     "clientKind": "git",
