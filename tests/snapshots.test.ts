@@ -11,9 +11,6 @@ import {
   toMessages,
 } from "@kasava/prompt-builder";
 
-// Long enough that budget trimming must cut something.
-const longRawChars = 400;
-
 describe("canonical outputs", () => {
   test("role renders a persona line", () => {
     const out = prompt().role("match scorer", "with RAG tools").build();
@@ -62,7 +59,7 @@ describe("canonical outputs", () => {
       .priority("required")
       .include(prompt().guidelines(["Answer only from the context."]))
       .priority("low")
-      .include(prompt().heading("Examples", 2).raw("…".repeat(longRawChars)));
+      .include(prompt().heading("Examples", 2).raw("…".repeat(400)));
     const trimmed = full.$budget({ maxTokens: 30 });
     expect(trimmed).not.toBe(full);
     expect(trimmed.build().length).toBeLessThan(full.build().length);

@@ -50,10 +50,12 @@
         "useQwikValidLexicalScope": "off"
       },
       "performance": {
-        "noBarrelFile": "error"
+        "noBarrelFile": "error",
+        "noNamespaceImport": "off"
       },
       "preset": "all",
       "style": {
+        "noMagicNumbers": "off",
         "useBlockStatements": "error",
         "useExportsLast": "error",
         "useNamingConvention": {

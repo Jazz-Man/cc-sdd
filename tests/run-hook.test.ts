@@ -60,7 +60,6 @@ describe("runHook (unit)", () => {
 describe("runHook (unit — fail-open)", () => {
   it("fails open on non-object input and missing/empty command", () => {
     expect(runHook("{not json")).toBeNull();
-    // biome-ignore lint/style/noMagicNumbers: 42 is an arbitrary non-object scalar probe
     expect(runHook(42)).toBeNull();
     expect(
       runHook({
