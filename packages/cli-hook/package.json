@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "unbash": "catalog:core"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "catalog:types",
+    "@kasava/prompt-builder": "catalog:core"
+  },
+  "name": "@cc-sdd/cli-hook",
+  "private": true,
+  "type": "module"
+}

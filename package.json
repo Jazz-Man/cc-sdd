@@ -1,10 +1,4 @@
 {
-  "dependencies": {
-    "@effect/platform-bun": "catalog:effect",
-    "@kasava/prompt-builder": "catalog:core",
-    "effect": "catalog:effect",
-    "unbash": "catalog:core"
-  },
   "devDependencies": {
     "@anthropic-ai/claude-agent-sdk": "catalog:types",
     "@effect/tsgo": "catalog:lsp",
@@ -13,7 +7,6 @@
     "@types/node": "catalog:types",
     "bun-types": "catalog:types"
   },
-  "module": "src/index.ts",
   "name": "cc-sdd",
   "peerDependencies": {
     "typescript": "catalog:lsp"
