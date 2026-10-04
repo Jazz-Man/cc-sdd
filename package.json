@@ -4,7 +4,8 @@
     "@tsconfig/bun": "catalog:types",
     "@types/bun": "catalog:types",
     "@types/node": "catalog:types",
-    "bun-types": "catalog:types"
+    "bun-types": "catalog:types",
+    "vitest": "catalog:effect"
   },
   "name": "cc-sdd",
   "peerDependencies": {
@@ -25,8 +26,8 @@
       "effect": {
         "@effect/platform-bun": "4.0.0",
         "@effect/vitest": "4.0.0",
-        "@voila.dev/effect-bun-test": "0.112.3",
-        "effect": "4.0.0"
+        "effect": "4.0.0",
+        "vitest": "5.0.3"
       },
       "lsp": {
         "@effect/tsgo": "0.46.1",
