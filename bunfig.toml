@@ -3,7 +3,6 @@ telemetry = false
 
 [test]
 coverage = false
-root = "tests"
 
 
 [install.lockfile]
