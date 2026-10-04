@@ -26,6 +26,7 @@
       "effect": {
         "@effect/platform-bun": "4.0.0",
         "@effect/vitest": "4.0.0",
+        "@voila.dev/effect-bun-test": "0.112.3",
         "effect": "4.0.0"
       },
       "lsp": {
