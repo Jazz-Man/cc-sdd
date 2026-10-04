@@ -1,4 +1,4 @@
-import type { SyncHookJSONOutput } from "@anthropic-ai/claude-agent-sdk";
+import type { SyncHookJSONOutput } from "@cc-sdd/agent-types";
 import { parseCommand } from "./core/ast.ts";
 import { toHookInput } from "./core/payload.ts";
 import type { Policy } from "./core/policy.ts";

@@ -3,7 +3,7 @@
     "unbash": "catalog:core"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "catalog:types",
+    "@cc-sdd/agent-types": "workspace:*",
     "@kasava/prompt-builder": "catalog:core"
   },
   "name": "@cc-sdd/cli-hook",

@@ -83,6 +83,7 @@
       }
     }
   },
+  "root": true,
   "vcs": {
     "clientKind": "git",
     "enabled": true,

@@ -2,7 +2,7 @@ import type {
   PreModelSwitchHookSpecificOutput,
   PreToolUseHookSpecificOutput,
   SyncHookJSONOutput,
-} from "@anthropic-ai/claude-agent-sdk";
+} from "@cc-sdd/agent-types";
 
 type HookSpecificOutput = NonNullable<SyncHookJSONOutput["hookSpecificOutput"]>;
 
