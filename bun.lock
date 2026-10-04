@@ -22,6 +22,19 @@
         "typescript": "catalog:lsp",
       },
     },
+    "packages/skill-builder": {
+      "name": "@cc-sdd/skill-builder",
+      "dependencies": {
+        "@effect/platform-bun": "catalog:effect",
+        "effect": "catalog:effect",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:types",
+      },
+      "peerDependencies": {
+        "typescript": "catalog:lsp",
+      },
+    },
   },
   "catalogs": {
     "core": {
@@ -66,6 +79,8 @@
     "@anthropic-ai/sdk": ["@anthropic-ai/sdk@0.131.0", "", { "dependencies": { "json-schema-to-ts": "^3.1.1", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["zod"], "bin": { "anthropic-ai-sdk": "bin/cli" } }, "sha512-9+PepoU7qVMmM70jSahdnfcMHAvAnzhMOLv2W9WjRLO+OG/MAiBETkwKZqv7KIJ1Cj5h8eZ019bHzZaq+Mbepw=="],
 
     "@babel/runtime": ["@babel/runtime@7.29.7", "", {}, "sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw=="],
+
+    "@cc-sdd/skill-builder": ["@cc-sdd/skill-builder@workspace:packages/skill-builder"],
 
     "@effect/platform-bun": ["@effect/platform-bun@4.0.0", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.0" }, "peerDependencies": { "effect": "^4.0.0" } }, "sha512-g9O41Sub/+JKfLjvBNEoqR1Pg6wtc2bbYzv7Kw8YsMihbt/ypCn7ZoydEXaHvTTUvbVrXOQbVFlfplyo84Clug=="],
 
