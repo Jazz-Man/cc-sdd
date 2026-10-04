@@ -5,11 +5,13 @@ const SKILL_DIR = join(
   import.meta.dir,
   "..",
   "..",
+  "..",
+  "..",
   ".claude",
   "skills",
   "prompt-builder",
 );
-const REPO_ROOT = join(import.meta.dir, "..", "..");
+const REPO_ROOT = join(import.meta.dir, "..", "..", "..", "..");
 
 export function skillMarkdownFiles(): string[] {
   const refs = join(SKILL_DIR, "references");
