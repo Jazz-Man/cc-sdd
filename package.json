@@ -40,7 +40,8 @@
       }
     },
     "packages": [
-      "packages/*"
+      "packages/*",
+      "skills/*"
     ]
   }
 }
