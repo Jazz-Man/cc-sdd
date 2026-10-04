@@ -36,9 +36,6 @@
     },
     "enabled": true,
     "rules": {
-      "complexity": {
-        "noExcessiveCognitiveComplexity": "error"
-      },
       "correctness": {
         "noNodejsModules": "off",
         "noUndeclaredVariables": {
@@ -51,32 +48,15 @@
       },
       "performance": {
         "noBarrelFile": "error",
-        "noNamespaceImport": "off"
+        "noNamespaceImport": "off",
+        "noReExportAll": "error"
       },
       "preset": "all",
       "style": {
         "noMagicNumbers": "off",
         "useBlockStatements": "error",
         "useExportsLast": "error",
-        "useNamingConvention": {
-          "level": "on",
-          "options": {
-            "conventions": [
-              {
-                "match": "(?:hook_event_name|tool_input|tool_name|cache_control)|(.+)",
-                "selector": {
-                  "kind": "objectLiteralProperty"
-                }
-              },
-              {
-                "formats": ["CONSTANT_CASE", "camelCase"],
-                "selector": {
-                  "kind": "objectLiteralProperty"
-                }
-              }
-            ]
-          }
-        }
+        "useNamingConvention": "off"
       },
       "suspicious": {
         "noConsole": "off"
