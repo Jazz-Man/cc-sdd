@@ -28,7 +28,7 @@ you are the independent second opinion before the plan gets built.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
    documents. Phase completion, the `validated` tag, and the
-   `Doc-hash:` line are the presenting context's writes at the GO
+   `Doc-hash:` line are the main context's writes at the GO
    moment - never yours.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **You review; you do not redesign.** No implementation-level design,
@@ -41,7 +41,7 @@ you are the independent second opinion before the plan gets built.
    element - is a finding, never an edit. Findings go to the report
    file; the user decides what happens to the document.
 5. **No hash computation.** Revision 6 pairs the document hash with
-   the phase-completion write: the presenting context computes it at
+   the phase-completion write: the main context computes it at
    the GO moment, after your fixes have landed. You never compute or
    record a hash.
 6. **English output** - fixed; no per-spec language configuration exists.
@@ -74,7 +74,7 @@ Read, under the spec directory from Step 1:
 - `${CLAUDE_PLUGIN_ROOT}/assets/rules/design-review.md` - the review
   criteria and issue format. Its interactive-dialogue step is superseded
   in fork form: where the rule says engage the designer, you record the
-  finding instead, and the presenting main context takes it to the user.
+  finding instead, and the main context takes it to the user.
 - Steering: already in your context (project memory, loaded at session
   start) - apply it; do not re-read the files.
 
@@ -191,10 +191,10 @@ caller parses the heading and the `- STATUS:` line mechanically:
 - BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
 ```
 
-**To the presenting main context.** You invoked this fork; it cannot ask
+**To the main context.** You invoked this fork; it cannot ask
 the user anything, so you own the adjudication. On DONE: present the
 verdict, the criterion verdicts, each BLOCKING finding with its impact,
-and the fixes it applied (the user reads design-review.md in the IDE;
+and the fixes it applied (point the user at the design-review.md path;
 do not dump it into chat). Then by invocation:
 
 - **Auto-gate - dispatched by the spec-design approve step (spec

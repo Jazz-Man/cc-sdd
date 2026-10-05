@@ -232,8 +232,8 @@ Present the result in the main conversation - SHORT: the requirement
 areas with a one-line objective each, the settled in/out boundary, the
 requirement count, and any concerns the drafter flagged.
 
-The full document is `.sdd/specs/<feature>/requirements.md`; the user reads
-it in the IDE. Do not dump the document into chat.
+The full document is `.sdd/specs/<feature>/requirements.md`; point the
+user at the path. Do not dump the document into chat.
 
 No new open questions from you here - confirm-only. Then
 AskUserQuestion:

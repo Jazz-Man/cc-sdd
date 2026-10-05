@@ -15,6 +15,11 @@ gate before completing any task bean, and the one validate-impl applies
 to a `FEATURE_GO` claim before returning GO. It also stands alone for
 ad-hoc use whenever a completion claim needs checking.
 
+**beans is the only tracker** - verdicts and outcomes are bean state
+(statuses, verdict lines, tags), never checkboxes or progress notes
+written into documents; when running standalone, report findings in chat
+and let the caller record any beans.
+
 ## When to Use
 
 - Before saying a task is complete

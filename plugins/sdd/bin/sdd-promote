@@ -2,15 +2,18 @@
 # sdd-promote - draft->todo promotion for task beans (spec Revision 5).
 # Usage: sdd-promote <epic-id> --all | <bean-id>...
 #
-# --all promotes every draft child of the epic except the phase beans;
-# otherwise each named bean is promoted after verification that it is a
-# draft child of the epic (phase beans and anything else are refused with a
-# stderr note). Prints one promoted id per line on stdout. --all with
-# children present but zero parseable records warns and exits 1 (drift
-# guard - the parser is shared with bin/sdd-gate).
+# --all promotes every draft DESCENDANT of the epic except the phase beans
+# (the task plan is a tree: major -> sub-task -> ...; leaves and containers
+# alike); otherwise each named bean is promoted after verification that it
+# is a draft descendant of the epic (phase beans and anything else are
+# refused with a stderr note). Prints one promoted id per line on stdout.
+# --all with descendants present but zero parseable records warns and exits
+# 1 (drift guard - the parser is shared across bin/ via _sdd-lib.sh).
 # The only write helper of the sdd bin/ set: writes are strictly
 # `beans update <id> -s todo` - statuses change via the CLI only.
 set -eu
+
+. "$(dirname "$0")/_sdd-lib.sh"
 
 usage() {
     echo "usage: sdd-promote <epic-id> --all | <bean-id>..." >&2
@@ -24,7 +27,7 @@ for arg in "$@"; do
     case $arg in
         --all) all=1 ;;
         -h|--help)
-            echo "usage: sdd-promote <epic-id> --all | <bean-id>... - promote draft task beans to todo (spec Revision 5 approve gate); prints each promoted id. --all takes every draft child except phase beans."
+            echo "usage: sdd-promote <epic-id> --all | <bean-id>... - promote draft task beans (any depth in the epic's tree) to todo (spec Revision 5 approve gate); prints each promoted id. --all takes every draft descendant except phase beans."
             exit 0
             ;;
         -*) usage ;;
@@ -43,7 +46,7 @@ if [ "$all" = 1 ] && [ -n "$ids" ]; then
     exit 2
 fi
 
-epic_json=$(beans query --json "{ bean(id: \"$epic_id\") { status } }")
+epic_json=$(sdd_bean_query "$epic_id" "status")
 case $epic_json in
     *'"bean": null'*)
         echo "sdd-promote: epic $epic_id not found - check the id (beans show)" >&2
@@ -51,68 +54,63 @@ case $epic_json in
         ;;
 esac
 
-# Same child-record parser as bin/sdd-gate (pretty-printed JSON, one field
-# per physical line): TAB-separated id/title/status/tags, tags normalized to
-# a bare comma list.
-parse_children() {
-    printf '%s\n' "$children_json" | awk '
-        BEGIN { n = 0 }
-        /^ *"bean": *null/ { exit }
-        /^ *"children":/ { inch = 1; if ($0 ~ /: *\[\]/) exit; next }
-        inch && /^ *"id": /     { s = $0; sub(/^ *"id": "/, "", s); sub(/",$/, "", s);     id[n] = s;  next }
-        inch && /^ *"title": /  { s = $0; sub(/^ *"title": "/, "", s); sub(/",$/, "", s);  ti[n] = s;    next }
-        inch && /^ *"status": / { s = $0; sub(/^ *"status": "/, "", s); sub(/",$/, "", s); st[n] = s;    next }
-        inch && /^ *"tags": /   { s = $0; sub(/^ *"tags": \[/, "", s); sub(/\][, ]*$/, "", s); gsub(/"/, "", s); gsub(/ +/, "", s); tg[n] = s; n++; next }
-        END { for (i = 0; i < n; i++) print id[i] "\t" ti[i] "\t" st[i] "\t" tg[i] }
-    '
-}
-
-children_json=$(beans query --json "{ bean(id: \"$epic_id\") { children { id title status tags } } }")
+# desc record: id <TAB> parentId <TAB> status <TAB> tags <TAB> title
+desc=$(sdd_descendants_records "$epic_id")
 
 if [ "$all" = 1 ]; then
-    TAB=$(printf '\t')
-    parsed=$(parse_children)
-    case $children_json in
-        *'"bean": null'*|*'"children": []'*) ;;
-        *)
-            # Drift guard: children exist but zero records parsed - the
-            # beans output shape changed under the shared parser; refuse
-            # rather than report success while promoting nothing.
-            if [ -z "$parsed" ]; then
-                echo "sdd-promote: epic $epic_id has children but none parsed - beans output drift? (parser shared with bin/sdd-gate)" >&2
+    # Drift guard: children exist in the raw JSON but zero records parsed -
+    # the beans output shape changed under the shared parser; refuse rather
+    # than report success while promoting nothing.
+    if [ -z "$desc" ]; then
+        raw_children=$(sdd_bean_query "$epic_id" "children { id }")
+        case $raw_children in
+            *'"id":'*)
+                echo "sdd-promote: epic $epic_id has children but none parsed - beans output drift? (parser shared via bin/_sdd-lib.sh)" >&2
                 exit 1
-            fi
-            ;;
-    esac
-    while IFS="$TAB" read -r cid _ cstatus ctags; do
-        [ -n "$cid" ] || continue
-        [ "$cstatus" = draft ] || continue
-        case ",$ctags," in
-            *,phase,*) continue ;;
+                ;;
         esac
+        exit 0
+    fi
+    printf '%s\n' "$desc" | awk -F'\t' '$4 !~ /(^|,)phase(,|$)/ && $3 == "draft" { print $1 }' |
+    while IFS= read -r cid; do
         beans update "$cid" -s todo >/dev/null
         printf '%s\n' "$cid"
-    done <<EOF
-$parsed
-EOF
+    done
     exit 0
 fi
 
 [ -n "$ids" ] || usage
 
+# is_descendant <bean-id> - walk the parent chain up to the epic (max 16 hops).
+is_descendant() {
+    _d_cur=$1
+    _d_hops=0
+    while [ -n "$_d_cur" ] && [ "$_d_hops" -lt 16 ]; do
+        [ "$_d_cur" = "$epic_id" ] && return 0
+        _d_json=$(sdd_bean_query "$_d_cur" "parentId")
+        _d_cur=$(printf '%s\n' "$_d_json" | sed -n 's/^ *"parentId": "\(.*\)",*$/\1/p' | head -n 1)
+        _d_hops=$((_d_hops + 1))
+    done
+    return 1
+}
+
 rc=0
 for task_id in $ids; do
-    bean_json=$(beans query --json "{ bean(id: \"$task_id\") { parentId status tags } }")
-    parent_id=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"parentId": "\(.*\)",*$/\1/p')
-    bean_status=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"status": "\(.*\)",*$/\1/p')
+    bean_json=$(sdd_bean_query "$task_id" "parentId status tags")
+    bean_status=$(sdd_bean_field "$bean_json" "status")
     bean_tags=$(printf '%s\n' "$bean_json" | sed -n 's/^ *"tags": \[\(.*\)\][, ]*$/\1/p' | tr -d '"')
     if [ -z "$bean_status" ]; then
         echo "sdd-promote: skip $task_id - no such bean" >&2
         rc=1
         continue
     fi
-    if [ "$parent_id" != "$epic_id" ] || [ "$bean_status" != draft ]; then
-        echo "sdd-promote: skip $task_id - not a draft child of $epic_id (parent=${parent_id:-none}, status=$bean_status)" >&2
+    if ! is_descendant "$task_id"; then
+        echo "sdd-promote: skip $task_id - not a descendant of $epic_id" >&2
+        rc=1
+        continue
+    fi
+    if [ "$bean_status" != draft ]; then
+        echo "sdd-promote: skip $task_id - status is '$bean_status', not draft" >&2
         rc=1
         continue
     fi

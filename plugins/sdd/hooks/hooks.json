@@ -3,6 +3,26 @@
     "PreCompact": [
       { "hooks": [{ "command": "beans prime", "type": "command" }] }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-skill-gate.sh\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Skill"
+      },
+      {
+        "hooks": [
+          {
+            "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-write-guard.sh\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
@@ -14,6 +34,17 @@
         "matcher": "startup|clear|compact"
       },
       { "hooks": [{ "command": "beans prime", "type": "command" }] }
+    ],
+    "UserPromptExpansion": [
+      {
+        "hooks": [
+          {
+            "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-skill-gate.sh\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "sdd"
+      }
     ]
   }
 }

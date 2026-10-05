@@ -147,19 +147,24 @@ auto-dispatches `/sdd:validate-design`, and only its GO completes the phase
 ### `/sdd:spec-tasks`
 
 Fork. Turns the approved requirements and design into one task bean per
-sub-task under the feature epic — born `draft`, each body's `## Brief` section
-carrying number, title, natural-language description, detail bullets (at
-least one observable completion condition), and `_Requirements:_` /
-`_Boundary:_` / `_Depends:_` metadata. There is no plan document; the beans
-are the plan, and cross-task dependencies are `--blocked-by` relations.
+sub-task under the feature epic — born `draft`, each leaf body's `## Brief`
+section carrying number, title, natural-language description, detail bullets
+(at least one observable completion condition), and `_Requirements:_` /
+`_Boundary:_` / `_Depends:_` metadata. Majors are real feature-type container
+beans (one-line scope brief); leaves are task beans under them — that shape
+is fixed by the beans CLI (tasks nest only under milestone/epic/feature).
+There is no plan document; the bean tree is the plan, and the sequence lives
+in `--blocked-by` edges (leaf to predecessor, major to major) — never in
+number order.
 
-Contracts: no checkboxes, no parallel markers, no progress or approval state
-anywhere — execution is strictly sequential and order implies dependency. The
+Contracts: no checkboxes, no parallel markers, no step lists inside a brief,
+no progress or approval state anywhere — a multi-step task is decomposed into
+child beans, not a checklist in a body. The
 fork only syncs beans idempotently (updates preserve promoted statuses;
 re-runs never reset `todo`/`in-progress`/`completed` to `draft`, and numbers
 are never reused for different work). Promotion is yours, not the fork's: the
 approve gate in the main context promotes drafts to `todo` — approve-all or
-selective (`bin/sdd-promote` wraps it) — and completes the tasks phase bean.
+selective, both via `bin/sdd-promote` — and completes the tasks phase bean.
 `draft` beans are never auto-selected by impl.
 
 ### `/sdd:impl`

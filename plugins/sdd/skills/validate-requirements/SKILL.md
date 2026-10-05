@@ -33,7 +33,7 @@ decides whether approval may stand.
 2. **This skill writes no beans.** It resolves the active feature by
    reading beans; never write progress, approval, or blocked state into
    documents. Phase completion, the `validated` tag, and the
-   `Doc-hash:` line are the presenting context's writes at the GO
+   `Doc-hash:` line are the main context's writes at the GO
    moment - never yours.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
 4. **Zero-semantics fixes only, all listed.** You may edit
@@ -44,7 +44,7 @@ decides whether approval may stand.
    changing shall to should - is a finding, never an edit, however
    obvious the better text reads.
 5. **No hash computation.** Revision 6 pairs the document hash with the
-   phase-completion write: the presenting context computes it at the GO
+   phase-completion write: the main context computes it at the GO
    moment, after your fixes have landed. You never compute or record a
    hash.
 6. **Quoted evidence or it did not happen.** Every finding cites
@@ -218,10 +218,10 @@ alike:
 (contradictions and steering findings compress each side into the quote
 or continue on indented lines).
 
-**To the presenting main context.** You invoked this fork; it cannot ask
+**To the main context.** You invoked this fork; it cannot ask
 the user anything, so you own the gate. On DONE: present the verdict
 and the findings - short lists in chat, the workspace file when PATH
-names one (the user reads files in the IDE; do not dump them into
+names one (point the user at the path; do not dump files into
 chat). Then by verdict:
 
 - **GO** - the requirements phase may complete per Revision 6: the

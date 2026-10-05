@@ -17,6 +17,11 @@ differ, the template's verdict block wins. This document carries the
 full checklist and stands alone for ad-hoc use - reviewing a change by
 hand, or any context where no orchestrator dispatch exists.
 
+**beans is the only tracker** - verdicts and outcomes are bean state
+(statuses, verdict lines, tags), never checkboxes or progress notes
+written into documents; when running standalone, report findings in chat
+and let the caller record any beans.
+
 Boundary terminology continuity:
 - discovery identifies `Boundary Candidates`
 - design fixes `Boundary Commitments`

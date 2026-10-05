@@ -45,8 +45,10 @@ cc-sdd/                          marketplace root (this repository)
 │       │   ├── templates/      document templates (requirements, design, research, …)
 │       │   ├── workflow-map.md the default workflow map (SessionStart injection)
 │       │   └── design-system_flow.png  design-system flow diagram
-│       ├── bin/                sdd-gate, sdd-verdict, sdd-promote helpers (Revision 7)
-│       ├── hooks/              SessionStart hook (bootstrap map injection)
+│       ├── bin/                _sdd-lib.sh + sdd-phase, sdd-gate, sdd-next,
+│       │                       sdd-verdict, sdd-promote helpers (Revision 7 + tree model)
+│       ├── hooks/              SessionStart (map injection), PreToolUse skill gate
+│       │                       + write guard, UserPromptExpansion direct-typing gate
 │       ├── docs/guides/        user-facing guides
 │       └── README.md           plugin README
 ├── CLAUDE.md                   development context (this file)

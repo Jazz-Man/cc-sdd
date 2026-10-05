@@ -124,11 +124,11 @@ caller parses the heading and the `- STATUS:` line mechanically:
 - BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
 ```
 
-**To the presenting main context.** You invoked this fork; it cannot ask
+**To the main context.** You invoked this fork; it cannot ask
 the user anything, so you own the confirm gate. On DONE: present a SHORT
 summary in chat - the gap-list, the approaches with the recommended one,
-effort/risk, and the research.md path (the user reads the file in the
-IDE; do not dump it into chat). Then AskUserQuestion, confirm-only:
+effort/risk, and the research.md path (point the user at the path; do
+not dump it into chat). Then AskUserQuestion, confirm-only:
 
 1. **Proceed to design** (Recommended) - the analysis is settled; name
    the next command in a code block:

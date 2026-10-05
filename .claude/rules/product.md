@@ -16,9 +16,9 @@ A personal plugin written for one user's daily workflow. English-only, loaded lo
 
 ## Invariants — break one and it is a different product
 
-1. **Prompt-only.** All behavior lives in skill texts, shared assets under `assets/`, three shell helpers in `bin/`, and one SessionStart hook. No runtime code, no installer, no data directory in user projects beyond `.sdd/` and the rules file `/sdd:init` writes.
+1. **Prompt-only.** All behavior lives in skill texts, shared assets under `assets/`, the `bin/` helper family (`_sdd-lib.sh` plus `sdd-phase`, `sdd-gate`, `sdd-next`, `sdd-verdict`, `sdd-promote`), and hooks (`SessionStart` map injection, `PreToolUse` skill gate + write guard, `UserPromptExpansion` direct-typing gate). No runtime code beyond those shell helpers, no installer, no data directory in user projects beyond `.sdd/` and the rules file `/sdd:init` writes.
 2. **Subagent-first.** The main conversation is for decisions: routing, gating, adjudication. Subagents do the heavy reading and writing; they never ask the user anything — they return status contracts (`DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT`).
-3. **beans is the only tracker.** State, verdicts, briefs, and notes live in beans; documents carry artifacts only. No progress writes, no approval writes, no checkbox flips into documents, no plan document — the task beans ARE the plan.
+3. **beans is the only tracker.** State, verdicts, briefs, and notes live in beans; documents carry artifacts only. No progress writes, no approval writes, no checkbox flips into documents, no plan document — the task beans ARE the plan, as a tree (feature-type major containers, task leaves) whose `blockedByIds` edges are the sequence; step checklists inside bean bodies are a defect, decompose instead.
 4. **The human holds git.** impl stops after every task; the user reviews, tests, and commits. The plugin never stages, commits, or branches.
 5. **Models are pinned** in the skill texts — never a runtime choice. The model table's home is the workflow map (`.claude/rules/sdd.md`, "Models"); apply it, don't fork it.
 6. **One active feature, ever.** The active feature is the single `in-progress` epic bean; follow-ups queue behind it. Sequential, never parallel.

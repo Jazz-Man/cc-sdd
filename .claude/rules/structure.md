@@ -23,7 +23,7 @@ Everything under `skills/`, `assets/`, `bin/`, `hooks/` is the PLUGIN. The `.sdd
 
 - `skills/**` may reference: `assets/` (via `${CLAUDE_PLUGIN_ROOT}`), files inside the same skill via `${CLAUDE_SKILL_DIR}`, the `bin/` helpers, the beans CLI, and target-project paths under `.sdd/`.
 - `bin/` reads and writes beans only. One writer: `sdd-promote`.
-- `hooks/` touches `assets/workflow-map.md` and the beans CLI — nothing else, and never skill bodies.
+- `hooks/` touches `assets/workflow-map.md` (SessionStart injection), the beans CLI, and the `bin/` helpers (`sdd-phase` behind the skill gate, `sdd-write-guard`'s rules) — nothing else, and never skill bodies.
 - `assets/` and `bin/` never reference back into `skills/` — no cycles; shared content stays consumer-agnostic.
 - `docs/` depends on everything; nothing depends on `docs/`. `docs/guides/` is user-facing documentation; `docs/superpowers/` is the conversion's own historical record (spec + plan) — read-only history, excluded from the invariant greps by design. Live rules never go there.
 - Root `CLAUDE.md` and `.claude/rules/` are development context and steering for THIS repo, not plugin payload; the root CLAUDE.md does not load as plugin context.
