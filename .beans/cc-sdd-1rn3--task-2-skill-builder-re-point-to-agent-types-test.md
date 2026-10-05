@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-10-04T15:24:42Z
-updated_at: 2026-10-04T15:52:18Z
+updated_at: 2026-10-05T15:37:40Z
 parent: cc-sdd-f4y5
 ---
 
@@ -44,3 +44,4 @@ Re-pointed packages/skill-builder hook types to @cc-sdd/agent-types (delete hand
 - [x] biome.json overrides x2 — schema-verified against 2.5.15 (includes: glob array, linter.rules.<group>.<rule>: "off"): skill-builder/index.ts noBarrelFile off; vitest.config.ts noDefaultExport off
 - [x] pre-batch check: only noUnresolvedImports remains (install closes it)
 Post-install gates (fresh): biome 43 files 0 diagnostics; vitest 1 pass; bun test 263/0/10; tsgo agg 27 files 0 errors; tsgo pkg 4 files 0 errors. ALL GREEN — task closed, awaiting user review/commit.
+

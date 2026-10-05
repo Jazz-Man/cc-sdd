@@ -79,7 +79,8 @@ Read, under the spec directory from Step 1:
   start) - apply it; do not re-read the files.
 
 Also survey the codebase enough to check claims: the design asserts
-alignment with existing architecture - Grep/Read the modules it names
+alignment with existing architecture - apply the `lsp-code-analysis`
+skill to the modules it names
 and verify. A design that cites nonexistent structure is a finding, not
 a detail.
 

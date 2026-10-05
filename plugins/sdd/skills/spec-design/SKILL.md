@@ -130,10 +130,9 @@ Classify from the epic description, requirements, brief, and codebase:
 
 Research discipline:
 
-- **Codebase**: prefer LSP tools where they exist in your context
-  (definitions, references, type info); fall back to Grep/Glob. Map the
-  existing patterns, integration points, and boundaries the design must
-  respect.
+- **Codebase**: apply the `lsp-code-analysis` skill (LSP operations
+  first; Grep/Glob fallback). Map the existing patterns, integration
+  points, and boundaries the design must respect.
 - **External**: WebSearch/WebFetch for dependencies, current
   documentation, version compatibility, and known issues. Verify every
   external API or library the design will rely on; record API contracts

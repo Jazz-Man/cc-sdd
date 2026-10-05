@@ -35,6 +35,10 @@ phase precondition, `sdd-gate <epic>` the full impl entry, `sdd-next` the next r
 PreToolUse hooks run these at invocation time and block out-of-order `/sdd:*` calls and
 tracking writes into documents (`.beans/` is CLI-only; specs never carry checkboxes).
 
+**Code analysis.** Any code reading or navigation, in any phase and in any dispatched subagent,
+applies the `lsp-code-analysis` skill: LSP operations first (definitions, references, types,
+call structure), Grep/Glob as the fallback - semantic awareness beats text matching.
+
 **Interaction.** Every question or choice-point goes through AskUserQuestion; subagents never
 ask the user - they return status contracts. Clarifying questions only in discovery and
 requirements; design and tasks are confirm-only. Stop-per-task: after each impl task the
