@@ -1,5 +1,5 @@
 {
-  "description": "Local marketplace for the sdd plugin",
+  "description": "Local marketplace for the sdd and biome-lsp plugins",
   "name": "sdd-local",
   "owner": { "name": "Vasyl Sokolyk" },
   "plugins": [
@@ -7,6 +7,11 @@
       "description": "Kiro-style spec-driven development for Claude Code with subagent-first execution",
       "name": "sdd",
       "source": "./plugins/sdd"
+    },
+    {
+      "description": "Biome language server for Claude Code: live diagnostics, formatting, and code actions for JS/TS/JSX/TSX/JSON/JSONC/CSS",
+      "name": "biome-lsp",
+      "source": "./plugins/biome-lsp"
     }
   ]
 }

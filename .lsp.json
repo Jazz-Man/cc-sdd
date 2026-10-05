@@ -1,21 +1,4 @@
 {
-  "biome": {
-    "args": ["lsp-proxy"],
-    "command": "/opt/homebrew/bin/biome",
-    "extensionToLanguage": {
-      ".cjs": "javascript",
-      ".js": "javascript",
-      ".json": "json",
-      ".jsx": "javascriptreact",
-      ".mjs": "javascript",
-      ".ts": "typescript",
-      ".tsx": "typescriptreact"
-    },
-    "initializationOptions": {},
-    "maxRestarts": 3,
-    "settings": {},
-    "transport": "stdio"
-  },
   "typescript": {
     "args": ["--lsp", "--stdio"],
     "command": "./node_modules/@effect/tsgo-darwin-arm64/lib/tsc",
@@ -66,18 +49,16 @@
           "parameterTypes": {
             "enabled": true
           },
-
           "propertyDeclarationTypes": {
             "enabled": true
           },
-
           "variableTypes": {
             "enabled": true,
             "suppressWhenTypeMatchesName": true
           }
         },
         "referencesCodeLens": {
-          "enabled": true,
+          "enable": true,
           "showOnAllFunctions": true
         },
         "suggest": {

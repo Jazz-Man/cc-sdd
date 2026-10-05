@@ -1,0 +1,24 @@
+{
+  "biome": {
+    "args": ["lsp-proxy"],
+    "command": "/opt/homebrew/bin/biome",
+    "extensionToLanguage": {
+      ".cjs": "javascript",
+      ".css": "css",
+      ".js": "javascript",
+      ".json": "json",
+      ".jsonc": "json",
+      ".jsx": "javascriptreact",
+      ".mjs": "javascript",
+      ".ts": "typescript",
+      ".tsx": "typescriptreact"
+    },
+    "initializationOptions": {},
+    "maxRestarts": 3,
+    "settings": {
+      "goto_definition": true,
+      "require_config_file": true
+    },
+    "transport": "stdio"
+  }
+}

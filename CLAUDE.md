@@ -1,7 +1,8 @@
 # sdd — Kiro-style Spec-Driven Development (Claude Code plugin)
 
 This repository is a local Claude Code plugin marketplace; the sdd plugin lives
-at `plugins/sdd/` and is its only plugin today. The plugin ships prompt-only
+at `plugins/sdd/` (the main plugin) alongside `plugins/biome-lsp/` (a
+language-server plugin wiring biome for JS/TS/JSON/CSS). The sdd plugin ships prompt-only
 skills for spec-driven development (discovery → requirements → design → tasks →
 implementation → validation) with subagent-first execution. Skills are invoked as `/sdd:<name>`; skill texts resolve
 shared files via `${CLAUDE_PLUGIN_ROOT}`. There is no installer and no runtime data
@@ -51,6 +52,14 @@ cc-sdd/                          marketplace root (this repository)
 │       │                       + write guard, UserPromptExpansion direct-typing gate
 │       ├── docs/guides/        user-facing guides
 │       └── README.md           plugin README
+│
+├── plugins/biome-lsp/          biome language server as a plugin:
+│       ├── .claude-plugin/
+│       │   └── plugin.json     plugin manifest (name: biome-lsp)
+│       ├── .lsp.json           biome lsp-proxy for .ts/.tsx/.js/.jsx/.mjs/
+│       │                       .cjs/.json/.jsonc/.css (diagnostics/format/code
+│       │                       actions; no symbols/hover)
+│       └── README.md           requirements + what it covers
 ├── CLAUDE.md                   development context (this file)
 ├── LICENSE                     repository-level license for the whole tree
 ├── docs/superpowers/           this conversion's spec and plan (self-referential;
