@@ -2,7 +2,7 @@
 
 There is no application code here. The "source" is:
 
-- **Markdown skill texts** — `skills/<name>/SKILL.md`, each with YAML frontmatter: `name`, `description`, optionally `argument-hint` and `disable-model-invocation` (user-invoked skills such as `discovery` and `init` set the latter). The claude CLI parses this frontmatter; `claude plugin validate .` is the compiler.
+- **Markdown skill texts** — `skills/<name>/SKILL.md`, each with YAML frontmatter: `name`, `description`, optionally `argument-hint` and `disable-model-invocation` (user-invoked skills such as `discovery` and `init` set the latter), plus `context: fork`, `background` (fork-only), and `model` — all functional per the skills docs. The claude CLI parses this frontmatter; `claude plugin validate .` is the compiler.
 - **POSIX sh** — `bin/_sdd-lib.sh` (shared beans-query parsing) plus `bin/sdd-phase`, `bin/sdd-gate`, `bin/sdd-next`, `bin/sdd-verdict`, `bin/sdd-promote`. Read them before changing bean-body formats: they mechanically parse `## Validation` lines, `Doc-hash:` records, and `blockedByIds` edges. `shellcheck` (installed on this machine) must stay clean on every change to `bin/` or `hooks/`.
 - **JSON** — `.claude-plugin/plugin.json` (name `sdd`), the co-located `marketplace.json`, and `hooks/hooks.json`.
 
@@ -21,7 +21,7 @@ No package manager, no build step, no test framework. Assume this toolchain: the
 - **SessionStart** (matcher `startup|clear|compact`): if the target project has no `.claude/rules/sdd.md`, the hook cats `${CLAUDE_PLUGIN_ROOT}/assets/workflow-map.md` — the wrapped default map. `beans prime` also runs on SessionStart and PreCompact so tracker context survives compression. Precedence is by design: a user-owned rules file silences the injection, even when stale.
 - **PreToolUse** (matcher `Skill`): `hooks/sdd-skill-gate.sh` normalizes the skill name and runs `bin/sdd-phase`; a failed precondition denies the call (exit 2 — the diagnosis, with its fixing `/sdd:<name>` command, reaches the model as the denial reason). Covers model-initiated Skill calls; a user typing `/sdd:<name>` goes through UserPromptExpansion instead.
 - **PreToolUse** (matcher `Edit|Write`): `hooks/sdd-write-guard.sh` blocks tracker-integrity violations — file writes into `.beans/` (CLI-only) and checkbox lists written under `.sdd/` (the plan and its progress live in the bean graph).
-- **UserPromptExpansion** (matcher `sdd`): the same `sdd-skill-gate.sh` gates directly typed `/sdd:<name>` commands before expansion. [Unverified] whether this event fires for plugin skills in every mode — the skills' own mandatory first-step `sdd-phase` run covers that path regardless (verified live).
+- **UserPromptExpansion** (matcher `sdd`): the same `sdd-skill-gate.sh` gates directly typed `/sdd:<name>` commands before expansion. Confirmed by the hooks docs that this event covers the typed path (PreToolUse does not) and can block; whether `command_name` arrives qualified (`sdd:impl`) or bare (`impl`) is still unlogged — the skills' own mandatory first-step `sdd-phase` run covers that path regardless (verified live).
 
 ## bin/ helper contracts
 

@@ -104,9 +104,8 @@ context completes it at the approve gate.
 - Steering: already in your context (project memory, loaded at session
   start) - apply it; do not re-read the files.
 - Codebase: verify the design's boundary components and integration
-  points against the real code before sizing tasks - prefer LSP tools
-  where they exist in your context (definitions, references, type info),
-  falling back to Grep/Glob. Read-only.
+  points against the real code before sizing tasks - apply the
+  `lsp-code-analysis` skill (LSP first, Grep/Glob fallback). Read-only.
 
 ## Step 4 - Draft the bean plan
 

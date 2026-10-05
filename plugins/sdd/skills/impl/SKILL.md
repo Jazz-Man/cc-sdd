@@ -288,6 +288,7 @@ Agent(
                  .sdd/specs/<feature>/design.md
     Steering:    .claude/rules/ of this project (only when present)
     Code scope:  <boundary path patterns, or repo root>
+    Code analysis: apply the `lsp-code-analysis` skill (LSP first, Grep/Glob fallback)
     Validation:  <task-relevant command subset>
     Learnings:   <completed task bean ids, if any> (their ## Notes
                  sections carry the one-liners - read before you start)
@@ -354,6 +355,7 @@ Agent(
     Review protocol: <abs-path>/skills/review/SKILL.md (apply it to this task)
     Package:         .sdd/specs/<feature>/workspace/review-package-<N>.md
     Spec files:      .sdd/specs/<feature>/requirements.md, design.md
+    Code analysis:   apply the `lsp-code-analysis` skill for code claims (LSP first, Grep/Glob fallback)
     Task bean:       <task-bean-id> (its ## Brief carries the task text and
                      requirement IDs - verify against it independently;
                      the implementer's contract is not evidence)
@@ -406,7 +408,8 @@ One counter per review cycle; it resets only when the task closes
   `# Round <K>` scoped section to the review package covering the
   files changed this round only, then dispatch a scoped re-review (read
   `${CLAUDE_SKILL_DIR}/templates/re-review-prompt.md`, resolve, dispatch with
-  `model: opus`, package + findings paths). Parse the same
+  `model: opus`, package + findings paths, plus the code-analysis
+  instruction - apply the `lsp-code-analysis` skill). Parse the same
   `## Review Verdict` block and record the round on the task bean per
   Step 4 (`## Validation` line + package pointer + verdict mirror
   tag); park the re-review's `PARKING_LOT` one-liners under
@@ -442,6 +445,7 @@ Agent(
                       (if built; on a first-round BLOCKED no package exists
                       yet - the debugger relies on the working tree)
     Working tree:     inspect read-only (git diff / git status)
+    Code analysis:    apply the `lsp-code-analysis` skill (LSP first, Grep/Glob fallback)
     Return exactly the ## Debug Outcome block your role prompt defines.
 )
 ```
@@ -556,7 +560,8 @@ from Step 0 when invoked in that state).
    dispatch the code-reviewer: read
    `${CLAUDE_SKILL_DIR}/templates/code-reviewer-prompt.md`, resolve, dispatch
    with `model: opus`, package + spec paths + the feature's task bean
-   ids (read-only `beans show`: their `## Notes` sections are the
+   ids, plus the code-analysis instruction (apply the `lsp-code-analysis`
+   skill) (read-only `beans show`: their `## Notes` sections are the
    learnings, their `## Parking lot` sections the parked minors).
    Parse `## Review Verdict` as usual; blocking findings start a
    remediation round. Record the round on the EPIC bean: ONE line
@@ -577,6 +582,7 @@ Agent(
     Apply:      <abs-path>/skills/validate-impl/SKILL.md
     Feature:    .sdd/specs/<feature>/ (requirements.md, design.md)
     Workspace:  .sdd/specs/<feature>/workspace/ (review packages)
+    Code analysis: apply the `lsp-code-analysis` skill for code claims (LSP first, Grep/Glob fallback)
     Return the GO / NO_GO result with its evidence.
 )
 ```

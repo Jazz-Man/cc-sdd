@@ -69,8 +69,9 @@ Read, under the spec directory from Step 1:
 
 Map what already exists against what the requirements need:
 
-- **Assets**: Grep/Glob/Read for domain-related files, modules, reusable
-  components, and directory layout. Quote the decisive snippets.
+- **Assets**: apply the `lsp-code-analysis` skill for domain-related
+  files, modules, reusable components, and directory layout (LSP first,
+  Grep/Glob/Read fallback). Quote the decisive snippets.
 - **Conventions**: naming, layering, dependency direction, testing
   approach - as observed in code, not assumed.
 - **Integration surfaces**: data models, API clients, auth mechanisms -

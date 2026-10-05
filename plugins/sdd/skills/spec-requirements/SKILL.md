@@ -142,7 +142,8 @@ only about the change intent.
 **Brownfield option**: when the feature extends an existing codebase and
 a scope question needs codebase facts, dispatch one exploration subagent
 (Agent tool, general-purpose) to summarize the existing behavior
-relevant to the feature - the summary enters the interview; raw
+relevant to the feature - tell it to apply the `lsp-code-analysis` skill
+(LSP first, Grep/Glob fallback). The summary enters the interview; raw
 exploration never does.
 
 **Write the digest before anything else**: run

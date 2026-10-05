@@ -10,5 +10,17 @@
     "show_command": true,
     "tags": ["claude"],
     "use_new_terminal": false
+  },
+  {
+    "allow_concurrent_runs": false,
+    "args": ["--dangerously-skip-permissions", "--resume", "skill-creator"],
+    "command": "claude",
+    "hide": "never",
+    "label": "skill-creator",
+    "reveal": "always",
+    "reveal_target": "dock",
+    "show_command": true,
+    "tags": ["claude"],
+    "use_new_terminal": false
   }
 ]

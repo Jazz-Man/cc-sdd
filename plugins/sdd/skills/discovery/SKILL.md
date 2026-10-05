@@ -75,8 +75,8 @@ already does, what the idea actually touches.
     description: "Survey codebase for <idea>",
     subagent_type: general-purpose,
     prompt: Survey this codebase against the following idea:
-      "<one line>". Prefer LSP tools where available; fall back to
-      Grep/Glob. Return ONLY a summary (under 150 lines): (1) tech
+      "<one line>". Apply the `lsp-code-analysis` skill (LSP first,
+      Grep/Glob fallback). Return ONLY a summary (under 150 lines): (1) tech
       stack and conventions, (2) module layout, (3) existing behavior
       the idea touches, (4) which parts read as extensions of existing
       modules vs genuinely new boundaries, (5) specs under .sdd/specs/
