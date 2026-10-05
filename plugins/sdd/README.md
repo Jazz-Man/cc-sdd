@@ -214,6 +214,24 @@ exists, the skill refuses to overwrite and offers a read-only diff instead.
 The hook also runs `beans prime` on session start and before compaction so the
 tracker's context survives context compression.
 
+## Invocation gates
+
+Three more hooks enforce the workflow mechanically:
+
+- **PreToolUse** (matcher `Skill`) — when the model calls an `/sdd:<name>`
+  skill, `bin/sdd-phase` verifies that skill's phase precondition; a failure
+  denies the call and the one-line diagnosis (with the fixing command) reaches
+  the model.
+- **UserPromptExpansion** (matcher `^sdd:`) — the same check for a directly
+  typed `/sdd:<name>` command, before it expands.
+- **PreToolUse** (matcher `Edit|Write`) — the write guard: file writes into
+  `.beans/` are blocked (bean state changes go through the beans CLI) and so
+  are checkbox lists written under `.sdd/` (the plan and its progress live in
+  the bean graph, never in documents).
+
+Every skill also runs `sdd-phase` as its own first step, so the sequence holds
+even where hooks do not fire.
+
 ## How it executes
 
 `/sdd:impl` runs inline in the main conversation as an orchestrator. It never

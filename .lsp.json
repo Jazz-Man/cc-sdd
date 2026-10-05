@@ -5,6 +5,7 @@
     "extensionToLanguage": {
       ".cjs": "javascript",
       ".js": "javascript",
+      ".json": "json",
       ".jsx": "javascriptreact",
       ".mjs": "javascript",
       ".ts": "typescript",

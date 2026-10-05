@@ -1,13 +1,22 @@
 {
+  "description": "sdd workflow gates: phase preconditions on /sdd:* invocations (skill gate + direct-typing gate), tracker-integrity write guard, SessionStart workflow-map injection.",
   "hooks": {
     "PreCompact": [
-      { "hooks": [{ "command": "beans prime", "type": "command" }] }
+      {
+        "hooks": [
+          {
+            "command": "beans prime",
+            "type": "command"
+          }
+        ]
+      }
     ],
     "PreToolUse": [
       {
         "hooks": [
           {
             "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-skill-gate.sh\"",
+            "timeout": 15,
             "type": "command"
           }
         ],
@@ -17,6 +26,7 @@
         "hooks": [
           {
             "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-write-guard.sh\"",
+            "timeout": 10,
             "type": "command"
           }
         ],
@@ -33,17 +43,25 @@
         ],
         "matcher": "startup|clear|compact"
       },
-      { "hooks": [{ "command": "beans prime", "type": "command" }] }
+      {
+        "hooks": [
+          {
+            "command": "beans prime",
+            "type": "command"
+          }
+        ]
+      }
     ],
     "UserPromptExpansion": [
       {
         "hooks": [
           {
             "command": "\"${CLAUDE_PLUGIN_ROOT:?unset}/hooks/sdd-skill-gate.sh\"",
+            "timeout": 15,
             "type": "command"
           }
         ],
-        "matcher": "sdd"
+        "matcher": "^sdd:"
       }
     ]
   }
