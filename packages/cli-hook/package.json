@@ -3,8 +3,7 @@
     "unbash": "catalog:core"
   },
   "devDependencies": {
-    "@cc-sdd/agent-types": "workspace:*",
-    "@kasava/prompt-builder": "catalog:core"
+    "@cc-sdd/agent-types": "workspace:*"
   },
   "name": "@cc-sdd/cli-hook",
   "private": true,
