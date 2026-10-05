@@ -57,8 +57,14 @@ Division of labor:
    is the sequence: statuses and `blockedByIds` edges, never checklists
    or step lists inside a bean body - a task that needs steps gets child
    beans from `/sdd:spec-tasks`, not a `- [ ]` list the next agent must
-   scan for. Execution state lives in beans and workspace files only.
-   Lifecycle follows the global beans guide.
+   scan for. The global beans guide's checkbox convention does NOT apply
+   to sdd task beans: never flip unchecked/checked box markers in ANY
+   body, even a legacy brief that carries them - a leaf's progress is
+   its status plus appended `## Report`/`## Notes` lines; a brief with a
+   step checklist is legacy debt: finish the whole leaf or surface it
+   for decomposition, never tick steps off. Execution state lives in
+   beans and workspace files only. Lifecycle follows the global beans
+   guide.
 7. **Single active feature.** Exactly one feature is active at any time (spec
    5.5). You never accept a feature argument; you resolve the feature from
    beans.

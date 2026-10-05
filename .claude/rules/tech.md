@@ -43,6 +43,7 @@ After any content change to `skills/`, `assets/`, `hooks/`, or `bin/`:
 
 1. `claude plugin validate .` — must pass.
 2. The invariant grep battery and the Revision 9 twin checks — scope, exact patterns, and the paired-diff method are pinned in `CLAUDE.md` §Verification (which points into the two design docs under `docs/superpowers/specs/`). Run them from there; do not copy patterns into summaries — copies drift.
+3. `plugins/sdd/helper-tests.sh` — the `bin/` helper sandbox suite (25 checks: phase gates, stale-hash + latest-wins, drafts, promote guards, tree walk, rollups, ancestor chaining, resume, finished, single-active). Self-contained mktemp store; leaves nothing behind. `shellcheck` must stay clean on any change to `bin/` or `hooks/`.
 
 For manual testing: `claude --plugin-dir /path/to/cc-sdd`; `/reload-plugins` in-session then picks up skill-text edits without a restart.
 
