@@ -255,7 +255,7 @@ responsibilities across boundaries, even when tests pass.
 (feature finish), the orchestrator owns all loop budgets. `GO` plus an
 approved whole-branch review ends the phase.
 
-**To the presenting main context (standalone entry only).** On DONE:
+**To the main context (standalone entry only).** On DONE:
 present the decision with its evidence highlights (the block above is
 the report; do not dump spec files into chat), then AskUserQuestion:
 **GO** - suggest completing the feature: finish via `/sdd:impl`

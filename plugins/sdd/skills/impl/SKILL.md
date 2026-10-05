@@ -27,9 +27,9 @@ Division of labor:
 
 1. Bash use is limited to read-only git (`git diff`, `git status`, `git log`,
    `git merge-base`), the beans CLI, the plugin's
-   `bin/` helpers (`sdd-gate` and `sdd-verdict` are read-only; `sdd-promote`
-   is the sole write helper — strictly `beans update <id> -s todo`), and
-   file operations.
+   `bin/` helpers (`sdd-gate`, `sdd-verdict`, `sdd-phase`, and `sdd-next`
+   are read-only; `sdd-promote` is the sole write helper — strictly
+   `beans update <id> -s todo`), and file operations.
 2. **Paths and ids, never contents.** Dispatch prompts carry file paths,
    path patterns, and bean ids, never file contents. Subagents read
    files, run `beans show` on the ids, and Glob-expand patterns
@@ -53,9 +53,12 @@ Division of labor:
    repo/spec files or must go to the user via AskUserQuestion.
 6. **beans is the only tracker.** Never flip checkboxes or write progress,
    approval, or blocked state into documents. The task beans ARE the
-   plan (spec Revision 4 - no plan document exists); execution state
-   lives in beans and workspace files only. Lifecycle follows the global
-   beans guide.
+   plan (spec Revision 4 - no plan document exists), and the bean GRAPH
+   is the sequence: statuses and `blockedByIds` edges, never checklists
+   or step lists inside a bean body - a task that needs steps gets child
+   beans from `/sdd:spec-tasks`, not a `- [ ]` list the next agent must
+   scan for. Execution state lives in beans and workspace files only.
+   Lifecycle follows the global beans guide.
 7. **Single active feature.** Exactly one feature is active at any time (spec
    5.5). You never accept a feature argument; you resolve the feature from
    beans.
@@ -97,6 +100,29 @@ Division of labor:
 Run this at the start of EVERY cycle, including after a user "continue". Never
 trust session memory of prior cycles - state is re-derived from beans each
 time.
+
+**Run the mechanical helpers first** (both read-only):
+
+```
+${CLAUDE_PLUGIN_ROOT}/bin/sdd-phase impl     # the full impl gate
+${CLAUDE_PLUGIN_ROOT}/bin/sdd-next           # the next actionable task
+```
+
+- `sdd-phase impl` nonzero -> STOP: its one-line stderr names the failed
+  gate and the fixing `/sdd:<name>` command. The inline procedure below
+  is the canonical fallback and explains what the gate checked.
+- `sdd-next` prints `ROLLUP:` lines first: complete each pending major
+  container (`beans update <id> -s completed` with a one-line
+  `## Summary of Changes` - a major is done exactly when all its leaves
+  are), then re-run `sdd-next`. Its `NEXT:` line is the task for this
+  cycle (an in-progress leaf wins - interrupted runs resume; otherwise
+  the lowest number among unblocked leaves). `FINISHED` -> Feature
+  finish. A drafts or stuck diagnosis -> STOP and report as the message
+  says (drafts point to the `/sdd:spec-tasks` approve gate).
+
+The items below are the inline procedure the helpers wrap - step
+through them when a helper is unavailable or its failure needs
+adjudication:
 
 1. **Resolve the active feature**: query beans for epic beans with status
    `in-progress` (e.g. `beans list --json -t epic -s in-progress`).
@@ -171,11 +197,14 @@ time.
      the decision is the user's: you never re-validate, never
      overwrite a `Doc-hash:`, and never continue past a stale gate.
 
-3. **Resolve the task queue**: from the same children query, the epic's
-   task beans EXCLUDING the `phase`-tagged gate beans, with their
-   statuses and blocked-by relations. A task is **unblocked** when none
-   of its blocked-by beans is incomplete (`todo`, `draft`, or
-   `in-progress` - completed and scrapped blockers do not block). A task
+3. **Resolve the task queue**: the epic's task TREE - the children query
+   returns the majors (feature-type containers), any flat undecomposed
+   tasks, and the phase beans; query each major's children for the
+   leaves. Work happens on LEAVES only; a major is never executed and
+   completes by rollup when all its leaves are completed/scrapped. A
+   leaf is **unblocked** when none of its blocked-by beans - and none of
+   its ancestors' blocked-by beans - is incomplete (`todo`, `draft`, or
+   `in-progress`; completed and scrapped blockers do not block). A leaf
    is **actionable** when it has status `todo` or `in-progress`, is
    unblocked, and its body carries no unresolved `## Blocker` note (the
    blocked-task encoding written by Step 6; a note is unresolved until
@@ -184,8 +213,8 @@ time.
    generated-not-approved (spec Revision 5); the `/sdd:spec-tasks`
    approve gate promotes them to `todo`.
 4. **Select the task**:
-   - No argument: the lowest-numbered actionable task; an `in-progress` task
-     wins over a `todo` task with the same number (interrupted run resumes
+   - No argument: the lowest-numbered actionable leaf; an `in-progress` leaf
+     wins over a `todo` leaf with the same number (interrupted run resumes
      there). If a task would be selected but for an unresolved `## Blocker`
      note, do NOT auto-select it: report the task and its recorded root
      cause, then ask via AskUserQuestion - retry the blocked task now /

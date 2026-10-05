@@ -1,0 +1,127 @@
+#!/bin/sh
+# sdd-phase - per-skill phase precondition check (read-only).
+# Usage: sdd-phase <skill-name>          # bare ("impl") or namespaced ("sdd:impl")
+#
+# One helper behind both enforcement surfaces: the PreToolUse skill gate and
+# each skill's own first step. Maps a skill name to its phase precondition
+# and verifies it from beans:
+#   discovery/init/steering/review/debug/verify-completion/validate-* -
+#       no phase precondition (their own texts carry their gates);
+#   spec-init      - no in-progress epic may exist (single active feature);
+#   spec-requirements - an active epic exists (re-entry is the skill's own
+#                       Step 0 escalation, not a hard precondition);
+#   spec-design    - Phase - requirements completed + `validated` + fresh
+#                   Doc-hash;
+#   spec-tasks     - Phase - design completed + `validated` + fresh Doc-hash;
+#   impl           - the full sdd-gate (phases + freshness + queue).
+# Pass: "PHASE PASS: ..." on stdout, exit 0.
+# Fail: "sdd-phase: <skill> - <diagnosis>" on stderr, exit 1 (the diagnosis
+# names the fixing /sdd:<name> command).
+# Read-only: beans CLI queries and shasum only; changes nothing.
+set -eu
+
+. "$(dirname "$0")/_sdd-lib.sh"
+
+usage() {
+    echo "usage: sdd-phase <skill-name> - exit 0 iff the skill's phase precondition holds; on failure prints a one-line diagnosis with the fixing command on stderr (exit 1). Read-only." >&2
+    exit 2
+}
+
+die() {
+    echo "sdd-phase: $SKILL - $1" >&2
+    exit 1
+}
+
+SKILL=""
+for arg in "$@"; do
+    case $arg in
+        -h|--help) usage ;;
+        -*) echo "sdd-phase: unknown option: $arg" >&2; exit 2 ;;
+        *)
+            [ -n "$SKILL" ] && usage
+            SKILL=$arg
+            ;;
+    esac
+done
+[ -n "$SKILL" ] || usage
+
+# Normalize "sdd:impl" -> "impl"; strip a trailing argument hint if any.
+SKILL=${SKILL##sdd:}
+
+case $SKILL in
+    discovery|init|steering|review|debug|verify-completion|validate-requirements|validate-design|validate-gap|validate-impl)
+        echo "PHASE PASS: $SKILL - no phase precondition"
+        exit 0
+        ;;
+    spec-init|spec-requirements|spec-design|spec-tasks|impl) ;;
+    *)
+        die "unknown sdd skill '$SKILL' - nothing to check"
+        ;;
+esac
+
+# --- single active feature ----------------------------------------------------
+epic_lines=$(sdd_active_epics)
+epic_count=$(printf '%s\n' "$epic_lines" | sed '/^$/d' | wc -l | tr -d ' ')
+
+if [ "$SKILL" = spec-init ]; then
+    [ "$epic_count" -eq 0 ] ||
+        die "an active feature already exists ($(printf '%s' "$epic_lines" | head -n 1 | cut -f1)) - single active feature; finish or scrap it before birthing another"
+    echo "PHASE PASS: spec-init - no active feature, birth allowed"
+    exit 0
+fi
+
+[ "$epic_count" -ge 1 ] ||
+    die "no active feature - start one via /sdd:spec-init (spec already shaped) or /sdd:discovery (nothing shaped yet)"
+[ "$epic_count" -eq 1 ] ||
+    die "$epic_count in-progress epics - single-active-feature violated; resolve beans first (complete, scrap, or fix statuses)"
+epic=$(printf '%s\n' "$epic_lines" | head -n 1 | cut -f1)
+
+[ "$SKILL" = spec-requirements ] && {
+    echo "PHASE PASS: spec-requirements - active feature $epic (re-entry checks are the skill's own Step 0)"
+    exit 0
+}
+
+# impl: the full gate owns everything past here.
+[ "$SKILL" = impl ] && exec "$(dirname "$0")/sdd-gate" "$epic"
+
+# --- spec-design / spec-tasks: upstream phase completed + validated + fresh --
+spec_dir=$(sdd_epic_spec_dir "$epic")
+[ -n "$spec_dir" ] ||
+    die "epic body carries no 'Spec path:' line - re-run /sdd:spec-init (heal)"
+spec_dir=${spec_dir%/}
+
+children=$(sdd_children_records "$epic")
+sdd_find_phases <<EOF
+$children
+EOF
+
+case $SKILL in
+    spec-design)
+        up_id=$PHASE_REQ; up_status=$PHASE_REQ_STATUS; up_tags=$PHASE_REQ_TAGS
+        up_label="requirements"; up_doc="requirements.md"; up_cmd="spec-requirements"
+        ;;
+    spec-tasks)
+        up_id=$PHASE_DES; up_status=$PHASE_DES_STATUS; up_tags=$PHASE_DES_TAGS
+        up_label="design"; up_doc="design.md"; up_cmd="spec-design"
+        ;;
+esac
+
+[ -n "$up_id" ] ||
+    die "gate phases: 'Phase — $up_label' bean missing under $epic - run /sdd:spec-init (heal)"
+[ "$up_status" = completed ] ||
+    die "gate phase-completed: 'Phase — $up_label' is '$up_status' - run /sdd:$up_cmd"
+
+case ",$up_tags," in
+    *,validated,*) ;;
+    *) die "gate validated: 'Phase — $up_label' lacks the 'validated' tag - re-run /sdd:$up_cmd" ;;
+esac
+
+fresh_diag=$(sdd_check_doc_fresh "$up_id" "$spec_dir" "$up_doc") ||
+    case $fresh_diag in
+        nodoc)  die "gate freshness: $spec_dir/$up_doc is missing on disk - restore it or re-run /sdd:$up_cmd" ;;
+        nohash) die "gate doc-hash: 'Phase — $up_label' carries no Doc-hash: line - re-run /sdd:$up_cmd" ;;
+        stale)  die "gate freshness: $up_doc changed after its validation (hash mismatch) - re-run /sdd:$up_cmd" ;;
+    esac
+
+echo "PHASE PASS: $SKILL - upstream phase $up_label completed, validated, fresh (epic $epic)"
+exit 0

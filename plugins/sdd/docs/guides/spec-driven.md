@@ -27,9 +27,11 @@ Three rules hold the whole thing together:
   epic; multi-spec initiatives are strictly sequential chains under a
   milestone. Nothing runs in parallel, by design.
 - **State is beans, artifacts are files.** Progress, approvals, blockers, and
-  dependencies live in beans (feature = epic, task = task bean, initiative =
-  milestone) — and so do task briefs, reports, notes, and verdict lines, as
-  body sections. There is no plan document: the task beans ARE the plan.
+  dependencies live in beans (feature = epic, task group = feature-type
+  container bean, task = task bean, initiative = milestone) — and so do task
+  briefs, reports, notes, and verdict lines, as body sections. There is no
+  plan document: the task bean TREE is the plan, and its `blockedByIds` edges
+  are the sequence — never number order, never checklists in bodies.
   Resume means querying beans — never re-parsing documents, never trusting
   session memory.
 
@@ -157,11 +159,14 @@ your call.
 ```
 
 Another fork — but it writes no document. It derives the plan from the
-approved requirements and design and creates one task bean per sub-task under
-the feature epic, born `draft`: each body's `## Brief` section carries the
-number, title, natural-language description, detail bullets (at least one
-observable completion condition), and `_Requirements:_` / `_Boundary:_` /
-`_Depends:_` metadata; cross-task dependencies are `--blocked-by` relations.
+approved requirements and design and creates the task TREE under the feature
+epic, born `draft`: major groups as feature-type container beans (one-line
+scope briefs), sub-tasks as task beans under their majors, each leaf body's
+`## Brief` section carrying the number, title, natural-language description,
+detail bullets (at least one observable completion condition), and
+`_Requirements:_` / `_Boundary:_` / `_Depends:_` metadata. The sequence is
+`--blocked-by` edges (leaf to predecessor, major to major) — a multi-step
+task is decomposed into child beans, never a checklist in a body.
 The beans ARE the plan.
 
 The approve gate is yours in the main context: approve-all or selectively

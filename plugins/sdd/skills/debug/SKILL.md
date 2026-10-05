@@ -17,6 +17,11 @@ template's outcome block wins. This document carries the full method and
 stands alone for ad-hoc use - investigating any failure by hand, with no
 orchestrator dispatch.
 
+**beans is the only tracker** - verdicts and outcomes are bean state
+(statuses, verdict lines, tags), never checkboxes or progress notes
+written into documents; when running standalone, report findings in chat
+and let the caller record any beans.
+
 ## When to Use
 
 - Implementer reports `BLOCKED`
@@ -152,5 +157,5 @@ the heading and the `- OUTCOME:` line mechanically):
 
 RESOLVED always carries a root cause and a fix plan. UNRESOLVED always
 carries the root cause found so far, why it is stuck, and the filled
-escalation block - the invoking context forwards that block to the user
+escalation block - the main context forwards that block to the user
 verbatim. Output in English.

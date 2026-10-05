@@ -25,8 +25,15 @@ accept a new feature name; follow-ups queue as `todo` epics blocked by the activ
 
 **beans is the only tracker.** State lives in beans, artifacts in files; follow the global beans guide.
 Never write progress, approvals, or checkbox flips into documents; no plan document exists - the
-task beans ARE the plan (`## Brief`/`## Report`/`## Notes`/`## Validation`/`## Parking lot` body
+task beans ARE the plan, as a TREE (feature-type major containers, task leaves) whose dependency
+edges (`blockedByIds`) are the sequence; a multi-step task is decomposed into child beans, never a
+checklist in a body (`## Brief`/`## Report`/`## Notes`/`## Validation`/`## Parking lot` body
 sections; verdict lines carry mirror tags). Resume by querying beans, never by re-parsing documents.
+
+**Mechanical gates.** The sequence is bash-checkable: `sdd-phase <skill>` verifies each skill's
+phase precondition, `sdd-gate <epic>` the full impl entry, `sdd-next` the next runnable leaf;
+PreToolUse hooks run these at invocation time and block out-of-order `/sdd:*` calls and
+tracking writes into documents (`.beans/` is CLI-only; specs never carry checkboxes).
 
 **Interaction.** Every question or choice-point goes through AskUserQuestion; subagents never
 ask the user - they return status contracts. Clarifying questions only in discovery and

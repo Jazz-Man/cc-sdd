@@ -1,6 +1,6 @@
 ---
 name: spec-design
-description: Generative fork - research the active feature (discovery by classification) and write design.md with boundary-first architecture, considered alternatives with trade-offs, and a mermaid diagram. Use after /sdd:spec-requirements; the invoking context presents the result and runs the confirm gate.
+description: Generative fork - research the active feature (discovery by classification) and write design.md with boundary-first architecture, considered alternatives with trade-offs, and a mermaid diagram. Use after /sdd:spec-requirements; the main context presents the result and runs the confirm gate.
 context: fork
 background: false
 model: opus
@@ -28,7 +28,7 @@ WHAT.
 2. **The fork writes no beans.** It resolves the active feature by
    reading beans; the design phase-gate completion - with its
    Revision 6 `validated`-tag and `Doc-hash` writes - belongs to the
-   presenting main context (Return contract), and task-bean lifecycle
+   main context (Return contract), and task-bean lifecycle
    belongs to `/sdd:spec-tasks`. Never write progress, approval, or
    blocked state into documents.
 3. **No user questions.** Blocked means return BLOCKED, not stop-and-ask.
@@ -84,7 +84,7 @@ read `blockedByIds`). Identify the phase beans by exact title plus the
   a CONCERNS line so it reaches the gate.
 
 Keep the design phase bean id at hand (when present); return it in the
-summary block (PHASE line) - the presenting context validates onto it
+summary block (PHASE line) - the main context validates onto it
 and completes it at the confirm gate.
 
 ## Step 3 - Load inputs
@@ -205,13 +205,13 @@ caller parses the heading and the `- STATUS:` line mechanically:
 - BLOCKERS: <BLOCKED only - the gap or condition, and the command to run>
 ```
 
-**To the presenting main context.** You invoked this fork; it cannot
+**To the main context.** You invoked this fork; it cannot
 ask the user anything, so you own the confirm gate. On DONE: present
 a SHORT summary in chat - discovery type, the approaches considered
 with the recommended one, boundary highlights, and concerns.
 
-The full document is `.sdd/specs/<feature>/design.md`; the user reads
-it in the IDE. Do not dump the document into chat.
+The full document is `.sdd/specs/<feature>/design.md`; point the
+user at the path. Do not dump the document into chat.
 
 No new open questions from you here - confirm-only. Then
 AskUserQuestion:

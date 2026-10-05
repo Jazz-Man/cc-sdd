@@ -1,0 +1,177 @@
+#!/bin/sh
+# sdd-next - resolve the next actionable task bean of the active feature (read-only).
+# Usage: sdd-next
+#
+# The task plan is the epic's bean TREE: task beans may nest (major ->
+# sub-task -> ...); work happens on LEAF beans only. This helper makes the
+# queue mechanical:
+#   - resolves the single active epic, then requires the full impl gate
+#     (sdd-gate: three completed+validated+fresh phases, runnable queue);
+#   - ROLLUP lines: container beans (they have children) that are not yet
+#     completed/scrapped while ALL their children are - impl completes them;
+#   - NEXT line: the leaf to run now - status todo or in-progress, every
+#     blockedByIds entry completed/scrapped, no unresolved `## Blocker` body
+#     note. An in-progress leaf wins (interrupted run resumes); otherwise the
+#     lowest task number (dotted-number aware). Numbers are labels - the
+#     dependency edges, not the numbering, do the gating.
+# Exit 0 with NEXT / ROLLUP / FINISHED lines on stdout; exit 1 with a
+# one-line diagnosis (drafts unpromoted, or stuck leaves with their
+# blockers) on stderr. Read-only: beans CLI queries only; changes nothing.
+set -eu
+
+. "$(dirname "$0")/_sdd-lib.sh"
+
+usage() {
+    echo "usage: sdd-next - print the next actionable leaf task bean (NEXT line) plus pending ROLLUP containers of the active feature; exit 1 with a diagnosis when none is runnable. Read-only." >&2
+    exit 2
+}
+
+case $# in
+    0) ;;
+    -h|--help)
+        echo "usage: sdd-next - print the next actionable leaf task bean (NEXT line) plus pending ROLLUP containers of the active feature; exit 1 with a diagnosis when none is runnable. Read-only."
+        exit 0
+        ;;
+    *) usage ;;
+esac
+
+dir=$(dirname "$0")
+
+# --- active epic ---------------------------------------------------------------
+epic_lines=$(sdd_active_epics)
+epic_count=$(printf '%s\n' "$epic_lines" | sed '/^$/d' | wc -l | tr -d ' ')
+[ "$epic_count" -ge 1 ] || {
+    echo "sdd-next: no active feature - start one via /sdd:spec-init (spec already shaped) or /sdd:discovery (nothing shaped yet)" >&2
+    exit 1
+}
+[ "$epic_count" -eq 1 ] || {
+    echo "sdd-next: $epic_count in-progress epics - single-active-feature violated; resolve beans first" >&2
+    exit 1
+}
+epic=$(printf '%s\n' "$epic_lines" | head -n 1 | cut -f1)
+
+# --- impl gate: phases, validation, freshness ----------------------------------
+"$dir/sdd-gate" --quiet "$epic"
+
+# --- the task tree --------------------------------------------------------------
+# desc record: id <TAB> parentId <TAB> status <TAB> tags <TAB> title
+desc=$(sdd_descendants_records "$epic")
+[ -n "$desc" ] || {
+    echo "sdd-next: no task beans under $epic - promote the plan via /sdd:spec-tasks" >&2
+    exit 1
+}
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT INT TERM
+printf '%s\n' "$desc" >"$work/desc"
+
+# Container ids (any bean that is somebody's parent) and the child-status
+# join for rollup detection - one awk pass, no shell loops over state.
+awk -F'\t' -v OFS='\t' '
+    { parent[$2] = 1 }
+    END { for (id in parent) print "CONTAINER", id }
+' "$work/desc" | sort >"$work/containers"
+
+awk -F'\t' '
+    NR == FNR { parent[$2] = 1; next }
+    $4 ~ /(^|,)phase(,|$)/ { next }
+    !($1 in parent) { next }
+    $3 == "completed" || $3 == "scrapped" { next }
+    { print $1 "\t" $5 }
+' "$work/desc" "$work/desc" >"$work/rollup_cand"
+
+# A rollup candidate rolls up only when EVERY child is completed/scrapped.
+: >"$work/rollups"
+if [ -f "$work/rollup_cand" ]; then
+    while IFS="$TAB" read -r rid _rtitle; do
+        [ -n "$rid" ] || continue
+        bad=$(awk -F'\t' -v p="$rid" '$2 == p && $3 != "completed" && $3 != "scrapped" { c++ } END { print c + 0 }' "$work/desc")
+        [ "$bad" -eq 0 ] && printf 'ROLLUP: %s\n' "$rid" >>"$work/rollups"
+    done <"$work/rollup_cand"
+fi
+cat "$work/rollups"
+
+# --- leaves: actionable filter --------------------------------------------------
+# leaf = non-phase bean that is nobody's parent; actionable = todo|in-progress,
+# all blockers terminal, no unresolved ## Blocker note.
+awk -F'\t' '
+    NR == FNR { parent[$2] = 1; next }
+    $4 ~ /(^|,)phase(,|$)/ { next }
+    ($1 in parent) { next }
+    $3 != "todo" && $3 != "in-progress" { next }
+    { print $1 "\t" $3 "\t" $5 }
+' "$work/desc" "$work/desc" >"$work/leaves"
+
+: >"$work/candidates"
+while IFS="$TAB" read -r lid lstatus ltitle; do
+    [ -n "$lid" ] || continue
+    leaf_json=$(sdd_bean_query "$lid" "blockedByIds body")
+    blockers=$(printf '%s\n' "$leaf_json" | sdd_blocked_ids | tr '\n' ' ')
+    stuck=""
+    for b in $blockers; do
+        bstat=$(awk -F'\t' -v b="$b" '$1 == b { print $3; exit }' "$work/desc")
+        if [ -z "$bstat" ]; then
+            bstat=$(sdd_bean_field "$(sdd_bean_query "$b" "status")" "status")
+        fi
+        case $bstat in completed|scrapped) ;; *) stuck="$stuck $b" ;; esac
+    done
+    # Ancestor chaining: majors gate their leaves through the majors' own
+    # blockers (major N blocked-by major N-1 holds every leaf of N until the
+    # prior major rolls up). The container itself need not be completed -
+    # rollup happens after its leaves.
+    anc=$(awk -F'\t' -v l="$lid" '$1 == l { print $2; exit }' "$work/desc")
+    ahops=0
+    while [ -n "$anc" ] && [ "$ahops" -lt 16 ]; do
+        anc_json=$(sdd_bean_query "$anc" "blockedByIds")
+        anc_blockers=$(printf '%s\n' "$anc_json" | sdd_blocked_ids | tr '\n' ' ')
+        for b in $anc_blockers; do
+            bstat=$(awk -F'\t' -v b="$b" '$1 == b { print $3; exit }' "$work/desc")
+            if [ -z "$bstat" ]; then
+                bstat=$(sdd_bean_field "$(sdd_bean_query "$b" "status")" "status")
+            fi
+            case $bstat in completed|scrapped) ;; *) stuck="$stuck $b(via $anc)" ;; esac
+        done
+        anc=$(awk -F'\t' -v a="$anc" '$1 == a { print $2; exit }' "$work/desc")
+        ahops=$((ahops + 1))
+    done
+    [ -z "$stuck" ] || continue
+    printf '%s\n' "$leaf_json" | grep -q '## Blocker' && continue
+    num=$(printf '%s' "$ltitle" | sed -n 's/^\([0-9][0-9.]*\) .*/\1/p')
+    [ -n "$num" ] || num=$(printf '%s\n' "$leaf_json" | sed -n 's/.*Task: \([0-9][0-9.]*\).*/\1/p' | head -n 1)
+    [ -n "$num" ] || num="9999.9999"
+    key=$(printf '%s.' "$num" | awk -F. '{ printf "%04d%04d%04d%04d", $1, $2, $3, $4 }')
+    printf '%s\t%s\t%s\t%s\n' "$lstatus" "$key" "$lid" "$ltitle" >>"$work/candidates"
+done <"$work/leaves"
+
+# --- pick: in-progress first (resume), else lowest number -----------------------
+pick=$(awk -F'\t' '
+    $1 == "in-progress" { print "1" $2 "\t" $0; next }
+    { print "2" $2 "\t" $0 }
+' "$work/candidates" | sort | head -n 1 | cut -f2-)
+
+if [ -n "$pick" ]; then
+    p_id=$(printf '%s' "$pick" | cut -f3)
+    p_title=$(printf '%s' "$pick" | cut -f4)
+    p_parent=$(awk -F'\t' -v b="$p_id" '$1 == b { print $2; exit }' "$work/desc")
+    echo "NEXT: $p_id - $p_title (parent ${p_parent:-epic})"
+    exit 0
+fi
+
+# --- no actionable leaf: diagnose ------------------------------------------------
+drafts=$(awk -F'\t' '$4 !~ /(^|,)phase(,|$)/ && $3 == "draft" { c++ } END { print c + 0 }' "$work/desc")
+if [ "$drafts" -ge 1 ]; then
+    echo "sdd-next: $drafts draft task bean(s) not promoted - approve the plan via /sdd:spec-tasks (sdd-promote $epic --all)" >&2
+    exit 1
+fi
+if [ -s "$work/rollups" ]; then
+    echo "ROLLUP-PENDING: complete the ROLLUP containers above (beans update <id> -s completed), then re-run sdd-next"
+    exit 0
+fi
+open_leaves=$(awk -F'\t' '$4 !~ /(^|,)phase(,|$)/ && $3 != "completed" && $3 != "scrapped" { print "  " $1 " (" $3 ") " $5 }' "$work/desc")
+if [ -z "$open_leaves" ]; then
+    echo "FINISHED: every task leaf is completed/scrapped - feature finish path"
+    exit 0
+fi
+echo "sdd-next: no actionable leaf - open leaves blocked (blockers or ## Blocker notes):" >&2
+printf '%s\n' "$open_leaves" | head -n 5 >&2
+exit 1

@@ -54,10 +54,12 @@ drives the cycle; there is no chain skill that runs everything in one go.
 - **spec-design** runs as a fork (fresh subagent): researches the feature and
   writes `design.md` — boundary-first architecture, considered alternatives,
   mermaid diagram. Approval runs the design validator the same way.
-- **spec-tasks** runs as a fork: drafts one task bean per sub-task, born
-  `draft` — each body's `## Brief` section IS the task brief, there is no
-  plan document. The approve gate promotes beans (approve-all or selective)
-  to `todo`.
+- **spec-tasks** runs as a fork: drafts the task TREE — feature-type major
+  containers under the epic, task leaves under their majors, dependency
+  edges (`blockedByIds`) as the sequence — all born `draft`; each leaf
+  body's `## Brief` section IS the task brief, there is no plan document.
+  The approve gate promotes the drafts (approve-all or selective, via
+  `sdd-promote`) to `todo`.
 - **impl** executes the approved task beans one at a time (see below),
   stopping after every task.
 
@@ -125,10 +127,13 @@ Two stores, strictly separated — with a size boundary between them:
                                    validation reports, edit digests
 ```
 
-Three small helpers in the plugin's `bin/` guard the mechanical parts:
-`sdd-gate` (impl's three-phase + freshness gate as a read-only script),
-`sdd-verdict` (latest verdict token from a bean body), and `sdd-promote`
-(the approve gate's `draft` → `todo` promotion — the only write helper).
+Five small helpers (plus their shared `_sdd-lib.sh`) in the plugin's `bin/`
+guard the mechanical parts: `sdd-phase` (each skill's phase precondition —
+what the PreToolUse gate runs), `sdd-gate` (the full impl entry gate: phases,
+validation tags, document-hash freshness, tree queue), `sdd-next` (the next
+runnable leaf of the task tree plus pending rollups), `sdd-verdict` (latest
+verdict token from a bean body), and `sdd-promote` (the approve gate's
+`draft` → `todo` promotion across the tree — the only write helper).
 
 ## Stop-per-task: the user holds git
 
@@ -136,7 +141,7 @@ After every implementation task, `/sdd:impl` stops. The user reviews the diff,
 runs what they want to run, and commits. The stop report is deliberately short:
 task ID, final status,
 review verdict, verification result, and optionally one line of test results.
-No diff summaries or file lists — the user watches changes live in the IDE.
+No diff summaries or file lists — the user reviews the working tree themselves.
 
 Continuing is an explicit choice (via a structured question), as is revising the
 task, escalating to a plan change, or aborting the feature.
@@ -182,7 +187,7 @@ Pinned in the skill texts, never the agent's choice:
 | `/sdd:spec-init` | birth a feature: spec directory + epic bean + three phase beans |
 | `/sdd:spec-requirements` | interview the user, dispatch the EARS draft (opus) |
 | `/sdd:spec-design` | fork: research the feature and write `design.md` |
-| `/sdd:spec-tasks` | fork: draft one task bean (`## Brief`) per sub-task |
+| `/sdd:spec-tasks` | fork: draft the task tree (majors + leaf `## Brief` beans) |
 | `/sdd:impl` | orchestrator: subagent implement/review, stop-per-task |
 | `/sdd:review` | adversarial task-local review protocol |
 | `/sdd:debug` | root-cause-first debug protocol |

@@ -21,9 +21,18 @@ Focus on capabilities and outcomes, not code structure.
 
 **Rationale**: Implementation details (files, methods, types) are defined in design.md. Tasks describe the functional work to be done.
 
-### 2. Task Ordering Principle
+### 2. Dependency Principle — edges in the bean graph, not number order
 
-**Order implies dependency**: Task N implicitly depends on all tasks before it. This is the primary dependency mechanism.
+**The dependency graph is the plan's sequencing mechanism**: each leaf task
+bean carries `blockedByIds` edges to the beans that must finish first. Task
+numbers are labels for humans (grep-able reading order) — never the gating
+mechanism. The executor resolves "what runs next" from the graph, so a plan
+whose order lives only in its numbering is an unsequenced plan.
+
+**Chain by default**: within a major group, each leaf is blocked-by its
+immediate predecessor; each major container is blocked-by the previous
+major. Omit an edge only when the design genuinely makes the work
+independent — and say so in that leaf's brief.
 
 **Tasks must follow this phase order**:
 1. **Foundation**: Environment setup, test infrastructure, shared utilities, database schema, configuration
@@ -47,15 +56,18 @@ Focus on capabilities and outcomes, not code structure.
 
 ### 4. Dependency Declaration
 
-**Default**: Sequential ordering handles most dependencies (task N depends on tasks before it).
+**Default**: every leaf carries a `blockedByIds` edge to its immediate
+predecessor (chain within the major; major containers chain to the previous
+major). The edge is native beans state — written with `--blocked-by` at bean
+creation, readable by tools, and never expressed as prose order in a body.
 
-**Explicit declaration required when**:
-- A task depends on a specific task in a different major-task group (cross-boundary)
-- The dependency is non-obvious from ordering alone
+**Explicit `_Depends:` declaration required when**:
+- A leaf depends on a non-adjacent bean (a specific earlier leaf in another major-task group)
+- The dependency is non-obvious from the chain alone
 
-**Format**: `_Depends: 1.2, 2.3_` — placed alongside `_Requirements:_` in task detail sections.
+**Format**: `_Depends: 1.2, 2.3_` — placed alongside `_Requirements:_` in task detail sections; each entry becomes one extra `--blocked-by` edge at bean creation.
 
-**Do not over-annotate**: If a task simply depends on the task directly before it, ordering alone is sufficient.
+**Designed independence**: a leaf with no chain edge must say in its brief why it is independent (the executor treats "no incoming edge" as intentional).
 
 ### 5. Boundary Scope
 
@@ -143,39 +155,52 @@ Before creating the task briefs, review the draft plan and repair local issues u
 - A deferrable test sub-task must directly reference the acceptance criteria from requirements.md that it verifies in its detail bullets.
 - Never treat implementation work or integration-critical verification as deferrable—reserve late placement for auxiliary test coverage that can be revisited post-MVP. Deferring a requirement entirely requires documented rationale in the plan.
 
-## Task Hierarchy Rules
+## Task Tree Rules
 
-### Maximum 2 Levels
-- **Level 1**: Major tasks (1, 2, 3, 4...)
-- **Level 2**: Sub-tasks (1.1, 1.2, 2.1, 2.2...)
-- **No deeper nesting** (no 1.1.1)
-- If a major task would contain only a single actionable item, collapse the structure and promote the sub-task to the major level (e.g., replace `1.1` with `1.`).
-- When a major task exists purely as a container, keep its description concise and avoid duplicating detailed bullets—reserve specifics for its sub-tasks.
+### Physical shape (beans CLI constraints)
+- **Major groups are real container beans**: type `feature`, parent = the
+  feature epic, own concise `## Brief` (scope of the group, no detail
+  bullets). The beans CLI allows task beans only under milestone, epic, or
+  feature parents — and feature under feature is refused — so the tree has
+  exactly two task levels:
+  - **Major container** (`1`, `2`, ...): feature-type bean under the epic;
+    never executed itself, completes by rollup when all its leaves are
+    completed/scrapped.
+  - **Leaf task** (`1.1`, `1.2`, ...): task-type bean under its major; the
+    atomic work unit an implementer is dispatched against.
+- **Deeper logical decomposition flattens**: sub-sub-steps (no physical
+  `1.1.1` bean) become dotted-number leaves under the same major
+  (`1.1`, `1.2`, ...), sequenced by `blockedByIds` edges.
+- **Single-item collapse**: if a major would contain only one actionable
+  leaf, drop the container — that leaf becomes a flat task child of the
+  epic with the major's number.
 
 ### Sequential Numbering
-- Major tasks MUST increment: 1, 2, 3, 4, 5...
-- Sub-tasks reset per major task: 1.1, 1.2, then 2.1, 2.2...
-- Never repeat major task numbers
+- Major groups MUST increment: 1, 2, 3, 4, 5...
+- Leaves reset per major: 1.1, 1.2, then 2.1, 2.2...
+- Never repeat major numbers; numbers are labels, edges are the sequence.
 
-### Independence Analysis (sequential execution)
-- Execution is strictly sequential: the plan order is the dependency order, and there are no parallel markers.
-- Use the independence criteria to decide which tasks need NO explicit `_Depends:_` — when all conditions hold, plain ordering is sufficient:
+### Independence analysis (edge decisions)
+- Execution is strictly sequential; the dependency edges encode it.
+- Chain every leaf to its immediate predecessor and every major to the
+  previous major by default. Omit an edge only when ALL hold:
   - No data dependency on other pending tasks
   - No shared file or resource contention
   - No prerequisite review/approval from another task
   - `_Boundary:_` annotations confirm non-overlapping component scopes
-- When a condition fails across major-task groups (the dependency is cross-boundary or non-obvious from ordering), declare `_Depends: X.X_` explicitly on the later task.
-- Foundation-phase tasks (see Task Ordering Principle) establish shared prerequisites — Core-phase tasks typically satisfy the independence criteria once foundation is complete.
+- A leaf depending on a non-adjacent bean declares `_Depends: X.X_`
+  explicitly (one extra edge each).
+- Foundation-phase tasks establish shared prerequisites — Core-phase tasks
+  typically satisfy the independence criteria once foundation is complete.
 - Validate that boundary declarations match the boundaries defined in the Architecture Pattern & Boundary Map.
 - Confirm API/event contracts from design.md do not imply hidden ordering the plan fails to declare.
-- Group related tasks logically (same parent when possible) and highlight any ordering caveats in detail bullets.
 - Explicitly call out dependencies that break independence even when tasks look similar.
 
 ### Brief Format
 
-The plan is the set of task-bean bodies — one `## Brief` per sub-task under the
-feature epic. Majors are numbering groups (1, 2, 3...); each sub-task (1.1, 1.2...)
-carries one brief. Draft shape:
+The plan is the bean tree — one concise `## Brief` per major container
+(scope only) and one full `## Brief` per leaf task under its major. Draft
+shape:
 
 ```markdown
 - 1. Foundation: environment and test infrastructure setup
@@ -206,9 +231,12 @@ carries one brief. Draft shape:
   - _Requirements: W.W_
 ```
 
-Each `N.M` sub-task entry becomes one task bean: number and title in the bean's
-`Task:`/`Title:` lines, description and bullets its body, metadata lines kept
-verbatim.
+Each `N.` major line becomes one feature-type container bean under the epic
+(number + one-line scope); each `N.M` leaf becomes one task-type bean under
+that major: number and title in the bean's `Task:`/`Title:` lines,
+description and bullets its body, metadata lines kept verbatim, and a
+`--blocked-by` edge per chain/predecessor link (the `_Depends:` entries add
+theirs on top).
 
 ## Requirements Coverage
 
