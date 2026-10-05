@@ -47,7 +47,10 @@ prompt unchanged.
    dispatch says `full working tree`, still touch only what the task's
    own text requires — never improve adjacent code.
 2. **No tracking writes — one carve-out.** Never flip checkboxes; the
-   orchestrator owns every other piece of tracking state. Your single
+   orchestrator owns every other piece of tracking state. The global
+   beans guide's checkbox convention does NOT apply to sdd task beans:
+   a brief carrying a step checklist is legacy debt - finish the whole
+   leaf or report it, never tick steps off. Your single
    permitted bean write is `beans update <task-id> --body-append`, for
    exactly the two appends Procedure step 4 directs: your `## Report`
    section and `## Notes` one-liners on YOUR task bean — nothing else.
