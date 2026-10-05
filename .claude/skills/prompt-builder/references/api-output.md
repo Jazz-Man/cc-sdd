@@ -97,7 +97,7 @@ The domain-shaped generators live at `@kasava/prompt-builder/presets`. Each retu
 - `workedExample(example)` — one `<example>` block
 - `workedExamples(examples, title?)` — several, in an `<examples>` wrapper
 
-The same-named class methods are deprecated shims (removed in 1.0) — see [api-fluent.md](api-fluent.md) § Deprecated.
+The same-named class methods are deprecated shims (removed in 1.0) — see [api-fluent.md](api-fluent.md) § Deprecated class methods.
 
 ```ts
 import { prompt } from "@kasava/prompt-builder";

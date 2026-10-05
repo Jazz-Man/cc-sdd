@@ -47,7 +47,7 @@ The library auto-detects articles from the first character.
 - `.bullets(items)` → use `.list(items)` without title
 - `.steps(items)` → use `.numberedList(items)` without title
 - `.newline()` / `.paragraph()` / `.blankLine()` → all no-ops, `build()` joins with `\n\n` automatically
-- `.toolGuidance()` / `.gracefulDegradation()` / `.analysisRequirements()` / `.followThroughMatrix()` / `.workedExample()` / `.workedExamples()` → import the same-named functions from `@kasava/prompt-builder/presets` and `.include()` the returned builder; removed in 1.0 (full list in [api-fluent.md](api-fluent.md) § Deprecated)
+- `.toolGuidance()` / `.gracefulDegradation()` / `.analysisRequirements()` / `.followThroughMatrix()` / `.workedExample()` / `.workedExamples()` → import the same-named functions from `@kasava/prompt-builder/presets` and `.include()` the returned builder; removed in 1.0 (full list in [api-fluent.md](api-fluent.md) § Deprecated class methods)
 
 ## Flattening a rich JSON Schema into `.outputFormat()`
 
@@ -73,11 +73,11 @@ The library auto-detects articles from the first character.
 Most methods silently skip on empty/null input. This is fine for optional data, but be aware:
 
 ```typescript fragment
-.list("Skills", [])       // produces nothing — no heading, no empty list
-.toolGuidance([])         // produces nothing — no tool table
+.list("Skills", [])              // produces nothing — no heading, no empty list
+.include(toolGuidance([]))       // from /presets — table skips, but "## Available Tools" heading still renders
 ```
 
-`.lookupTable()` now skips empty rows like every other method — though a titled call still renders its `## title` heading (0.2.x emitted the heading plus a header-only table).
+`toolGuidance` and the other `/presets` generators build on `.lookupTable()` / `.guidelines()`, which skip empty rows and lists — but a titled call still renders its `## title` heading (0.2.x emitted the heading plus a header-only table). Guard the `.include()` on data presence when even the heading should disappear.
 
 If you expect content and get nothing, check your data.
 
@@ -138,7 +138,7 @@ XML tags wrap content. Markdown structures content within or between tags.
 
 `.context()`, `.data()`, `.instructions()`, and the other non-example XML shorthands each emit one fixed-name tag. Calling the same one twice produces two identical tags, which can confuse the model about which block is which.
 
-> **Exception:** the example family — `.example()`, `.examples()`, `.workedExample()`, `.workedExamples()` — is exempt. Multiple `<example>` tags are a valid few-shot pattern.
+> **Exception:** the example family — `.example()`, `.examples()`, and the `/presets` `workedExample`/`workedExamples` — is exempt. Multiple `<example>` tags are a valid few-shot pattern.
 
 **Wrong:**
 ```typescript fragment

@@ -1,6 +1,6 @@
 # API Reference — Fluent Builder
 
-Every method on `PromptBuilder`. All methods return `this` for chaining. `build(dialect?)` returns the final string.
+Every method on `PromptBuilder`, plus the generator functions from `@kasava/prompt-builder/presets`. Builder methods return `this` for chaining; preset functions return a `PromptBuilder` to pass to `.include()`. `build(dialect?)` returns the final string.
 
 ## Constructors
 
@@ -105,8 +105,10 @@ Search for relevant symbols in the codebase.
 - `steps` is a bulleted list, silently skipped if empty/null
 - Title defaults to `"Investigation Strategy"`
 
-### `.followThroughMatrix(opts: { title: string, description?: string, rows: { action: string, followThrough: string }[], postRule: string }): this`
-Action → next-step lookup table. Tells the model what to offer after completing each action. Delegates to `.lookupTable()` with columns `["Completed action", "Follow-through offer"]`.
+### `followThroughMatrix(opts: { title: string, description?: string, rows: { action: string, followThrough: string }[], postRule: string })` — from `/presets`
+Action → next-step lookup table. Tells the model what to offer after completing each action. Builds on `.lookupTable()` with columns `["Completed action", "Follow-through offer"]`; `postRule` lands as the table's `postNote`.
+
+> The `.followThroughMatrix()` class method is a deprecated shim for `.include(followThroughMatrix(...))` — removed in 1.0.
 
 **Output:**
 ```markdown
@@ -124,9 +126,10 @@ Action → next-step lookup table. Tells the model what to offer after completin
 **Usage:**
 ```ts
 import { prompt } from "@kasava/prompt-builder";
+import { followThroughMatrix } from "@kasava/prompt-builder/presets";
 
 prompt()
-  .followThroughMatrix({
+  .include(followThroughMatrix({
     title: "After Analysis Actions",
     description: "After completing each analysis type, offer the relevant follow-up.",
     rows: [
@@ -135,7 +138,7 @@ prompt()
       { action: "Fact-check complete", followThrough: "Offer to humanize and finalize" },
     ],
     postRule: "Always wait for user confirmation before proceeding to the next step.",
-  })
+  }))
   .build();
 ```
 
@@ -262,17 +265,20 @@ prompt()
 
 ## Tool Usage
 
-### `.toolGuidance(tools: { tool: string, usage: string }[], title?: string): this`
+### `toolGuidance(tools: { tool: string, usage: string }[], title?: string)` — from `/presets`
 Tool reference table. Generates a two-column lookup table with columns `["Tool", "Usage"]`. Use when the agent has access to external tools (RAG, search, APIs). Title defaults to `"Available Tools"`.
+
+> The `.toolGuidance()` class method is a deprecated shim for `.include(toolGuidance(...))` — removed in 1.0.
 
 ```ts
 import { prompt } from "@kasava/prompt-builder";
+import { toolGuidance } from "@kasava/prompt-builder/presets";
 
 prompt()
-  .toolGuidance([
+  .include(toolGuidance([
     { tool: "search_documents", usage: "Find candidate's projects matching REQUIRED tech. Use 2-3 focused queries." },
     { tool: "expand_chunk_context", usage: "Get more context around a search result when you need deeper detail." },
-  ])
+  ]))
   .build();
 ```
 
@@ -315,8 +321,10 @@ prompt()
   .build();
 ```
 
-### `.gracefulDegradation(rules: string[], title?: string): this`
-Error handling / fallback rules. Generates a heading + bulleted list. Use when the agent uses tools that might fail or return no results.
+### `gracefulDegradation(rules: string[], title?: string)` — from `/presets`
+Error handling / fallback rules. Generates a heading + bulleted list. Use when the agent uses tools that might fail or return no results. Title defaults to `"Graceful Degradation"`.
+
+> The `.gracefulDegradation()` class method is a deprecated shim for `.include(gracefulDegradation(...))` — removed in 1.0.
 
 **Output:**
 ```markdown
@@ -325,6 +333,18 @@ Error handling / fallback rules. Generates a heading + bulleted list. Use when t
 - If tool calls fail, note the failure but continue.
 - Never fail the entire analysis because one step had issues.
 - Provide partial results with confidence levels.
+```
+
+```ts
+import { prompt } from "@kasava/prompt-builder";
+import { gracefulDegradation } from "@kasava/prompt-builder/presets";
+
+prompt()
+  .include(gracefulDegradation([
+    "If tool calls fail, note the failure but continue.",
+    "Never fail the entire analysis because one step had issues.",
+  ]))
+  .build();
 ```
 
 ### `.guidelines(items: string[], title?: string): this`
@@ -346,8 +366,10 @@ prompt()
 
 ## Analysis & Requirements
 
-### `.analysisRequirements(description: string, requirements: string[], jsonStructure?: object): this`
+### `analysisRequirements(description: string, requirements: string[], jsonStructure?: object)` — from `/presets`
 Numbered requirements list with description. Use to define what the model must analyze and how.
+
+> The `.analysisRequirements()` class method is a deprecated shim for `.include(analysisRequirements(...))` — removed in 1.0.
 
 **Output:**
 ```markdown
@@ -364,16 +386,17 @@ If `jsonStructure` is provided, appends: `Format your response as JSON with the 
 
 ```ts
 import { prompt } from "@kasava/prompt-builder";
+import { analysisRequirements } from "@kasava/prompt-builder/presets";
 
 prompt()
-  .analysisRequirements(
+  .include(analysisRequirements(
     "Analyze the job listing against the candidate's profile and portfolio",
     [
       "Check hard rejections from Candidate Job Search Profile first",
       "Use RAG tools to find matching portfolio projects",
       "Score each dimension according to the rubric",
     ],
-  )
+  ))
   .build();
 ```
 
@@ -381,7 +404,7 @@ prompt()
 
 ## Examples (Worked Examples)
 
-### `.workedExample(example: WorkedExample): this`
+### `workedExample(example: WorkedExample)` — from `/presets`
 Single worked example in `<example>` XML tags. Teaches the model the expected behavior via demonstration. The XML wrapper is tight (0.2.x had blank lines between tag and content).
 
 `WorkedExample` type: `{ mention: string, context: string, protocol: string, toolCalls: string[], response: string }`
@@ -402,11 +425,14 @@ Single worked example in `<example>` XML tags. Teaches the model the expected be
 </example>
 ```
 
+> The `.workedExample()` class method is a deprecated shim for `.include(workedExample(...))` — removed in 1.0.
+
 ```ts
 import { prompt } from "@kasava/prompt-builder";
+import { workedExample } from "@kasava/prompt-builder/presets";
 
 prompt()
-  .workedExample({
+  .include(workedExample({
     context: 'GitHub issue #214, "Add auto-reproduction step"',
     mention: '@kasava is this still relevant?',
     protocol: "Issue Closure Assessment",
@@ -415,14 +441,12 @@ prompt()
       "githubIssueSearchTool({ query: '...', repositoryId })",
     ],
     response: "**NO** — still relevant, not implemented.\n\n- No commits found...",
-  })
+  }))
   .build();
 ```
 
-> **Deprecated shim:** the canonical form is the `/presets` functions (`workedExample`, `workedExamples`) + `.include()`. The class methods are deprecated shims until 1.0.
-
-### `.workedExamples(examples: WorkedExample[], title?: string): this`
-Multiple examples wrapped in `<examples>` tags with a heading. Title defaults to `"Worked Examples"`.
+### `workedExamples(examples: WorkedExample[], title?: string)` — from `/presets`
+Multiple examples wrapped in `<examples>` tags with a heading. Title defaults to `"Worked Examples"`. Same shim note as `workedExample` — `.include(workedExamples(...))` is the canonical form.
 
 ---
 
@@ -451,7 +475,7 @@ Manual XML tag pairs for multi-step content building.
 | `.recommendations(content)` | `<recommendations>` | Recommendations |
 | `.output(content)` | `<output>` | Output specification |
 
-**Single-use (except examples).** Each shorthand emits one fixed-name tag. Call a given shorthand at most once per prompt — two `<context>` (or `<data>`, …) blocks can confuse the model about which is which. For several distinct sources, use `.tag(uniqueName, content)` with a descriptive name per block. The example family (`.example()`, `.examples()`, `.workedExample()`, `.workedExamples()`) is exempt: multiple `<example>` tags are a valid few-shot pattern.
+**Single-use (except examples).** Each shorthand emits one fixed-name tag. Call a given shorthand at most once per prompt — two `<context>` (or `<data>`, …) blocks can confuse the model about which is which. For several distinct sources, use `.tag(uniqueName, content)` with a descriptive name per block. The example family (`.example()`, `.examples()`, and the `/presets` `workedExample`/`workedExamples`) is exempt: multiple `<example>` tags are a valid few-shot pattern.
 
 ---
 
@@ -523,18 +547,18 @@ Final prompt string. Parts joined with `\n\n` (paragraph breaks). Defaults to co
 
 ---
 
-## Deprecated (No-ops)
+## Deprecated class methods
 
-- `.newline()` — no-op, kept for compat
-- `.paragraph()` — no-op, kept for compat
-- `.blankLine()` — no-op, kept for compat
+All still work in 0.3.x; all are removed in 1.0. Migrate call sites now:
+
+- `.newline()` / `.paragraph()` / `.blankLine()` — no-ops, `build()` joins with `\n\n` automatically; delete the calls
 - `.bullets(items)` — use `.list(items)` without title
 - `.steps(items)` — use `.numberedList(items)` without title
-- `.toolGuidance()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
-- `.gracefulDegradation()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
-- `.analysisRequirements()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
-- `.followThroughMatrix()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
-- `.workedExample()` / `.workedExamples()` → import from `@kasava/prompt-builder/presets` and `.include()`; removed in 1.0
+- `.toolGuidance()` → import from `@kasava/prompt-builder/presets` and `.include()`
+- `.gracefulDegradation()` → import from `@kasava/prompt-builder/presets` and `.include()`
+- `.analysisRequirements()` → import from `@kasava/prompt-builder/presets` and `.include()`
+- `.followThroughMatrix()` → import from `@kasava/prompt-builder/presets` and `.include()`
+- `.workedExample()` / `.workedExamples()` → import from `@kasava/prompt-builder/presets` and `.include()`
 
 ---
 

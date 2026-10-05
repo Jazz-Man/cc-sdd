@@ -81,7 +81,7 @@ The library wraps content in semantic XML tags automatically:
 These create clear signal boundaries for the model.
 
 ### Distinct XML tags
-Each tag-emitting shorthand (`.context()`, `.data()`, `.instructions()`, …) produces one fixed-name tag. Use each at most once per prompt (the example family — `.example()`, `.examples()`, `.workedExample()`, `.workedExamples()` — is exempt; multiple `<example>` tags are a valid few-shot pattern). When you have several distinct sources, give each a unique tag name so the model can tell them apart:
+Each tag-emitting shorthand (`.context()`, `.data()`, `.instructions()`, …) produces one fixed-name tag. Use each at most once per prompt (the example family — `.example()`, `.examples()`, and the `/presets` `workedExample`/`workedExamples` — is exempt; multiple `<example>` tags are a valid few-shot pattern). When you have several distinct sources, give each a unique tag name so the model can tell them apart:
 
 ```typescript fragment
 .tag("candidate_cv", cv)
@@ -89,7 +89,7 @@ Each tag-emitting shorthand (`.context()`, `.data()`, `.instructions()`, …) pr
 ```
 
 ### One heading per section
-The generators (`.protocol`, `.arrowRules`, `.lookupTable` when titled, `.severityScale`, `.guidelines`, `.toolGuidance`, `.gracefulDegradation`, `.verificationChecklist`, `.analysisRequirements`, `.investigationStrategy`, `.workedExamples`, `.confidenceScale`) each emit their own `##` heading — `.severityScale()` emits `###` and is meant to nest under a `##`. Pass your section label via the method's `title`; don't add a separate `.heading()` in front, or you get two consecutive headings.
+The generators (`.protocol`, `.arrowRules`, `.lookupTable` when titled, `.severityScale`, `.guidelines`, `.verificationChecklist`, `.investigationStrategy`, `.confidenceScale`, plus the `/presets` functions `toolGuidance`, `gracefulDegradation`, `analysisRequirements`, `workedExamples` — composed via `.include()`) each emit their own `##` heading — `.severityScale()` emits `###` and is meant to nest under a `##`. Pass your section label via the method's `title`; don't add a separate `.heading()` in front, or you get two consecutive headings.
 
 ```typescript fragment
 .guidelines(rules, "Hard Rejections") // → ## Hard Rejections
@@ -162,7 +162,7 @@ Use `PromptBuilder.truncate()` for long content:
 Set the tier with `.priority()` before the nodes it governs, then trim to size with `.$budget()`:
 ```typescript fragment
 .priority("required").include(coreRules)
-.priority("low").include(workedExamples)
+.priority("low").include(workedExamples(examples)) // from /presets — first to drop
 .$budget({ maxTokens: 8000 })
 ```
 `.$budget()` returns a trimmed copy — it never mutates the builder. The default counter, `approximateTokens`, is a ~4 chars/token rule of thumb; pass a real tokenizer when margins matter. Drop order and `BudgetExceededError`: [api-output.md](api-output.md) § Token budget.
@@ -225,8 +225,8 @@ Before finalizing a prompt, verify:
 3. **Process definition** — `.protocol()` for multi-step workflows
 4. **Decision rules** — `.arrowRules()` for hard boundaries
 5. **Scoring/classification** — `.lookupTable()` + `.severityScale()` for rubrics
-6. **Tool usage** — `.toolGuidance()` for available tools
-7. **Error handling** — `.gracefulDegradation()` for fallbacks
+6. **Tool usage** — `toolGuidance` (from `/presets`) for available tools
+7. **Error handling** — `gracefulDegradation` (from `/presets`) for fallbacks
 8. **Behavioral rules** — `.guidelines()` for soft rules
 9. **Final instructions** — `.instructions()` to wrap the last directive
 10. **Output** — `.outputFormat()` for simple field specs; for rich/validated JSON Schemas, inject the schema directly and drive JSON output at the API layer; corrected markdown is the default — `markdown({ strict: true })` only when pinning legacy bytes

@@ -36,13 +36,13 @@ Use this skill when building, editing, or reviewing prompts that use `@kasava/pr
 | Two-column reference / rubric | `.lookupTable()` |
 | Tiered classification | `.severityScale()` |
 | Confidence tiers | `.confidenceScale()` |
-| Tool usage guidance | `.toolGuidance()` → `/presets` + `.include()` (class shim deprecated until 1.0) |
-| Action → follow-up matrix | `.followThroughMatrix()` → `/presets` + `.include()` (class shim deprecated until 1.0) |
-| Error handling | `.gracefulDegradation()` → `/presets` + `.include()` (class shim deprecated until 1.0) |
+| Tool usage guidance | `toolGuidance` from `/presets` + `.include()` (class shim removed in 1.0) |
+| Action → follow-up matrix | `followThroughMatrix` from `/presets` + `.include()` (class shim removed in 1.0) |
+| Error handling | `gracefulDegradation` from `/presets` + `.include()` (class shim removed in 1.0) |
 | Pre-return checks | `.verificationChecklist()` |
 | Behavioral rules | `.guidelines()` |
-| Analysis requirements | `.analysisRequirements()` → `/presets` + `.include()` (class shim deprecated until 1.0) |
-| Worked examples | `.workedExample()`, `.workedExamples()` → `/presets` + `.include()` (class shim deprecated until 1.0) |
+| Analysis requirements | `analysisRequirements` from `/presets` + `.include()` (class shim removed in 1.0) |
+| Worked examples | `workedExample(s)` from `/presets` + `.include()` (class shim removed in 1.0) |
 | Context injection | `.context()`, `.data()` |
 | Instructions wrapper | `.instructions()` |
 | Conditional sections | `.conditional()` |
@@ -66,7 +66,7 @@ Use this skill when building, editing, or reviewing prompts that use `@kasava/pr
 4. **Wrap final instructions in `.instructions()`** — the `<instructions>` XML tag gives a clear signal to the model
 5. **`.outputFormat()` is a flat field spec** — `[{field, type, description}]` bullets; it can't represent rich JSON Schemas. For rich schema output, inject the schema directly. See [api-fluent.md](references/api-fluent.md) and [anti-patterns.md](references/anti-patterns.md).
 6. **Tag-emitting methods are single-use (except the example family)** — `.context()`, `.data()`, `.instructions()`, … each emit one fixed-name tag. Call each at most once per prompt; for several distinct sources use `.tag(uniqueName, content)`. The example family is exempt. Details in [anti-patterns.md](references/anti-patterns.md).
-7. **Generators emit their own heading** — `.protocol`/`.arrowRules`/`.lookupTable`(titled)/`.severityScale`/`.guidelines`/`.toolGuidance`/… each render `##` (`.severityScale()` renders `###`). Don't prepend `.heading()` — it makes two consecutive `##`. It's fine only when the next method emits no heading. Full exceptions in [anti-patterns.md](references/anti-patterns.md).
+7. **Generators emit their own heading** — `.protocol`/`.arrowRules`/`.lookupTable`(titled)/`.severityScale`/`.guidelines`/the `/presets` functions/… each render `##` (`.severityScale()` renders `###`). Don't prepend `.heading()` — it makes two consecutive `##`. It's fine only when the next method emits no heading. Full exceptions in [anti-patterns.md](references/anti-patterns.md).
 8. **`.raw()` for prose, tag methods for data** — `.data()`, `.context()`, `.instructions()` wrap content in XML tags. For a plain paragraph use `.raw()` (no formatting); reserve `.data()` for input schema/shape descriptions.
 9. **`p` is composition and serialization, not an injection defense** — treat untrusted input accordingly; see [api-schema.md](references/api-schema.md) § The `p` tag.
 10. **`$budget()` returns a new builder — it never mutates the one it trims** — trimming is a query over the prompt, not a build step; see [api-output.md](references/api-output.md) § Token budget.
