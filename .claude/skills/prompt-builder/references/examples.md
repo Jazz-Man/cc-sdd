@@ -68,14 +68,15 @@ export function buildScoringPrompt(input: MatchInput): PromptBuilder {
 
 ```typescript
 import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+import { gracefulDegradation, toolGuidance } from "@kasava/prompt-builder/presets";
 
 export function buildAgentPrompt(topic: string): PromptBuilder {
   return prompt()
     .role("research agent", "with access to a document store")
-    .toolGuidance([
+    .include(toolGuidance([
       { tool: "search", usage: "Find documents by keyword. Use 2-3 focused queries." },
       { tool: "expand", usage: "Get surrounding context for a search hit." },
-    ])
+    ]))
     .protocol({
       name: "Research",
       steps: [
@@ -84,10 +85,10 @@ export function buildAgentPrompt(topic: string): PromptBuilder {
       ],
       followThrough: "Answer with citations.",
     })
-    .gracefulDegradation([
+    .include(gracefulDegradation([
       "If a tool call fails, note it and continue.",
       "Never fail the whole task over one error.",
-    ])
+    ]))
     .verificationChecklist(["Every claim has a source.", "No fabricated details."])
     .instructions(`Research: ${topic}`);
 }
@@ -97,6 +98,7 @@ export function buildAgentPrompt(topic: string): PromptBuilder {
 
 ```typescript
 import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+import { gracefulDegradation } from "@kasava/prompt-builder/presets";
 
 export function buildAnalysisPrompt(target: string): PromptBuilder {
   return prompt()
@@ -111,7 +113,7 @@ export function buildAnalysisPrompt(target: string): PromptBuilder {
       { name: "Assess risk", steps: ["Count affected files", "Check test coverage"] },
     ])
     .confidenceScale()
-    .gracefulDegradation(["Provide partial results with confidence if a step fails."])
+    .include(gracefulDegradation(["Provide partial results with confidence if a step fails."]))
     .instructions(`Analyze the impact of: ${target}`);
 }
 ```
@@ -192,14 +194,15 @@ export function buildAnalyzerPrompt(): PromptBuilder {
 
 ```typescript
 import { type PromptBuilder, prompt } from "@kasava/prompt-builder";
+import { toolGuidance } from "@kasava/prompt-builder/presets";
 
 export function buildMatchPrompt(): PromptBuilder {
   return prompt()
     .role("portfolio analyst", "rating how well prior work matches requirements")
-    .toolGuidance([
+    .include(toolGuidance([
       { tool: "search", usage: "Find matching prior work" },
       { tool: "expand", usage: "Get detail around a hit" },
-    ])
+    ]))
     .protocol({
       name: "Match Analysis",
       steps: [

@@ -1,6 +1,6 @@
 # Prompt Patterns
 
-Which methods to use for which kind of prompt. Start here when building a new prompt. Methods marked `→ /presets` are deprecated class shims (removed in 1.0) — compose the same-named function from `@kasava/prompt-builder/presets` + `.include()` instead; see [api-output.md](api-output.md) § The /presets subpath.
+Which methods to use for which kind of prompt. Start here when building a new prompt. Functions marked `→ /presets` come from `@kasava/prompt-builder/presets` and compose via `.include()` — the same-named class methods are deprecated shims, removed in 1.0; see [api-output.md](api-output.md) § The /presets subpath.
 
 ## Pattern Selection Guide
 
@@ -12,13 +12,13 @@ Use when the model must evaluate something against criteria and produce a score 
 prompt()
   .role(...)
   .context(...)                          // input data
-  .toolGuidance([...])                   // if RAG/tools needed → /presets + .include()
+  .include(toolGuidance([...]))          // if RAG/tools needed — from /presets
   .protocol({ name, steps, followThrough })  // scoring process
   .arrowRules({ title, types })          // decision priority
   .heading("Scoring Rubric")
   .lookupTable(...)                      // each scoring dimension
   .severityScale("Recommendation", [...]) // final classification
-  .analysisRequirements(desc, reqs)      // what to analyze → /presets + .include()
+  .include(analysisRequirements(desc, reqs)) // what to analyze — from /presets
   .guidelines([...])                     // behavioral rules
   .instructions("Follow the protocol and return the scoring result.")
   .build()
@@ -37,10 +37,10 @@ prompt()
   .role(...)
   .context(...)
   .data(...)                             // input schema description
-  .toolGuidance([...])                   // tool reference table → /presets + .include()
+  .include(toolGuidance([...]))          // tool reference table — from /presets
   .protocol({ name, steps, followThrough })  // decision process
   .arrowRules({ title, types })          // error handling rules
-  .gracefulDegradation([...])            // fallback behavior → /presets + .include()
+  .include(gracefulDegradation([...]))   // fallback behavior — from /presets
   .verificationChecklist([...])          // pre-return checks
   .guidelines([...])
   .instructions("Follow the protocol and return results.")
@@ -61,7 +61,7 @@ prompt()
   .context(...)
   .protocol({ name, steps, followThrough })
   .investigationStrategy([...])          // numbered phases
-  .gracefulDegradation([...])            // → /presets + .include()
+  .include(gracefulDegradation([...]))   // from /presets
   .guidelines([...])
   .instructions("Follow the protocol and return results.")
   .build()
@@ -78,7 +78,7 @@ Use when the model answers questions using available tools without complex scori
 ```typescript fragment
 prompt()
   .role(...)
-  .toolGuidance([...])                   // or .heading("Tools").list([...]) → /presets + .include()
+  .include(toolGuidance([...]))          // or .heading("Tools").list([...]) — from /presets
   .guidelines([...])
   .build()
 ```
