@@ -3,7 +3,7 @@
 Mechanical Bash guard for Claude Code. One `PreToolUse` hook (matcher `Bash`)
 pipes the hook payload into the `claude-code-cli-hook` policy binary
 (`packages/cli-hook` in this repo), which parses the shell command into an AST
-and runs three policies in a fixed order — first decision wins:
+and runs four policies in a fixed order — first decision wins:
 
 1. **filesystem** — dangerous filesystem operations (unsafe devices, writes
    escaping the project via `$HOME`/`$TMPDIR`/… resolution, …)
@@ -11,6 +11,12 @@ and runs three policies in a fixed order — first decision wins:
    bun, cargo, brew, gem, go, swift, composer, …)
 3. **git-readonly** — every git write subcommand (`commit`, `push`, `tag
    <name>`, bare `git branch x`, …); only read-only git passes
+4. **no-inline-scripts** — inline code execution (`bun/node -e`, `python -c`,
+   `php -r`, `deno eval`, `osascript -e`, `sh/bash/zsh -c`, `eval`, clustered
+   flags like `python -uc`, stdin-fed scripts via pipe/heredoc/`-`,
+   wrapper-carried `xargs sh -c`/`find -exec bash -c`); the deny reason
+   directs the agent to write the script under `./tmp/` and run the file.
+   `sed`/`awk` stay allowed (everyday text processing)
 
 A violation denies the call with a `permissionDecisionReason` naming the
 policy. Everything else — non-Bash tools, benign commands, malformed payloads,

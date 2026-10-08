@@ -5,9 +5,15 @@ import type { Policy } from "./core/policy.ts";
 import { filesystemPolicy } from "./policies/filesystem.ts";
 import { gitReadonlyPolicy } from "./policies/git-readonly.ts";
 import { noDepsPolicy } from "./policies/no-deps.ts";
+import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";
 
 // Fixed registry order (owner's priority): first non-null decision wins (spec §4).
-const POLICIES: Policy[] = [filesystemPolicy, noDepsPolicy, gitReadonlyPolicy];
+const POLICIES: Policy[] = [
+  filesystemPolicy,
+  noDepsPolicy,
+  gitReadonlyPolicy,
+  noInlineScriptsPolicy,
+];
 
 export function runHook(input: unknown): SyncHookJSONOutput | null {
   try {

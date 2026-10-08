@@ -68,7 +68,8 @@ cc-sdd/                          marketplace root (this repository)
 │       │   └── plugin.json     plugin manifest (name: security-guard)
 │       ├── hooks/hooks.json    matcher Bash -> claude-code-cli-hook binary
 │       │                       (packages/cli-hook policies: filesystem,
-│       │                       no-deps, git-readonly; fail-open)
+│       │                       no-deps, git-readonly, no-inline-scripts;
+│       │                       fail-open)
 │       └── README.md           build prerequisite + migration notes
 ├── CLAUDE.md                   development context (this file)
 ├── LICENSE                     repository-level license for the whole tree
@@ -133,3 +134,14 @@ impl orchestrator live beside its `SKILL.md` under
 - The human reviews and commits.
 - The conversion spec and task plan live in `docs/superpowers/`; task briefs and
   reports live in `.superpowers/sdd/2026-09-22-sdd-plugin-conversion/`.
+
+<!-- rtk-instructions v2 -->
+# Command output
+
+Command output here is condensed to save tokens, keeping every signal and
+dropping costly noise. Treat it as the complete result: run commands
+normally, and batch related commands into one call to avoid extra turns.
+Truncated results state their recovery path in their own output. Re-run a
+command as `rtk proxy <cmd>` only when its result is unusable: empty when
+output was clearly expected, contradicting its exit code, or garbled.
+<!-- /rtk-instructions -->
