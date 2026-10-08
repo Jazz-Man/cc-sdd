@@ -1,7 +1,7 @@
 {
   "biome": {
     "args": ["lsp-proxy"],
-    "command": "/opt/homebrew/bin/biome",
+    "command": "biome",
     "extensionToLanguage": {
       ".cjs": "javascript",
       ".css": "css",
