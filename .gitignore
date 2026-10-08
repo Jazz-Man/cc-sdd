@@ -65,3 +65,5 @@ coverage/
 .superpowers/
 tmp/
 !bin/*
+
+*.bun-build
