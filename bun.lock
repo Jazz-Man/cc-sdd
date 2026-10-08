@@ -22,7 +22,7 @@
       },
     },
     "packages/cli-hook": {
-      "name": "@cc-sdd/cli-hook",
+      "name": "@cc-sdd/claude-code-cli-hook",
       "dependencies": {
         "unbash": "catalog:core",
       },
@@ -75,7 +75,7 @@
 
     "@cc-sdd/agent-types": ["@cc-sdd/agent-types@workspace:packages/agent-types"],
 
-    "@cc-sdd/cli-hook": ["@cc-sdd/cli-hook@workspace:packages/cli-hook"],
+    "@cc-sdd/claude-code-cli-hook": ["@cc-sdd/claude-code-cli-hook@workspace:packages/cli-hook"],
 
     "@effect/tsgo": ["@effect/tsgo@0.46.1", "", { "optionalDependencies": { "@effect/tsgo-darwin-arm64": "0.46.1", "@effect/tsgo-darwin-x64": "0.46.1", "@effect/tsgo-linux-arm": "0.46.1", "@effect/tsgo-linux-arm64": "0.46.1", "@effect/tsgo-linux-x64": "0.46.1", "@effect/tsgo-win32-arm64": "0.46.1", "@effect/tsgo-win32-x64": "0.46.1" }, "bin": { "effect-tsgo": "dist/effect-tsgo.cjs" } }, "sha512-DMcBCg5nWLufejRlyqFEkXmbtaLUJ56NKny6L1LTtimvz0U3VNj9H6ZUXV4WeeWvJzVyL0y7G2wsCBAFUgy1jw=="],
 

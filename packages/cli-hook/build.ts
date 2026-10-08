@@ -15,7 +15,7 @@ try {
     },
     entrypoints: ["./src/main.ts"],
     minify: true,
-    // sourcemap: "linked",
+    sourcemap: "linked",
   });
 
   console.info(res);
