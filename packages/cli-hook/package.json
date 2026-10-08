@@ -5,7 +5,7 @@
   "devDependencies": {
     "@cc-sdd/agent-types": "workspace:*"
   },
-  "name": "@cc-sdd/cli-hook",
+  "name": "@cc-sdd/claude-code-cli-hook",
   "private": true,
   "type": "module"
 }
