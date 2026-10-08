@@ -7,5 +7,8 @@
   },
   "name": "@cc-sdd/claude-code-cli-hook",
   "private": true,
+  "scripts": {
+    "build-bin": "bun build.ts"
+  },
   "type": "module"
 }
