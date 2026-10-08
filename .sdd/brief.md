@@ -1,5 +1,59 @@
 # Workstream Brief
 
+## security-guard (2026-10-07)
+
+### Intent
+The user runs Claude Code almost always with bypass permissions on and wants a
+full security guard that still binds in that mode: a personal plugin (third
+`plugins/` sibling) whose PreToolUse hooks block filesystem reads/writes
+outside the working directory and into secret paths, and security-scan Bash
+commands — while allowing plugins (`plugins/sdd` today) to read their own
+templates and run their own scripts from their plugin folders. Engine:
+`packages/cli-hook` (Bash-only PreToolUse policy router today, unwired).
+Mandated design input: `docs/claude-code-security-guard-bypass-permissions.md`
+(§10 blueprint, §11 empirical findings).
+
+### Scope
+- **In**: cli-hook extension (Read/Edit/Write/Glob/Grep payload shapes,
+  path-based policies with canonicalization, trusted plugin-root allowlist,
+  executable packaging); new `plugins/` sibling with hooks.json + marketplace
+  entry + validation battery; deny-rules/settings hardening kit per research
+  §10 (documented, human-applied); folding in §11 findings (config
+  self-modification vector, new-file-creation gap).
+- **Out**: changes to `plugins/sdd` itself; publishing/public distribution;
+  automated enforcement of sandbox settings (plugin payload is hooks only).
+
+### Decisions
+- Route: **single new feature `security-guard`**, full sdd cycle. Rationale:
+  the engine has no standalone value without the plugin and the plugin is
+  empty without the engine — the seams are design-internal, not independent
+  deliverables. Multi-spec rejected (first spec would ship nothing
+  user-visible); no-spec rejected (large architectural surface — new payload
+  kinds, canonicalization, packaging, placement — deserves design review).
+- No active epic existed at discovery (2026-10-07); the feature starts
+  immediately — `/sdd:spec-init` births the epic, no queueing needed.
+- Discovery survey (one general-purpose agent, 2026-10-07) established:
+  cli-hook is a fail-open Bash-only PreToolUse router consumed nowhere;
+  plugins/sdd reaches its own folder via Read (`${CLAUDE_PLUGIN_ROOT}/assets`,
+  `${CLAUDE_SKILL_DIR}/templates`), hook exec, and Bash runs of `bin/`
+  helpers — all outside a target project's working dir. The collision with
+  the user's live global `blockReadsOutsideWorkingDirectories` + deny rules
+  is real today.
+- No-deps compatibility: building on cli-hook is the only path on the
+  already-installed stack (unbash, agent-types, Bun).
+
+### Open Questions
+- Does Claude Code auto-add plugin roots to working directories? [Unverified]
+  — resolved in design; determines how loud the plugin-root allowlist must be.
+- Runtime shape of the hook entry (bun-invoked TS vs compiled shim) vs the
+  fail-open timeout budget — design.
+- Secret-path deny set, plugin naming, interplay with the existing global
+  `blockReadsOutsideWorkingDirectories` (keep / replace / complement) —
+  requirements.
+
+### Queue
+No beans yet — `/sdd:spec-init` births the epic for this feature.
+
 ## marketplace-restructure (2026-09-26)
 
 ### Intent
