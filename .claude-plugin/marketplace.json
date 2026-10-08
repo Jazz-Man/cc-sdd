@@ -1,5 +1,5 @@
 {
-  "description": "Local marketplace for the sdd and biome-lsp plugins",
+  "description": "Local marketplace for the sdd, biome-lsp, and security-guard plugins",
   "name": "sdd-local",
   "owner": { "name": "Vasyl Sokolyk" },
   "plugins": [
@@ -12,6 +12,11 @@
       "description": "Biome language server for Claude Code: live diagnostics, formatting, and code actions for JS/TS/JSX/TSX/JSON/JSONC/CSS",
       "name": "biome-lsp",
       "source": "./plugins/biome-lsp"
+    },
+    {
+      "description": "Mechanical Bash guard for Claude Code: filesystem safety, dependency immutability, and git read-only, enforced by the claude-code-cli-hook policy binary",
+      "name": "security-guard",
+      "source": "./plugins/security-guard"
     }
   ]
 }

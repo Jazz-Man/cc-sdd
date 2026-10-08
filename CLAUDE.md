@@ -2,7 +2,9 @@
 
 This repository is a local Claude Code plugin marketplace; the sdd plugin lives
 at `plugins/sdd/` (the main plugin) alongside `plugins/biome-lsp/` (a
-language-server plugin wiring biome for JS/TS/JSON/CSS). The sdd plugin ships prompt-only
+language-server plugin wiring biome for JS/TS/JSON/CSS) and
+`plugins/security-guard/` (a PreToolUse guard running the
+claude-code-cli-hook policy binary). The sdd plugin ships prompt-only
 skills for spec-driven development (discovery → requirements → design → tasks →
 implementation → validation) with subagent-first execution. Skills are invoked as `/sdd:<name>`; skill texts resolve
 shared files via `${CLAUDE_PLUGIN_ROOT}`. There is no installer and no runtime data
@@ -60,6 +62,14 @@ cc-sdd/                          marketplace root (this repository)
 │       │                       .cjs/.json/.jsonc/.css (diagnostics/format/code
 │       │                       actions; no symbols/hover)
 │       └── README.md           requirements + what it covers
+│
+├── plugins/security-guard/     PreToolUse(Bash) guard as a plugin:
+│       ├── .claude-plugin/
+│       │   └── plugin.json     plugin manifest (name: security-guard)
+│       ├── hooks/hooks.json    matcher Bash -> claude-code-cli-hook binary
+│       │                       (packages/cli-hook policies: filesystem,
+│       │                       no-deps, git-readonly; fail-open)
+│       └── README.md           build prerequisite + migration notes
 ├── CLAUDE.md                   development context (this file)
 ├── LICENSE                     repository-level license for the whole tree
 ├── docs/superpowers/           this conversion's spec and plan (self-referential;

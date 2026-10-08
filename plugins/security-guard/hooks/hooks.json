@@ -1,0 +1,17 @@
+{
+  "description": "Routes every Bash tool call through the claude-code-cli-hook policy binary (filesystem, no-deps, git-readonly; fail-open).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "sh -c 'tee /Users/vasilsokolik/www/cc-sdd/tmp/hook-stdin.log | /Users/vasilsokolik/.local/bin/claude-code-cli-hook; echo \"rc=$?\" >> /Users/vasilsokolik/www/cc-sdd/tmp/hook-stdin.log'",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
+  }
+}
