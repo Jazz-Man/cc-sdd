@@ -38,9 +38,12 @@ Five input classes the spec implies but tasks' happy paths don't cover; each is 
 **Files:**
 - Modify: `packages/cli-hook/src/core/decision.ts`
 - Modify: `packages/cli-hook/src/core/policy.ts:10-12`
+- Modify: `packages/cli-hook/src/core/ast.ts` (+ `functionDefs`)
+- Modify: `packages/cli-hook/src/policies/no-inline-scripts.ts` (+ inline-function rule)
 - Modify: `packages/cli-hook/tests/helpers/policy.ts`
 - Modify: `packages/cli-hook/tests/run-hook.test.ts` (DRY: drop its local `decisionOf`, import from helpers)
-- Test: `packages/cli-hook/tests/decision.test.ts`
+- Modify: `packages/cli-hook/tests/fixtures/no-inline-scripts.ts` (+ `FUNCTIONS`)
+- Test: `packages/cli-hook/tests/decision.test.ts`, `tests/ast.test.ts`, `tests/no-inline-scripts.test.ts`
 
 **Interfaces:**
 - Consumes: existing `decision(permission, reason)` and `Permission` type (already `"allow" | "deny" | "ask"`).
@@ -49,6 +52,7 @@ Five input classes the spec implies but tasks' happy paths don't cover; each is 
   - `export interface PolicyContext { cwd: string; projectRoot: string }`
   - `export function decisionOf(result: PolicyCheckResult): "deny" | "ask" | null` (test helper)
   - `policyCheck(policy, command, cwd = "/proj", projectRoot = cwd)` (signature change, backward compatible)
+  - `ParsedCommand.functionDefs: string[]` — inline function definition names (unbash `Function` nodes)
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -128,14 +132,84 @@ export interface PolicyContext {
 }
 ```
 
-- [ ] **Step 4: Run the full gates**
+- [ ] **Step 4: AST function extraction + no-inline-scripts function rule**
+
+`src/core/ast.ts` — collect inline function definitions. unbash types
+EVERY definition form (parens, named, `function` keyword, mutual) as
+`Function` nodes — verified empirically 2026-10-15 via `tmp/fn-check.ts`:
+
+```ts
+export interface ParsedCommand {
+  functionDefs: string[]; // inline function definition names (any form)
+  raw: string;
+  units: CommandUnit[];
+  words: string[];
+}
+
+// in visit(), alongside the existing Command branch:
+if (obj.type === "Function") {
+  const fname = obj.name as Record<string, unknown> | null;
+  if (fname !== null && typeof fname.value === "string") {
+    functionDefs.push(fname.value);
+  }
+}
+// and the return gains the field:
+// return { functionDefs, raw: command, units, words };
+```
+
+`src/policies/no-inline-scripts.ts` — first check in `check()`:
+
+```ts
+const FUNCTION_REASON =
+  "Inline function definitions are blocked: shell code belongs in a file — write the script under ./tmp/ at the project root and run that file. This also covers every fork-bomb signature (a function that spawns itself or another defined function).";
+
+if (cmd.functionDefs.length > 0) {
+  return deny(FUNCTION_REASON);
+}
+```
+
+`tests/fixtures/no-inline-scripts.ts` — append:
+
+```ts
+export const FUNCTIONS: string[] = [
+  ":(){ :|:& };:",
+  "_(){ _|_& };_",
+  "bomb(){ bomb | bomb & }; bomb",
+  "function fb { fb | fb & }; fb",
+  "a(){ b& }; b(){ a& }; a",
+  // benign inline use is denied BY DESIGN (owner 2026-10-15: an inline
+  // function is always the wrong shape for an agent Bash call)
+  "usage(){ echo \"usage: foo\" | less & }; usage",
+];
+```
+
+`tests/no-inline-scripts.test.ts` — append (FUNCTION_REASON imported or
+redeclared verbatim in the test):
+
+```ts
+it.each(FUNCTIONS)("denies inline function definition %s", (command) => {
+  expect(reasonOf(check(command))).toBe(FUNCTION_REASON);
+});
+```
+
+`tests/ast.test.ts` — append:
+
+```ts
+it("collects inline function definition names (every form)", () => {
+  expect(parseCommand("function fb { fb | fb & }; fb")?.functionDefs).toEqual(["fb"]);
+  expect(parseCommand("a(){ b& }; b(){ a& }; a")?.functionDefs).toEqual(["a", "b"]);
+  expect(parseCommand("ls -la")?.functionDefs).toEqual([]);
+});
+```
+
+- [ ] **Step 5: Run the full gates**
 
 Run: `bun test` · `tsc -p tsconfig.json --noEmit` · `rtk biome check --reporter=concise src tests build.ts`
 Expected: all green (existing policies ignore the new context field — fewer-parameter checks remain assignable).
 
-- [ ] **Step 5: STOP — user reviews and commits**
+- [ ] **Step 6: STOP — user reviews and commits**
 
-Suggested message: `feat(cli-hook): ask verdict, projectRoot context, decisionOf helper`
+Suggested message: `feat(cli-hook): ask verdict, projectRoot context, AST functionDefs + no-inline function rule`
 
 ---
 
@@ -208,6 +282,13 @@ export const DENY: string[] = [
   "cat ./../.././../..//etc/passwd",
   "cat ../../../var/log/syslog",
   "cat $HOME/../../etc/passwd",
+  // macOS tiers (research 2026-10-15): ~/Library full deny
+  "cat ~/Library/Keychains/login.keychain",
+  "cat ~/Library/Safari/History.db",
+  "tee ~/Library/Preferences/x x",
+  // boundary robustness pins: case-insensitive APFS + firmlink spelling
+  "cat /ETC/PASSWD",
+  "tee /System/Volumes/Data/private/tmp/x y",
 ];
 
 export const ASK: string[] = [];
@@ -225,6 +306,9 @@ export const ALLOW: string[] = [
   "cat ~/.gitconfig",
   // .git/config: reads are fine
   "cat .git/config",
+  // macOS personal folders: reads pass
+  "cat ~/Documents/report.pdf",
+  "ls ~/Downloads",
 ];
 ```
 
@@ -258,6 +342,12 @@ describe("filesystem policy v2", () => {
       "/etc/passwd",
     );
   });
+
+  it("the /tmp deny reason teaches ./tmp/ at the project root", () => {
+    expect(reasonOf(policyCheck(filesystemPolicy, "tee /tmp/x y"))).toContain(
+      "./tmp/",
+    );
+  });
 });
 ```
 
@@ -284,7 +374,9 @@ type Tier =
   | "settings" // read+write denied everywhere (self-disable protection)
   | "git-config" // write denied everywhere, read allowed
   | "git-hooks" // ANY reference denied (read/write/execute)
-  | "personal"; // write denied (the tier is home-relative — always a persistence vector), read allowed
+  | "personal" // write denied (home-relative persistence vector), read allowed
+  | "macos-library" // ~/Library: read+write denied (Keychains, Safari, Mail)
+  | "macos-personal"; // macOS content folders: write/delete denied, read allowed
 
 const SECRETS_BASENAMES = new Set([
   "id_rsa", "id_ed25519", "id_ecdsa", "credentials.json", "token.json",
@@ -304,6 +396,14 @@ const PERSONAL_BASENAMES = new Set([
   ".bashrc", ".zshrc", ".zprofile", ".profile", ".bash_profile",
   ".vimrc", ".gitconfig",
 ]);
+// macOS home layout (research 2026-10-15, verified on macOS 26.7.1).
+// ~/Library: full deny (Keychains, Safari, Mail, Application Support).
+// Personal content folders: deny writes/deletes; reads pass. Matching is
+// case-insensitive — the root APFS volume is (/TMP is /tmp).
+const MACOS_PERSONAL_DIRS = new Set([
+  "desktop", "documents", "downloads", "movies", "music", "pictures",
+  "public", "applications", "sites",
+]);
 
 // ---- Path helpers ----
 
@@ -312,10 +412,11 @@ const PERSONAL_BASENAMES = new Set([
 const SECRET_SUFFIXES = [".pem", ".key", ".p12", ".pfx", ".secret", ".secrets"];
 
 function isSecretBasename(base: string): boolean {
+  const b = base.toLowerCase(); // root APFS is case-insensitive: .ENV is .env
   return (
-    base === ".env" ||
-    base.startsWith(".env.") ||
-    SECRET_SUFFIXES.some((s) => base.endsWith(s))
+    b === ".env" ||
+    b.startsWith(".env.") ||
+    SECRET_SUFFIXES.some((s) => b.endsWith(s))
   );
 }
 
@@ -374,14 +475,21 @@ export function tierOf(absPath: string): Tier | null {
     return "secrets";
   }
   if (restHome !== null) {
-    const seg = restHome.split("/")[0] ?? "";
+    const lower = restHome.toLowerCase();
+    if (lower === "library" || lower.startsWith("library/")) {
+      return "macos-library";
+    }
+    const seg = lower.split("/")[0] ?? "";
+    if (MACOS_PERSONAL_DIRS.has(seg)) {
+      return "macos-personal";
+    }
     if (SECRETS_SUBPATHS.includes(seg)) {
       return "secrets";
     }
     if (restHome === ".claude.json" || restHome === ".claude/settings.json") {
       return "settings";
     }
-    if (PERSONAL_BASENAMES.has(base) && !restHome.includes("/")) {
+    if (PERSONAL_BASENAMES.has(base.toLowerCase()) && !restHome.includes("/")) {
       return "personal";
     }
     if (PERSONAL_HOME_SUBPATHS.includes(seg)) {
@@ -415,8 +523,20 @@ function inAllowedZone(absPath: string, context: PolicyContext): boolean {
   return absPath === root || absPath.startsWith(`${root}/`);
 }
 
-const BOUNDARY_REASON = (token: string) =>
-  `Filesystem policy: "${token}" is outside the allowed zone ($HOME or the project) — reads and writes there are blocked.${TAIL}`;
+const TMP_PREFIXES = ["/tmp/", "/private/tmp/", "/var/tmp/", "/private/var/tmp/"];
+
+function isTmpPath(absPath: string): boolean {
+  const p = absPath.toLowerCase(); // /TMP is /tmp on the case-insensitive root
+  return p === "/tmp" || TMP_PREFIXES.some((pre) => p.startsWith(pre));
+}
+
+// Same teaching language as no-inline-scripts (which points script files at
+// ./tmp/): scratch files belong at the project root's git-ignored tmp/.
+const TMP_HINT =
+  " For scratch files, write to ./tmp/ at the project root — it is git-ignored there.";
+
+const BOUNDARY_REASON = (token: string, absPath: string) =>
+  `Filesystem policy: "${token}" is outside the allowed zone ($HOME or the project) — reads and writes there are blocked.${isTmpPath(absPath) ? TMP_HINT : ""}${TAIL}`;
 
 // One tail for every reason: what to do, how to override (DRY — the
 // override instruction is a single fact).
@@ -436,6 +556,10 @@ function tierReason(tier: Tier, token: string): string {
       return `Filesystem policy: "${token}" lives under .git/hooks — reading, writing, or running hook files is blocked (hooks execute as the user, outside the guard).${TAIL}`;
     case "personal":
       return `Filesystem policy: writing "${token}" (personal config) is blocked — persistence vector.${TAIL}`;
+    case "macos-library":
+      return `Filesystem policy: "${token}" is inside ~/Library (Keychains, Safari, Mail, app data) — blocked in all channels.${TAIL}`;
+    case "macos-personal":
+      return `Filesystem policy: writing "${token}" (a macOS personal folder: Desktop, Documents, Downloads, Movies, Music, Pictures, Public) is blocked.${TAIL}`;
   }
 }
 
@@ -451,12 +575,11 @@ export function checkFilePath(
   }
   const tier = tierOf(abs);
   if (tier === null) {
-    return inAllowedZone(abs, context) ? null : deny(BOUNDARY_REASON(filePath));
+    return inAllowedZone(abs, context)
+      ? null
+      : deny(BOUNDARY_REASON(filePath, abs));
   }
-  if (tier === "git-config") {
-    return intent === "write" ? deny(tierReason(tier, filePath)) : null;
-  }
-  if (tier === "personal") {
+  if (tier === "git-config" || tier === "personal" || tier === "macos-personal") {
     return intent === "write" ? deny(tierReason(tier, filePath)) : null;
   }
   return deny(tierReason(tier, filePath));
@@ -476,11 +599,11 @@ export const filesystemPolicy: Policy = {
         const tier = tierOf(abs);
         if (tier === null) {
           if (!inAllowedZone(abs, context)) {
-            return deny(BOUNDARY_REASON(arg));
+            return deny(BOUNDARY_REASON(arg, abs));
           }
           continue;
         }
-        if (tier === "personal" || tier === "git-config") {
+        if (tier === "personal" || tier === "git-config" || tier === "macos-personal") {
           continue; // intent-aware handling arrives in Task 3
         }
         return deny(tierReason(tier, arg));
@@ -553,6 +676,14 @@ DENY.push(
   "echo x > .git/config",
   "tee ~/.zshrc x",
   "cp dotfiles/zshrc ~/.bashrc",
+  // sudo blanket rule (owner 2026-10-15): any use, even via wrapper chains
+  "sudo ls",
+  "env sudo tee /etc/motd x",
+  // macOS personal folders: writes/deletes (research 2026-10-15)
+  "tee ~/Movies/clip.mp4 x",
+  "rm ~/Desktop/notes.txt",
+  "cp x ~/Downloads/",
+  "cp x ~/Applications/",
 );
 
 ASK.push(
@@ -594,21 +725,28 @@ const INTENTS: Record<string, Intent> = {
   sftp: "network", nc: "network",
 };
 
-// Wrappers: the real command is args[0] (unbash flattens `sudo rm …`).
-// Deliberately NOT shared with no-inline-scripts' WRAPPERS: the sets encode
-// different rules (interpreter adjacency vs intent unwrapping — e.g. `find`
-// is a wrapper there but a read-intent command here); merging couples them.
-const WRAPPERS = new Set(["sudo", "env", "nice", "nohup", "timeout", "xargs"]);
+// Wrappers: the real command is args[0] (unbash flattens `env rm …`).
+// `sudo` is NOT a wrapper here — any unit reaching sudo denies outright
+// (SUDO_REASON, owner decision 2026-10-15). Deliberately NOT shared with
+// no-inline-scripts' WRAPPERS: the sets encode different rules (interpreter
+// adjacency vs intent unwrapping — e.g. `find` is a wrapper there but a
+// read-intent command here); merging couples them.
+const WRAPPERS = new Set(["env", "nice", "nohup", "timeout", "xargs"]);
 
-function intentOf(name: string, args: string[]): { intent: Intent | null; rest: string[] } {
+function intentOf(
+  name: string,
+  args: string[],
+): { intent: Intent | null; rest: string[]; sudo: boolean } {
   let n = name;
   let rest = args;
-  while (WRAPPERS.has(n) && rest.length > 0) {
+  let sudo = n === "sudo";
+  while (!sudo && WRAPPERS.has(n) && rest.length > 0) {
     n = rest[0] ?? "";
     rest = rest.slice(1);
+    sudo = n === "sudo";
   }
   const intent = INTENTS[baseName(n)] ?? null;
-  return { intent, rest };
+  return { intent, rest, sudo };
 }
 
 // The value of an explicit output flag (-o X, --output-document X) or the
@@ -658,6 +796,8 @@ const ASK_REASON = (verb: string, token: string) =>
 const PATH_RULE_REASON = (bin: string) =>
   `Filesystem policy: running binaries by absolute path ("${bin}") is blocked — commands are on PATH by name.${TAIL}`;
 
+const SUDO_REASON = `Filesystem policy: sudo is blocked — privilege escalation is never an agent operation; every needed command runs under the user account.${TAIL}`;
+
 function scopeDenyOrAsk(intent: Intent, abs: string, token: string): PolicyCheckResult {
   if (abs === "/") {
     return deny(`Filesystem policy: "${token}" targets the filesystem root — blocked. Ask the user. Disable via /hooks.`);
@@ -676,13 +816,19 @@ export const filesystemPolicy: Policy = {
         return null;
       }
       const tier = tierOf(abs);
-      if (tier !== null && tier !== "personal" && tier !== "git-config") {
-        return deny(tierReason(tier, token)); // secrets/system/settings/git-hooks: any intent
-      }
-      if (tier === "git-config" && (intent === "write" || intent === "delete")) {
+      if (
+        tier !== null &&
+        tier !== "personal" &&
+        tier !== "git-config" &&
+        tier !== "macos-personal"
+      ) {
+        // secrets/system/settings/git-hooks/macos-library: any intent
         return deny(tierReason(tier, token));
       }
-      if (tier === "personal" && (intent === "write" || intent === "delete")) {
+      if (
+        (tier === "git-config" || tier === "personal" || tier === "macos-personal") &&
+        (intent === "write" || intent === "delete")
+      ) {
         return deny(tierReason(tier, token));
       }
       if (intent !== null) {
@@ -692,7 +838,7 @@ export const filesystemPolicy: Policy = {
         }
       }
       if (!inAllowedZone(abs, context)) {
-        return deny(BOUNDARY_REASON(token));
+        return deny(BOUNDARY_REASON(token, abs));
       }
       if (intent === "read" && abs === home()) {
         return ask(ASK_REASON("reading the home directory as a whole", token));
@@ -704,7 +850,10 @@ export const filesystemPolicy: Policy = {
       if (isAbsolute(unit.name)) {
         return deny(PATH_RULE_REASON(unit.name));
       }
-      const { intent, rest } = intentOf(unit.name, unit.args);
+      const { intent, rest, sudo } = intentOf(unit.name, unit.args);
+      if (sudo) {
+        return deny(SUDO_REASON);
+      }
       for (let i = 0; i < rest.length; i++) {
         const arg = rest[i] ?? "";
         if (arg.startsWith("-") || arg.includes("://")) {
@@ -1216,3 +1365,5 @@ Suggested: `docs(security-guard): v2 policy README, build and live-smoke verific
 - Type consistency: `checkFilePath(string, "read"|"write", PolicyContext)` identical in T2/T6; `decisionOf` T1 used in T2/T5/T6 tests; `intentOf`/`rest` shape consistent T3/T4.
 - DRY/KISS audit (second pass, owner-requested): reused `decisionOf` (run-hook.test local copy deleted in T1), node:path `basename` (hand-rolled removed), `baseName` from ast.ts in `intentOf`, `outputTargetAt` for the T3 network-target skip, `stringField` in payload.ts (3rd extraction), `TAIL` reason suffix; deleted the general `globMatch` engine (all patterns are suffix/.env-prefix matches); WRAPPERS kept local with a documented rationale (different rule than no-inline-scripts' set — incidental duplication, not knowledge duplication); collapsed duplicate branches in `expandToken`.
 - Semantics pass three (owner clarifications 2026-10-15): boundary is **$HOME ∪ projectRoot** — reads AND writes outside deny (`inAllowedZone`, SAFE_DEVICES exempt, `..`-chains collapse lexically and are fixture-pinned); absolute binary paths deny (PATH rule); personal-config write denies unconditionally; the download taint row and the outside-project ask rows folded into the boundary — the only surviving ask is home-as-a-whole reads.
+- Semantics pass four (owner + macOS research 2026-10-15): `sudo` blanket-deny (caught through wrapper chains via `intentOf`'s `sudo` flag; removed from WRAPPERS); macOS tiers `~/Library` (full deny) and personal content folders (write/delete deny, case-insensitive segment match — root APFS is case-insensitive); `/tmp`-family denies teach `./tmp/` at the project root (same language as no-inline-scripts); boundary is firmlink/symlink-robust lexically (`/private/tmp`, `/System/Volumes/Data/…` all fall outside the zone — pinned).
+- Semantics pass five (owner probe + empirical check 2026-10-15): inline FUNCTION definitions blanket-denied at the parser level — unbash types every form (parens, named, `function` keyword, mutual recursion) as `Function` AST nodes; `core/ast.ts` collects names into `ParsedCommand.functionDefs` (Task 1 Step 4) and no-inline-scripts denies any non-empty list with the `./tmp/` teaching reason. The regex fork-bomb detector from pass four was deleted — subsumed by the structural rule with zero false-negative surface (`tmp/fn-check.ts` pins all six forms).

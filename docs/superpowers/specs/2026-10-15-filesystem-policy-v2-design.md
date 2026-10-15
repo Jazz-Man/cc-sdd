@@ -126,6 +126,8 @@ settings rule fails to fire.
 | Git internals | `.git/config` | **deny write, both channels, always** (mutations belong to the git-readonly policy's `git config` gate; this closes the file-channel bypass; `~/.gitconfig` stays in PersonalConfig) |
 | Git internals | `.git/hooks/*` | **deny read, write, and execute — any reference, both channels, always**: tool-channel `Read`/`Edit`/`Write`, and any Bash arg or command resolving under `.git/hooks/` (running `bash .git/hooks/x` is as bad as planting it). Name-based access via the `git hook` subcommand is closed in the git-readonly policy (companion rule, §7.5) |
 | PersonalConfig | `.bashrc`, `.zshrc`, `.zprofile`, `.profile`, `.bash_profile`, `.vimrc`, `.gitconfig`, `.config/*`, `.vscode/*`, `.cursor/*` | **deny write** (always — the tier is home-relative, a persistence vector); read allowed |
+| macOS Library | `~/Library/**` (whole tree) | **deny read+write, both channels, always** — Keychains, Safari, Mail, Application Support, Preferences live here (verified empirically on macOS 26.7.1; research 2026-10-15) |
+| macOS personal folders | `~/Desktop`, `~/Documents`, `~/Downloads`, `~/Movies`, `~/Music`, `~/Pictures`, `~/Public`, `~/Applications`, `~/Sites` | **deny write/delete** — the user's personal content (TCC gates these at the OS level anyway); read allowed; **matching is case-insensitive** (the root APFS volume is case-insensitive: `~/DESKTOP` is the same folder) |
 
 `.claude/*` as a whole is **unrestricted** (agents author skills and rules
 there daily; the steering skill writes `.claude/rules/` in target
@@ -133,12 +135,32 @@ projects). Only the Settings tier above is forbidden.
 `Makefile`, `Dockerfile`, `docker-compose.yml` carry **no tier entry**:
 ordinary files, judged only by the decision table.
 
+**macOS matching notes** (research 2026-10-15, verified on macOS 26.7.1):
+home-relative segment comparisons are case-insensitive (root APFS is
+case-insensitive — `/TMP`, `~/DESKTOP` resolve to the same places); the
+lexical boundary already covers every symlink/firmlink spelling
+(`/private/tmp/…`, `/etc`→`/private/etc`, `/System/Volumes/Data/…` are
+all outside the zone), so no realpath resolution is needed.
+**`/tmp`-family teaching hint**: denies on `/tmp`, `/private/tmp`,
+`/var/tmp` append "write to `./tmp/` at the project root instead — it is
+git-ignored there" — the same language the no-inline-scripts policy uses
+when teaching script files under `./tmp/`.
+
 ### 7.2 INJECTION_PATTERNS (curated subset; source map in `tmp/pattern-source.md`)
 
 **deny:** `/dev/tcp`, `/dev/udp` substrings; `LD_PRELOAD` /
 `LD_LIBRARY_PATH` assignments; `PATH=` override whose value lacks
 `$PATH`; `HISTFILE` / `.bash_history` / `HISTSIZE=0`; null byte; control
 characters; non-ASCII whitespace.
+
+**Owned by no-inline-scripts, not here:** fork bombs and every other
+inline function definition. unbash types all definition forms as
+`Function` AST nodes (verified empirically 2026-10-15: parens
+`:(){…}`, underscore `_(){…}`, named, `function name {…}` keyword form,
+and mutual recursion) — `core/ast.ts` collects their names into
+`ParsedCommand.functionDefs` and no-inline-scripts denies any non-empty
+list: shell code belongs in a file under `./tmp/`, and a fortiori a
+self-spawning function never runs.
 
 **Rejected as too noisy for daily work:** `$()`, backticks, `<()`, `>()`,
 `${}`, `$((`, `$IFS`, `$'…'`, `\; \| \&`, brace expansion, `\x \u`
@@ -166,8 +188,10 @@ download→execution (owned by no-inline-scripts), env→network
   rsync, install, tar
 - **delete:** rm, rmdir, shred, unlink
 - **network:** curl, wget, ssh, scp, sftp, nc
-- **wrappers** (skip to the inner command): sudo, env, nice, nohup,
-  timeout, xargs
+- **wrappers** (skip to the inner command): env, nice, nohup, timeout, xargs
+- **sudo**: ANY use of `sudo` → **deny** (owner decision 2026-10-15) —
+  privilege escalation is never an agent operation; caught directly and
+  through wrapper chains (`env sudo …`)
 - **PATH rule**: a unit whose executable is spelled as an absolute path
   (`/opt/homebrew/bin/biome …`, `/bin/ls`) → **deny** — every command the
   agent may need is on PATH by name (owner decision 2026-10-15);
@@ -194,10 +218,11 @@ The plumbing command has no legitimate agent use.
 | 4 | Taint: secrets→network (§7.3) | deny |
 | 5 | **Outside the allowed zone ($HOME ∪ projectRoot), read OR write** — `/etc/*`, `/var/*`, `/tmp/*`, `/opt/*`, other users' homes, … Relative `..`-chains resolve LEXICALLY before classification (`normalize(join(cwd, token))`), so `cat ../../../../../../etc/passwd` lands on `/etc/passwd` and denies. (Owner decision 2026-10-15; exempts `/dev/null`, `/dev/stdin`, `/dev/stdout`, `/dev/stderr`) | deny |
 | 6 | Executable spelled as an absolute path (§7.4 PATH rule) | deny |
-| 7 | write/delete targeting Home as a whole (`~`, `$HOME`, no tail) | deny |
-| 8 | read targeting Home as a whole | ask |
-| 9 | write to PersonalConfig tier (§7.1) — always home-relative | deny |
-| 10 | everything else: any read or write inside the zone (incl. writes in $HOME outside the project), prose-`=` mentions | allow |
+| 7 | Any unit reaching `sudo` — directly or through a wrapper chain (§7.4, owner decision 2026-10-15) | deny |
+| 8 | write/delete targeting Home as a whole (`~`, `$HOME`, no tail) | deny |
+| 9 | read targeting Home as a whole | ask |
+| 10 | write to PersonalConfig tier (§7.1) — always home-relative | deny |
+| 11 | everything else: any read or write inside the zone (incl. writes in $HOME outside the project), prose-`=` mentions | allow |
 
 ## 8. Behavior changes vs today
 
@@ -214,6 +239,12 @@ The plumbing command has no legitimate agent use.
 | `cat file 2>/dev/null` | allow | allow (safe-device exemption) |
 | `rm -rf ~/` / `rm -rf /` | allow | **deny** |
 | `cat .env \| curl -d @- …` | allow | **deny** |
+| `sudo ls`, `env sudo tee /etc/motd x` | allow | **deny** (sudo blanket rule) |
+| `:(){ :\|:& };:`, `_(){ _\|_& };_`, `a(){ b& }; b(){ a& }; a`, `function fb { … }` — any inline function, any signature | allow | **deny** (no-inline-scripts: AST-typed `Function` nodes) |
+| `tee ~/Movies/clip.mp4`, `rm ~/Desktop/notes.txt`, `cp x ~/Downloads/` | allow | **deny** (macOS personal folders) |
+| `cat ~/Documents/report.pdf`, `ls ~/Downloads` | allow | allow |
+| `cat ~/Library/Keychains/login.keychain` | allow | **deny** (~/Library) |
+| `cat /ETC/PASSWD`, `tee /System/Volumes/Data/private/tmp/x` | allow | **deny** (boundary is case- and firmlink-robust); the `/tmp` spelling carries the `./tmp/` hint |
 | `echo foo=/etc` (prose `=`-mention) | allow | allow |
 | `Read ~/.claude/settings.json`, `Edit` of it | allow (unguarded channel) | **deny** |
 | `Read /var/log/x` (tool channel, outside zone) | allow | **deny** (boundary, shared logic) |
@@ -262,6 +293,9 @@ tools.
 | File | Change |
 |---|---|
 | `packages/cli-hook/src/core/decision.ts` | + `ask(reason)` |
+| `packages/cli-hook/src/core/ast.ts` | + `ParsedCommand.functionDefs` (unbash `Function` nodes, every definition form) |
+| `packages/cli-hook/src/policies/no-inline-scripts.ts` | + inline-function deny (owns all fork-bomb signatures; reason teaches `./tmp/`) |
+| `packages/cli-hook/tests/fixtures/no-inline-scripts.ts` | + `FUNCTIONS` fixture table |
 | `packages/cli-hook/src/core/policy.ts` | `PolicyCheckResult` widen; `PolicyContext` + `projectRoot` |
 | `packages/cli-hook/src/core/payload.ts` | + `filePath` extraction |
 | `packages/cli-hook/src/run-hook.ts` | router order; tool-channel branch; uncomment filesystemPolicy |
