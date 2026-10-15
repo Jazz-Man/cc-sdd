@@ -7,12 +7,25 @@ export function policyCheck(
   policy: Policy,
   command: string,
   cwd = "/proj",
+  projectRoot = cwd,
 ): PolicyCheckResult {
   const cmd = parseCommand(command);
   if (cmd === null) {
     return null;
   }
-  return policy.check(cmd, { cwd });
+  return policy.check(cmd, { cwd, projectRoot });
+}
+
+export function decisionOf(result: PolicyCheckResult): "deny" | "ask" | null {
+  const out = result?.hookSpecificOutput;
+  if (out?.hookEventName !== "PreToolUse") {
+    return null;
+  }
+  const d = out.permissionDecision;
+  if (d === "deny" || d === "ask") {
+    return d;
+  }
+  return null;
 }
 
 export function reasonOf(result: PolicyCheckResult): string | undefined {

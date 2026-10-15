@@ -23,3 +23,9 @@ export function deny(reason: string): {
 } {
   return decision("deny", reason);
 }
+
+export function ask(reason: string): {
+  hookSpecificOutput: PreToolUseHookSpecificOutput;
+} {
+  return decision("ask", reason);
+}

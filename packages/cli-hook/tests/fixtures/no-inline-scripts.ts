@@ -74,3 +74,14 @@ export const ALLOW: string[] = [
   "python3.13 --version",
   "node22 --version",
 ];
+
+export const FUNCTIONS: string[] = [
+  ":(){ :|:& };:",
+  "_(){ _|_& };_",
+  "bomb(){ bomb | bomb & }; bomb",
+  "function fb { fb | fb & }; fb",
+  "a(){ b& }; b(){ a& }; a",
+  // benign inline use is denied BY DESIGN (owner 2026-10-15: an inline
+  // function is always the wrong shape for an agent Bash call)
+  'usage(){ echo "usage: foo" | less & }; usage',
+];

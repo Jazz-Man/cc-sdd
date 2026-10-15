@@ -50,4 +50,15 @@ describe("parseCommand", () => {
       "/etc/passwd",
     );
   });
+
+  it("collects inline function definition names (every form)", () => {
+    expect(parseCommand("function fb { fb | fb & }; fb")?.functionDefs).toEqual(
+      ["fb"],
+    );
+    expect(parseCommand("a(){ b& }; b(){ a& }; a")?.functionDefs).toEqual([
+      "a",
+      "b",
+    ]);
+    expect(parseCommand("ls -la")?.functionDefs).toEqual([]);
+  });
 });

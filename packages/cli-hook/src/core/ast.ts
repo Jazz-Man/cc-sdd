@@ -26,6 +26,7 @@ export interface CommandUnit {
 }
 
 export interface ParsedCommand {
+  functionDefs: string[]; // inline function definition names (any form)
   raw: string;
   units: CommandUnit[];
   words: string[];
@@ -51,6 +52,7 @@ export function parseCommand(command: string): ParsedCommand | null {
   }
   const units: CommandUnit[] = [];
   const words: string[] = [];
+  const functionDefs: string[] = [];
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: walk semantics frozen by two reviews; splitting risks reordering the units/words traversal
   const visit = (node: unknown): void => {
@@ -73,6 +75,14 @@ export function parseCommand(command: string): ParsedCommand | null {
         units.push({ args: wordValues(obj.suffix), name: name.value });
       }
     }
+    // unbash types EVERY definition form (parens, named, `function` keyword,
+    // mutual) as a Function node — one branch covers them all.
+    if (obj.type === "Function") {
+      const fname = obj.name as Record<string, unknown> | null;
+      if (fname !== null && typeof fname.value === "string") {
+        functionDefs.push(fname.value);
+      }
+    }
     for (const child of Object.values(obj)) {
       visit(child);
     }
@@ -84,7 +94,7 @@ export function parseCommand(command: string): ParsedCommand | null {
     }
   };
   visit(ast.commands);
-  return { raw: command, units, words };
+  return { functionDefs, raw: command, units, words };
 }
 
 export function baseName(name: string): string {

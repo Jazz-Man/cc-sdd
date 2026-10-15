@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { runHook } from "../src/run-hook.ts";
+import { decisionOf } from "./helpers/policy.ts";
 
 const MAIN = `${import.meta.dir}/../src/main.ts`;
 
@@ -10,13 +11,6 @@ function bashPayload(command: string) {
     tool_input: { command },
     tool_name: "Bash",
   };
-}
-
-function decisionOf(result: ReturnType<typeof runHook>) {
-  const out = result?.hookSpecificOutput;
-  if (out?.hookEventName === "PreToolUse") {
-    return out.permissionDecision;
-  }
 }
 
 describe("runHook (unit)", () => {

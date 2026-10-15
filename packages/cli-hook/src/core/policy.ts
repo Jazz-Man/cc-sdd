@@ -9,6 +9,9 @@ export type PolicyCheckResult = SyncHookJSONOutput | null;
 // check signature.
 export interface PolicyContext {
   cwd: string;
+  // Stable project root (CLAUDE_PROJECT_DIR, falling back to cwd): scope
+  // analysis runs against it, while cwd is the per-call working directory.
+  projectRoot: string;
 }
 
 // A policy inspects a parsed Bash command and either decides (deny/ask/allow

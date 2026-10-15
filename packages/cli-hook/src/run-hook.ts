@@ -32,7 +32,10 @@ export function runHook(input: unknown): SyncHookJSONOutput | null {
       return null;
     }
     for (const policy of POLICIES) {
-      const result = policy.check(cmd, { cwd: payload.cwd });
+      const result = policy.check(cmd, {
+        cwd: payload.cwd,
+        projectRoot: payload.cwd,
+      });
       if (result !== null) {
         return result;
       }
