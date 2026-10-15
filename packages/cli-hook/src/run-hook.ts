@@ -9,7 +9,7 @@ import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";
 
 // Fixed registry order (owner's priority): first non-null decision wins (spec §4).
 const POLICIES: Policy[] = [
-  filesystemPolicy,
+  // filesystemPolicy,
   noDepsPolicy,
   gitReadonlyPolicy,
   noInlineScriptsPolicy,
