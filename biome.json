@@ -44,6 +44,8 @@
             "checkTypes": true
           }
         },
+        "noUnknownFunction": "error",
+        "noUnusedVariables": "error",
         "useQwikValidLexicalScope": "off"
       },
       "performance": {

@@ -114,14 +114,14 @@ gaps (anthropics/claude-code#24846 and its duplicates); the hook channel
 of §6 is the enforcing guarantee and stays authoritative even if a
 settings rule fails to fire.
 
-## 7. Rule tables (all inside `policies/filesystem.ts`, single file)
+## 7. Rule tables (module folder `src/policies/filesystem/` — single-file layout reversed by owner 2026-10-16: biome's 300-line-per-file limit; tiers → `tiers.ts`, resolution/boundary → `resolve.ts`, reasons → `reasons.ts`, intents → `intents.ts` (T3), injection/taint → `guards.ts` (T4), the Policy + `checkFilePath` → `policy.ts`)
 
 ### 7.1 SENSITIVE_PATHS
 
 | Tier | Patterns (fresh data; source map in `tmp/pattern-source.md`) | Verdict |
 |---|---|---|
 | Secrets | `.env`, `.env.*`, `.ssh/*`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `.aws/credentials`, `.gnupg/*`, `.netrc`, `.npmrc`, `.pypirc`, `.docker/config.json`, `.kube/config`, `.gcloud/*`, `credentials.json`, `*.secret`, `*.secrets`, `.htpasswd`, `token.json`, `terraform.tfstate` | **deny read+write, both channels, always** — even in-project |
-| System | `/etc/passwd`, `/etc/shadow`, `/etc/sudoers`, `/etc/ssh/*`, `/proc/*/environ`, `/proc/self/environ`, `/etc/hosts`, `/etc/resolv.conf`, `/etc/crontab` | **deny read+write, both channels, always** |
+| ~~System~~ | REMOVED (owner 2026-10-16): a point-list of /etc files was a vestige of the pre-boundary design — the §7.5 boundary denies EVERYTHING outside $HOME ∪ projectRoot (reads included, `/dev/null`-family exempt), so the tier changed only the reason text. `/etc/*`, `/proc/*`, `/var/*` all deny via the boundary. |
 | Settings | `.claude/settings.json`, `.claude/settings.local.json`, `~/.claude/settings.json`, `~/.claude.json` | **deny read+write, both channels, always** (self-disable vector: settings hold the hooks that enforce the guard) |
 | Git internals | `.git/config` | **deny write, both channels, always** (mutations belong to the git-readonly policy's `git config` gate; this closes the file-channel bypass; `~/.gitconfig` stays in PersonalConfig) |
 | Git internals | `.git/hooks/*` | **deny read, write, and execute — any reference, both channels, always**: tool-channel `Read`/`Edit`/`Write`, and any Bash arg or command resolving under `.git/hooks/` (running `bash .git/hooks/x` is as bad as planting it). Name-based access via the `git hook` subcommand is closed in the git-readonly policy (companion rule, §7.5) |
@@ -299,7 +299,7 @@ tools.
 | `packages/cli-hook/src/core/policy.ts` | `PolicyCheckResult` widen; `PolicyContext` + `projectRoot` |
 | `packages/cli-hook/src/core/payload.ts` | + `filePath` extraction |
 | `packages/cli-hook/src/run-hook.ts` | router order; tool-channel branch; uncomment filesystemPolicy |
-| `packages/cli-hook/src/policies/filesystem.ts` | full v2 rewrite (tables §7) |
+| `packages/cli-hook/src/policies/filesystem/` | full v2 as a module folder: tiers/resolve/reasons/policy (+intents in T3, guards in T4) |
 | `packages/cli-hook/src/policies/git-readonly.ts` | + deny the `git hook` subcommand entirely (name-based `.git/hooks` run/list, §7.5 companion rule) |
 | `packages/cli-hook/tests/fixtures/filesystem.ts` | DENY/ASK/ALLOW tables |
 | `packages/cli-hook/tests/filesystem.test.ts` | restructure + tool-channel tests |

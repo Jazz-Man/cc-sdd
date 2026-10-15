@@ -3,7 +3,7 @@ import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
 const REASON =
-  "Dependency install/update blocked: do not install, update, or remove packages (pip/uv/pipx/poetry, npm/npx/yarn/pnpm/bun/bunx, cargo/rustup, composer, gem, go get/install, swift package, brew). Ask the user to do it manually.";
+  "Dependency install/update blocked: do not install, update, or remove packages (pip/uv/pipx/poetry, npm/npx/yarn/pnpm/bun/bunx, cargo/rustup, composer, gem, go get/install, swift package, brew).";
 
 // Deny when args start with any listed prefix (whole words). [] = any args.
 const MUTATIONS: Record<string, readonly (readonly string[])[]> = {

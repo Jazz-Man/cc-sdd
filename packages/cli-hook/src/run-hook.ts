@@ -2,7 +2,7 @@ import type { SyncHookJSONOutput } from "@cc-sdd/agent-types";
 import { parseCommand } from "./core/ast.ts";
 import { toHookInput } from "./core/payload.ts";
 import type { Policy } from "./core/policy.ts";
-import { filesystemPolicy } from "./policies/filesystem.ts";
+import { filesystemPolicy } from "./policies/filesystem/policy.ts";
 import { gitReadonlyPolicy } from "./policies/git-readonly.ts";
 import { noDepsPolicy } from "./policies/no-deps.ts";
 import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";

@@ -1,65 +1,47 @@
 import { describe, expect, it } from "bun:test";
-import { filesystemPolicy } from "../src/policies/filesystem.ts";
-import { ALLOW, DENY } from "./fixtures/filesystem.ts";
-import { policyCheck, reasonOf } from "./helpers/policy.ts";
+import { homedir } from "node:os";
+import { filesystemPolicy } from "../src/policies/filesystem/policy.ts";
+import { ALLOW, ASK, DENY } from "./fixtures/filesystem.ts";
+import { decisionOf, policyCheck, reasonOf } from "./helpers/policy.ts";
 
-const PROJECT_DIR = "/proj";
-
-describe("filesystem policy", () => {
-  describe("allows in-project commands", () => {
-    it.each(ALLOW)('allows "%s"', (command) => {
-      expect(policyCheck(filesystemPolicy, command)).toBeNull();
-    });
+describe("filesystem policy v2", () => {
+  it.each(DENY)("denies %s", (command) => {
+    expect(decisionOf(policyCheck(filesystemPolicy, command))).toBe("deny");
   });
 
-  describe("denies out-of-project access", () => {
-    it.each(DENY)('denies "%s"', (command) => {
-      expect(reasonOf(policyCheck(filesystemPolicy, command))).toContain(
-        "Filesystem access outside project blocked",
-      );
-    });
+  it.each(ASK)("asks on %s", (command) => {
+    expect(decisionOf(policyCheck(filesystemPolicy, command))).toBe("ask");
   });
 
-  it("allows commands unbash cannot parse (fail-open)", () => {
+  it.each(ALLOW)("allows %s", (command) => {
+    expect(policyCheck(filesystemPolicy, command)).toBeNull();
+  });
+
+  it("fail-open: unparseable command allows", () => {
     expect(policyCheck(filesystemPolicy, 'cat "')).toBeNull();
   });
 
-  it("normalizes the project cwd (trailing slashes)", () => {
+  it("allows reading the repo root from a package cwd (repo-in-$HOME scenario)", () => {
+    const repo = `${homedir()}/www/repo`;
     expect(
-      policyCheck(filesystemPolicy, "cat file", `${PROJECT_DIR}///`),
-    ).toBeNull();
-    expect(
-      policyCheck(filesystemPolicy, "ls /proj", `${PROJECT_DIR}/`),
+      policyCheck(
+        filesystemPolicy,
+        "cat ../../README.md",
+        `${repo}/packages/cli-hook`,
+        repo,
+      ),
     ).toBeNull();
   });
 
-  it("emits the full wrapper message", () => {
-    expect(reasonOf(policyCheck(filesystemPolicy, "cat /etc/passwd"))).toBe(
-      'Filesystem access outside project blocked: absolute path "/etc/passwd" is outside the project directory. Access files within the project directory only. Ask the user or disable via /hooks.',
+  it("tier denies quote the offending token", () => {
+    expect(
+      reasonOf(policyCheck(filesystemPolicy, "cat /etc/passwd")),
+    ).toContain("/etc/passwd");
+  });
+
+  it("the /tmp deny reason teaches ./tmp/ at the project root", () => {
+    expect(reasonOf(policyCheck(filesystemPolicy, "tee /tmp/x y"))).toContain(
+      "./tmp/",
     );
-  });
-
-  describe("honors context.cwd", () => {
-    it("allows absolute paths under the payload cwd", () => {
-      expect(
-        policyCheck(
-          filesystemPolicy,
-          "cat /payload-root/file",
-          "/payload-root",
-        ),
-      ).toBeNull();
-    });
-
-    it("denies paths under the old project dir but outside the payload cwd", () => {
-      expect(
-        reasonOf(
-          policyCheck(filesystemPolicy, "cat /proj/file", "/payload-root"),
-        ),
-      ).toBeDefined();
-    });
-
-    it("fails open when the context cwd is empty (router never sends it)", () => {
-      expect(policyCheck(filesystemPolicy, "cat /etc/passwd", "")).toBeNull();
-    });
   });
 });

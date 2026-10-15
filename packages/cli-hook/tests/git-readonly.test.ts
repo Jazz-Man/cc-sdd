@@ -4,7 +4,7 @@ import { ALLOW, DENY } from "./fixtures/git-readonly.ts";
 import { policyCheck, reasonOf } from "./helpers/policy.ts";
 
 const REASON =
-  "Git write operation blocked (read-only policy): only read-only git is allowed (status, diff, log, show, branch -l, tag -l, stash list, ...). Ask the user to run write operations manually.";
+  "Git write operation blocked (read-only policy): only read-only git is allowed (status, diff, log, show, branch -l, tag -l, stash list, ...).";
 
 const check = (command: string) => policyCheck(gitReadonlyPolicy, command);
 
