@@ -49,11 +49,14 @@
       "performance": {
         "noBarrelFile": "error",
         "noNamespaceImport": "off",
-        "noReExportAll": "error"
+        "noReExportAll": "error",
+        "useTopLevelRegex": "error"
       },
       "preset": "all",
       "style": {
+        "noExcessiveLinesPerFile": "error",
         "noMagicNumbers": "off",
+        "noTernary": "error",
         "useBlockStatements": "error",
         "useExportsLast": "error",
         "useNamingConvention": "off"
