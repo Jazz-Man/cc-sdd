@@ -61,3 +61,20 @@ non-blockingly and Bash calls proceed unguarded.
   `deny.sh` entry) — the binary is their consolidated port. Remove those
   entries once this plugin is enabled. The `WebSearch|WebFetch` deny hook is
   a different policy and stays where it is.
+
+## Recommended global settings (defense in depth)
+
+Plugins cannot ship permission rules: in a plugin's `settings.json` only the
+`agent` and `subagentStatusLine` keys take effect, and permission rules live
+solely in settings files (managed > user > project > local; a deny at any
+level wins). `recommended-settings.json` in this folder is a ready-to-merge
+`permissions` block for `~/.claude/settings.json` covering the same
+sensitive-path families the hook enforces (secrets, system files, Claude
+settings, git internals) plus the `Bash(git hook:*)` prefix. The two layers
+complement each other: settings rules are exact-pattern matches that apply
+even when the plugin is not loaded; the hook adds the semantic layer
+(intents, scope analysis, pipeline taint, the ask tier) that path patterns
+cannot express. Keep both. Syntax note: rules must use the documented
+tool-rule form (`"Read(**/.env*)"` inside `permissions.deny`) — the object
+form `permissions: { read: { deny: [...] } }` is not a real setting and
+does not enforce (anthropics/claude-code#24846).
