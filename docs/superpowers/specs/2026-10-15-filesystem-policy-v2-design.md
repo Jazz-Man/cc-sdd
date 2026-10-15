@@ -52,14 +52,15 @@ documented verbatim — it gets a live smoke check before the ask tier ships
 ```ts
 export interface PolicyContext {
   cwd: string;         // Bash working dir of this call (moves per call)
-  projectRoot: string; // stable project root
+  projectRoot: string; // additional allowed root (see the boundary rule §7.5)
 }
 ```
 
 `projectRoot` = `process.env.CLAUDE_PROJECT_DIR ?? cwd` — no fallback
-chains. This closes the long-open precedence question: cwd and
-projectRoot have different roles, and scope analysis runs against
-`projectRoot`.
+chains. The allowed zone is **$HOME ∪ projectRoot** (owner decision
+2026-10-15): ordinary reads AND writes inside the zone are allowed;
+outside it both are denied. projectRoot exists so a repository located
+outside $HOME does not brick the agent inside its own files.
 
 ## 5. Router
 
@@ -88,7 +89,8 @@ v2 can emit ask.
   - `Read` → sensitive-path check, read intent;
   - `Edit | Write | NotebookEdit` → sensitive-path check, write intent;
   - anything else → null (fail-open).
-- The sensitive-path table is shared between both channels.
+- The sensitive-path table AND the HOME∪projectRoot boundary are shared
+  between both channels (`Read /var/log/x` denies by the boundary, not a tier).
 - `Grep`/`Glob` tools are a documented boundary — pattern arguments are
   too noisy to police here (§11).
 
@@ -123,7 +125,7 @@ settings rule fails to fire.
 | Settings | `.claude/settings.json`, `.claude/settings.local.json`, `~/.claude/settings.json`, `~/.claude.json` | **deny read+write, both channels, always** (self-disable vector: settings hold the hooks that enforce the guard) |
 | Git internals | `.git/config` | **deny write, both channels, always** (mutations belong to the git-readonly policy's `git config` gate; this closes the file-channel bypass; `~/.gitconfig` stays in PersonalConfig) |
 | Git internals | `.git/hooks/*` | **deny read, write, and execute — any reference, both channels, always**: tool-channel `Read`/`Edit`/`Write`, and any Bash arg or command resolving under `.git/hooks/` (running `bash .git/hooks/x` is as bad as planting it). Name-based access via the `git hook` subcommand is closed in the git-readonly policy (companion rule, §7.5) |
-| PersonalConfig | `.bashrc`, `.zshrc`, `.zprofile`, `.profile`, `.bash_profile`, `.vimrc`, `.gitconfig`, `.config/*`, `.vscode/*`, `.cursor/*` | **deny write outside projectRoot** (persistence vector); read allowed |
+| PersonalConfig | `.bashrc`, `.zshrc`, `.zprofile`, `.profile`, `.bash_profile`, `.vimrc`, `.gitconfig`, `.config/*`, `.vscode/*`, `.cursor/*` | **deny write** (always — the tier is home-relative, a persistence vector); read allowed |
 
 `.claude/*` as a whole is **unrestricted** (agents author skills and rules
 there daily; the steering skill writes `.claude/rules/` in target
@@ -144,14 +146,16 @@ escapes, base64-in-pipe. **Owned by `no-inline-scripts`:** `eval`,
 `source`, pipe-to-shell/interpreter, dot-sourcing (sanctioned file-exec
 pattern).
 
-### 7.3 TAINT (2 rules)
+### 7.3 TAINT (1 rule)
 
 | Source | Sink | Verdict |
 |---|---|---|
 | Secrets-tier arg | network command (`curl`/`wget`/`nc`/`ssh` with `-d`/`--data`/`-F`/`-T`/`@file`) | **deny** |
-| network download (`curl`/`wget` `-o`/`-O`/`--output-document`) | file write outside projectRoot | **ask**; in-project → allow |
 
-Deferred: download→execution (owned by no-inline-scripts), env→network
+The former download→outside-write row is gone: the §7.5 boundary denies
+any outside-zone write target (`curl -o /tmp/x` is caught as a plain
+write target), and in-zone downloads are allowed. Deferred:
+download→execution (owned by no-inline-scripts), env→network
 (legitimate `$TOKEN` headers), any_read→network (too broad).
 
 ### 7.4 INTENTS (~45 commands; wrappers transparent)
@@ -164,6 +168,11 @@ Deferred: download→execution (owned by no-inline-scripts), env→network
 - **network:** curl, wget, ssh, scp, sftp, nc
 - **wrappers** (skip to the inner command): sudo, env, nice, nohup,
   timeout, xargs
+- **PATH rule**: a unit whose executable is spelled as an absolute path
+  (`/opt/homebrew/bin/biome …`, `/bin/ls`) → **deny** — every command the
+  agent may need is on PATH by name (owner decision 2026-10-15);
+  `./tmp/script.sh`-style relative paths are the sanctioned file-exec form
+  and stay allowed.
 - Unknown command → no intent: only 7.1/7.2/7.3 checks apply (fail-open
   posture — unknown commands are not pre-punished).
 - Redirection targets (`>`, `>>`) count as write-intent targets.
@@ -179,32 +188,35 @@ The plumbing command has no legitimate agent use.
 
 | # | Condition | Verdict |
 |---|---|---|
-| 1 | Scope `/` (filesystem root), any intent | deny |
+| 1 | Scope `/` (filesystem root), any intent — reads included (owner decision 2026-10-15) | deny |
 | 2 | Any §7.1 sensitive-path hit (tier verdict applies: read and/or write) | deny |
 | 3 | Injection pattern (§7.2) | deny |
 | 4 | Taint: secrets→network (§7.3) | deny |
-| 5 | write/delete targeting Home as a whole (`~`, `$HOME`, no tail) | deny |
-| 6 | write/delete in system prefixes (`/etc /usr /bin /sbin /lib /var /opt /proc /sys /boot`) | deny |
-| 7 | write to PersonalConfig tier (§7.1) outside projectRoot | deny |
+| 5 | **Outside the allowed zone ($HOME ∪ projectRoot), read OR write** — `/etc/*`, `/var/*`, `/tmp/*`, `/opt/*`, other users' homes, … Relative `..`-chains resolve LEXICALLY before classification (`normalize(join(cwd, token))`), so `cat ../../../../../../etc/passwd` lands on `/etc/passwd` and denies. (Owner decision 2026-10-15; exempts `/dev/null`, `/dev/stdin`, `/dev/stdout`, `/dev/stderr`) | deny |
+| 6 | Executable spelled as an absolute path (§7.4 PATH rule) | deny |
+| 7 | write/delete targeting Home as a whole (`~`, `$HOME`, no tail) | deny |
 | 8 | read targeting Home as a whole | ask |
-| 9 | Taint: download→write outside projectRoot | ask |
-| 10 | write/delete outside projectRoot | ask |
-| 11 | everything else (incl. any read outside projectRoot, any non-Secrets op in-project) | allow |
+| 9 | write to PersonalConfig tier (§7.1) — always home-relative | deny |
+| 10 | everything else: any read or write inside the zone (incl. writes in $HOME outside the project), prose-`=` mentions | allow |
 
 ## 8. Behavior changes vs today
 
 | Command | Today (policy disabled: all allow) | v2 |
 |---|---|---|
-| `cat ../../README.md` (ordinary read outside cwd) | allow | **allow** (the pain, fixed) |
+| `cat ../../README.md` (read repo root from a package cwd) | allow | **allow** (the pain, fixed; repo lives in $HOME) |
+| `cat ~/some-file.txt`, `tee ~/notes/x` (ordinary $HOME use) | allow | **allow** |
+| `cat ../../../../../../etc/passwd` (relative `..`-escape) | allow | **deny** (lexical `..` collapse → `/etc/passwd`) |
 | `cat .env` in-project | allow | **deny** (intentional; agent must ask the user) |
-| `ls /etc` | allow | allow (non-System-tier system read) |
+| `ls /etc`, `cat /etc/group`, `head /var/log/syslog` | allow | **deny** (outside the zone) |
 | `cat /etc/passwd` | allow | **deny** |
-| `tee /tmp/notes` (write outside project) | allow | **ask** |
+| `tee /tmp/notes`, `curl -o /tmp/x.tar …` | allow | **deny** (outside the zone) |
+| `/opt/homebrew/bin/biome check .` (absolute binary path) | allow | **deny** (PATH rule) |
+| `cat file 2>/dev/null` | allow | allow (safe-device exemption) |
 | `rm -rf ~/` / `rm -rf /` | allow | **deny** |
-| `curl -o /tmp/x.tar …` | allow | **ask** |
 | `cat .env \| curl -d @- …` | allow | **deny** |
-| `echo $X \| base64` and other daily constructs | allow | allow (7.2 rejects list) |
+| `echo foo=/etc` (prose `=`-mention) | allow | allow |
 | `Read ~/.claude/settings.json`, `Edit` of it | allow (unguarded channel) | **deny** |
+| `Read /var/log/x` (tool channel, outside zone) | allow | **deny** (boundary, shared logic) |
 | `tee .git/hooks/pre-commit` / Write into `.git/hooks/` | allow | **deny** |
 | Authoring `.claude/skills/…`, `.claude/rules/…` | allow | allow |
 
