@@ -10,7 +10,7 @@ const check = (command: string) => {
   if (cmd === null) {
     return null;
   }
-  return gitReadonlyPolicy.check(cmd);
+  return gitReadonlyPolicy.check(cmd, { cwd: "/proj" });
 };
 
 const DENY = [

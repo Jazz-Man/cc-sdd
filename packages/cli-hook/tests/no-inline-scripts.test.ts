@@ -10,7 +10,7 @@ const check = (command: string) => {
   if (cmd === null) {
     return null;
   }
-  return noInlineScriptsPolicy.check(cmd);
+  return noInlineScriptsPolicy.check(cmd, { cwd: "/proj" });
 };
 
 const DENY = [

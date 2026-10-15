@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { toHookInput } from "../src/core/payload.ts";
 
 const PAYLOAD = {
+  cwd: "/proj",
   hook_event_name: "PreToolUse",
   tool_input: { command: "git push" },
   tool_name: "Bash",
@@ -11,6 +12,7 @@ describe("toHookInput", () => {
   it("narrows a Bash PreToolUse payload", () => {
     expect(toHookInput(PAYLOAD)).toEqual({
       command: "git push",
+      cwd: "/proj",
       hookEventName: "PreToolUse",
       toolName: "Bash",
     });
@@ -38,5 +40,12 @@ describe("toHookInput", () => {
     expect(toHookInput({})).toBeNull();
     expect(toHookInput({ tool_name: "Bash" })).toBeNull();
     expect(toHookInput({ hook_event_name: "PreToolUse" })).toBeNull();
+  });
+
+  it("returns null when cwd is missing, non-string, or empty", () => {
+    const { cwd: _cwd, ...withoutCwd } = PAYLOAD;
+    expect(toHookInput(withoutCwd)).toBeNull();
+    expect(toHookInput({ ...PAYLOAD, cwd: 42 })).toBeNull();
+    expect(toHookInput({ ...PAYLOAD, cwd: "" })).toBeNull();
   });
 });

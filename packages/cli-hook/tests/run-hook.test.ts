@@ -5,6 +5,7 @@ const MAIN = `${import.meta.dir}/../src/main.ts`;
 
 function bashPayload(command: string) {
   return {
+    cwd: "/proj",
     hook_event_name: "PreToolUse",
     tool_input: { command },
     tool_name: "Bash",
@@ -35,6 +36,22 @@ describe("runHook (unit)", () => {
 
   it("denies filesystem escapes", () => {
     expect(decisionOf(runHook(bashPayload("cat /etc/passwd")))).toBe("deny");
+  });
+
+  it("uses the payload cwd for filesystem decisions", () => {
+    const withCwd = {
+      ...bashPayload("cat /payload-root/f"),
+      cwd: "/payload-root",
+    };
+    expect(runHook(withCwd)).toBeNull();
+    expect(
+      decisionOf(
+        runHook({
+          ...bashPayload("cat /usr/local/lib/f"),
+          cwd: "/payload-root",
+        }),
+      ),
+    ).toBe("deny");
   });
 
   it("allows ordinary commands", () => {

@@ -1,5 +1,6 @@
 export interface ParsedHookInput {
   command: string | undefined;
+  cwd: string;
   hookEventName: string;
   toolName: string;
 }
@@ -27,8 +28,15 @@ export function toHookInput(data: unknown): ParsedHookInput | null {
   ) {
     command = (toolInput as Record<string, unknown>).command as string;
   }
+  // cwd is a required field of the SDK's PreToolUseHookInput (BaseHookInput);
+  // a payload without a usable cwd is not a payload we can reason about.
+  const { cwd } = obj;
+  if (typeof cwd !== "string" || cwd === "") {
+    return null;
+  }
   return {
     command,
+    cwd,
     hookEventName: obj.hook_event_name,
     toolName: obj.tool_name,
   };

@@ -3,6 +3,7 @@ import type { HookEvent, Settings } from "@anthropic-ai/claude-agent-sdk";
 export type {
   HookEvent,
   PreModelSwitchHookSpecificOutput,
+  PreToolUseHookInput,
   PreToolUseHookSpecificOutput,
   Settings,
   SyncHookJSONOutput,

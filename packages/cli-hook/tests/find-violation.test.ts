@@ -142,7 +142,7 @@ describe("findViolation", () => {
     const cmd: ParsedCommand | null = parseCommand("cat /etc/passwd");
     let result: PolicyCheckResult = null;
     if (cmd !== null) {
-      result = filesystemPolicy.check(cmd);
+      result = filesystemPolicy.check(cmd, { cwd: "/proj" });
     }
     let reason: string | undefined;
     if (result?.hookSpecificOutput?.hookEventName === "PreToolUse") {
@@ -151,5 +151,34 @@ describe("findViolation", () => {
     expect(reason).toBe(
       'Filesystem access outside project blocked: absolute path "/etc/passwd" is outside the project directory. Access files within the project directory only. Ask the user or disable via /hooks.',
     );
+  });
+
+  describe("filesystemPolicy honors context.cwd", () => {
+    it("allows absolute paths under the payload cwd", () => {
+      const cmd = parseCommand("cat /payload-root/file");
+      let result: PolicyCheckResult = null;
+      if (cmd !== null) {
+        result = filesystemPolicy.check(cmd, { cwd: "/payload-root" });
+      }
+      expect(result).toBeNull();
+    });
+
+    it("denies paths under CLAUDE_PROJECT_DIR but outside the payload cwd", () => {
+      const cmd = parseCommand("cat /proj/file");
+      let result: PolicyCheckResult = null;
+      if (cmd !== null) {
+        result = filesystemPolicy.check(cmd, { cwd: "/payload-root" });
+      }
+      expect(result).not.toBeNull();
+    });
+
+    it("fails open when the context cwd is empty (router never sends it)", () => {
+      const cmd = parseCommand("cat /etc/passwd");
+      let result: PolicyCheckResult = null;
+      if (cmd !== null) {
+        result = filesystemPolicy.check(cmd, { cwd: "" });
+      }
+      expect(result).toBeNull();
+    });
   });
 });

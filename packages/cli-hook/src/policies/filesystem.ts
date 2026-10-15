@@ -115,6 +115,11 @@ const TRAILING_SLASHES = /\/+$/;
 
 function violationIn(words: string[], projectDir: string): string | null {
   const project = projectDir.replace(TRAILING_SLASHES, "");
+  // An empty root cannot anchor anything; allowing is the fail-open choice
+  // (the router never produces it — payload narrowing rejects empty cwd).
+  if (project === "") {
+    return null;
+  }
   try {
     for (const value of words) {
       classify(value, project);
@@ -151,12 +156,8 @@ export function findViolation(
 }
 
 export const filesystemPolicy: Policy = {
-  check(cmd) {
-    const reason = violationIn(
-      cmd.words,
-      // biome-ignore lint/style/noProcessEnv: designed config channel (CLAUDE_PROJECT_DIR)
-      process.env.CLAUDE_PROJECT_DIR ?? process.cwd(),
-    );
+  check(cmd, context) {
+    const reason = violationIn(cmd.words, context.cwd);
     if (reason === null) {
       return null;
     }
