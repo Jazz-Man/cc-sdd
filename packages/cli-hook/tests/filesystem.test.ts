@@ -1,11 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import process from "node:process";
-import { type ParsedCommand, parseCommand } from "../src/core/ast.ts";
-import type { PolicyCheckResult } from "../src/core/policy.ts";
-import { filesystemPolicy, findViolation } from "../src/policies/filesystem.ts";
-
-// biome-ignore lint/style/noProcessEnv: designed config channel (CLAUDE_PROJECT_DIR)
-process.env.CLAUDE_PROJECT_DIR = "/proj";
+import { filesystemPolicy } from "../src/policies/filesystem.ts";
+import { policyCheck, reasonOf } from "./helpers/policy.ts";
 
 // classify() is pure string logic - no filesystem access - so a fake project
 // directory is enough.
@@ -38,6 +33,9 @@ const ALLOW = [
   "ls -la .git",
   // command substitution whose nested command stays in the project
   "echo $(cat README.md)",
+  // double-slash spellings resolve inside the project — normalize handles them
+  "cat //proj/file",
+  "ls /proj//src",
   // length expansion is not a path; bare "-" is a common revision arg
   // biome-ignore lint/suspicious/noTemplateCurlyInString: fixture content — literal placeholder text
   "echo ${#HOME}",
@@ -116,69 +114,61 @@ const DENY = [
   "ls >> /var/tmp/out",
 ];
 
-describe("findViolation", () => {
+describe("filesystem policy", () => {
   describe("allows in-project commands", () => {
     it.each(ALLOW)('allows "%s"', (command) => {
-      expect(findViolation(command, PROJECT_DIR)).toBeNull();
+      expect(policyCheck(filesystemPolicy, command)).toBeNull();
     });
   });
 
   describe("denies out-of-project access", () => {
     it.each(DENY)('denies "%s"', (command) => {
-      expect(findViolation(command, PROJECT_DIR)).toBeTypeOf("string");
+      expect(reasonOf(policyCheck(filesystemPolicy, command))).toContain(
+        "Filesystem access outside project blocked",
+      );
     });
   });
 
   it("allows commands unbash cannot parse (fail-open)", () => {
-    expect(findViolation('cat "', PROJECT_DIR)).toBeNull();
+    expect(policyCheck(filesystemPolicy, 'cat "')).toBeNull();
   });
 
-  it("normalizes trailing slashes in projectDir", () => {
-    expect(findViolation("cat file", "/proj///")).toBeNull();
-    expect(findViolation("ls /proj", "/proj/")).toBeNull();
+  it("normalizes the project cwd (trailing slashes)", () => {
+    expect(
+      policyCheck(filesystemPolicy, "cat file", `${PROJECT_DIR}///`),
+    ).toBeNull();
+    expect(
+      policyCheck(filesystemPolicy, "ls /proj", `${PROJECT_DIR}/`),
+    ).toBeNull();
   });
 
-  it("filesystemPolicy emits the full wrapper message", () => {
-    const cmd: ParsedCommand | null = parseCommand("cat /etc/passwd");
-    let result: PolicyCheckResult = null;
-    if (cmd !== null) {
-      result = filesystemPolicy.check(cmd, { cwd: "/proj" });
-    }
-    let reason: string | undefined;
-    if (result?.hookSpecificOutput?.hookEventName === "PreToolUse") {
-      reason = result.hookSpecificOutput.permissionDecisionReason;
-    }
-    expect(reason).toBe(
+  it("emits the full wrapper message", () => {
+    expect(reasonOf(policyCheck(filesystemPolicy, "cat /etc/passwd"))).toBe(
       'Filesystem access outside project blocked: absolute path "/etc/passwd" is outside the project directory. Access files within the project directory only. Ask the user or disable via /hooks.',
     );
   });
 
-  describe("filesystemPolicy honors context.cwd", () => {
+  describe("honors context.cwd", () => {
     it("allows absolute paths under the payload cwd", () => {
-      const cmd = parseCommand("cat /payload-root/file");
-      let result: PolicyCheckResult = null;
-      if (cmd !== null) {
-        result = filesystemPolicy.check(cmd, { cwd: "/payload-root" });
-      }
-      expect(result).toBeNull();
+      expect(
+        policyCheck(
+          filesystemPolicy,
+          "cat /payload-root/file",
+          "/payload-root",
+        ),
+      ).toBeNull();
     });
 
-    it("denies paths under CLAUDE_PROJECT_DIR but outside the payload cwd", () => {
-      const cmd = parseCommand("cat /proj/file");
-      let result: PolicyCheckResult = null;
-      if (cmd !== null) {
-        result = filesystemPolicy.check(cmd, { cwd: "/payload-root" });
-      }
-      expect(result).not.toBeNull();
+    it("denies paths under the old project dir but outside the payload cwd", () => {
+      expect(
+        reasonOf(
+          policyCheck(filesystemPolicy, "cat /proj/file", "/payload-root"),
+        ),
+      ).toBeDefined();
     });
 
     it("fails open when the context cwd is empty (router never sends it)", () => {
-      const cmd = parseCommand("cat /etc/passwd");
-      let result: PolicyCheckResult = null;
-      if (cmd !== null) {
-        result = filesystemPolicy.check(cmd, { cwd: "" });
-      }
-      expect(result).toBeNull();
+      expect(policyCheck(filesystemPolicy, "cat /etc/passwd", "")).toBeNull();
     });
   });
 });

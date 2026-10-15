@@ -1,17 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { parseCommand } from "../src/core/ast.ts";
 import { noDepsPolicy } from "../src/policies/no-deps.ts";
+import { policyCheck, reasonOf } from "./helpers/policy.ts";
 
 const REASON =
   "Dependency install/update blocked: do not install, update, or remove packages (pip/uv/pipx/poetry, npm/npx/yarn/pnpm/bun/bunx, cargo/rustup, composer, gem, go get/install, swift package, brew). Ask the user to do it manually.";
 
-const check = (command: string) => {
-  const cmd = parseCommand(command);
-  if (cmd === null) {
-    return null;
-  }
-  return noDepsPolicy.check(cmd, { cwd: "/proj" });
-};
+const check = (command: string) => policyCheck(noDepsPolicy, command);
 
 const DENY = [
   "pip install x",
@@ -88,12 +82,7 @@ const ALLOW = [
 
 describe("no-deps policy", () => {
   it.each(DENY)("denies %s", (command) => {
-    const out = check(command)?.hookSpecificOutput;
-    let reason: string | undefined;
-    if (out?.hookEventName === "PreToolUse") {
-      reason = out.permissionDecisionReason;
-    }
-    expect(reason).toBe(REASON);
+    expect(reasonOf(check(command))).toBe(REASON);
   });
 
   it.each(ALLOW)("allows %s", (command) => {

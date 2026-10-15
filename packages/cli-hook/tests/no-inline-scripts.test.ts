@@ -1,17 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { parseCommand } from "../src/core/ast.ts";
 import { noInlineScriptsPolicy } from "../src/policies/no-inline-scripts.ts";
+import { policyCheck, reasonOf } from "./helpers/policy.ts";
 
 const REASON =
   "Inline scripts are blocked (interpreter -e/-c/--eval, shell -c/eval, stdin-fed scripts): inline code cannot be reviewed for safety. Write the script to a file under ./tmp/ and run that file instead — project linters and checkers can then review it.";
 
-const check = (command: string) => {
-  const cmd = parseCommand(command);
-  if (cmd === null) {
-    return null;
-  }
-  return noInlineScriptsPolicy.check(cmd, { cwd: "/proj" });
-};
+const check = (command: string) => policyCheck(noInlineScriptsPolicy, command);
 
 const DENY = [
   "bun -e 'console.log(1)'",
@@ -59,6 +53,9 @@ const DENY = [
   "env python3.13 -c 'print(1)'",
   // fish was missing entirely
   "fish -c 'echo hi'",
+  // bare interpreters read a piped/heredoc script (or open a REPL) — no args
+  "bun",
+  "node",
 ];
 
 const ALLOW = [
@@ -88,12 +85,7 @@ const ALLOW = [
 
 describe("no-inline-scripts policy", () => {
   it.each(DENY)("denies %s", (command) => {
-    const out = check(command)?.hookSpecificOutput;
-    let reason: string | undefined;
-    if (out?.hookEventName === "PreToolUse") {
-      reason = out.permissionDecisionReason;
-    }
-    expect(reason).toBe(REASON);
+    expect(reasonOf(check(command))).toBe(REASON);
   });
 
   it.each(ALLOW)("allows %s", (command) => {

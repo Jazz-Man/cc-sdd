@@ -1,6 +1,10 @@
+import type { PreToolUseHookInput } from "@cc-sdd/agent-types";
+
 export interface ParsedHookInput {
   command: string | undefined;
-  cwd: string;
+  // Field availability mirrors the SDK contract: BaseHookInput.cwd is a
+  // required string on every hook payload.
+  cwd: PreToolUseHookInput["cwd"];
   hookEventName: string;
   toolName: string;
 }

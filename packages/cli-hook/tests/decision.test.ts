@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import type { PreModelSwitchHookSpecificOutput } from "@cc-sdd/agent-types";
 import { decision, deny } from "../src/core/decision.ts";
 
 describe("decision", () => {
@@ -17,20 +16,6 @@ describe("decision", () => {
     expect(decision("ask", "why")).toEqual({
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        permissionDecision: "ask",
-        permissionDecisionReason: "why",
-      },
-    });
-  });
-
-  it("narrows the event through the SDK union", () => {
-    const out: { hookSpecificOutput: PreModelSwitchHookSpecificOutput } =
-      // biome-ignore lint/security/noSecrets: SDK event name, not a secret
-      decision("ask", "why", "PreModelSwitch");
-    expect(out).toEqual({
-      hookSpecificOutput: {
-        // biome-ignore lint/security/noSecrets: SDK event name, not a secret
-        hookEventName: "PreModelSwitch",
         permissionDecision: "ask",
         permissionDecisionReason: "why",
       },

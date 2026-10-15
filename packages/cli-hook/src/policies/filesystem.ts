@@ -1,9 +1,8 @@
-import process from "node:process";
-import { type ParsedCommand, parseCommand } from "../core/ast.ts";
+import { isAbsolute, normalize, relative } from "node:path";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
-// classify()'s throws; lets findViolation tell a deny reason apart from a
+// classify()'s throws; lets violationIn tell a deny reason apart from a
 // failure inside the walk (lazy getters can throw while parsing on access).
 class Violation extends Error {
   constructor(message: string) {
@@ -28,26 +27,12 @@ const SAFE_DEVICES = new Set([
 // vars. ${#HOME} (length) does not match - the # intervenes.
 const OUTSIDE_VAR = /\$\{?(HOME|OLDPWD|TMPDIR|TMP)(?![A-Za-z0-9_])/;
 
+// An absolute candidate is inside the project when relative() does not climb
+// out of it ("" for the directory itself). relative() resolves both sides, so
+// double-slash and interior-dot spellings are handled by node:path itself.
 function isUnderProject(absPath: string, projectDir: string): boolean {
-  return absPath === projectDir || absPath.startsWith(`${projectDir}/`);
-}
-
-// Does a relative path escape above the project root via .. ?
-function relativeEscapes(value: string): boolean {
-  let depth = 0;
-  for (const part of value.split("/")) {
-    if (part !== "" && part !== ".") {
-      if (part === "..") {
-        depth -= 1;
-        if (depth < 0) {
-          return true;
-        }
-      } else {
-        depth += 1;
-      }
-    }
-  }
-  return false;
+  const rel = relative(projectDir, absPath);
+  return !(rel.startsWith("..") || isAbsolute(rel));
 }
 
 // Classify a single word. Throws a Violation with the deny reason when the
@@ -80,12 +65,22 @@ function classify(raw: string, projectDir: string): void {
     value = value.slice(1);
   }
 
+  // Tilde is a plain character to node:path ("~/.." would mangle), so the
+  // home prefix is checked on the un-normalized value.
+  if (value.startsWith("~")) {
+    throw new Violation(
+      `home-directory path "${value}" resolves outside the project`,
+    );
+  }
+
+  const path = normalize(value);
+
   // 1. Absolute path
-  if (value.startsWith("/")) {
-    if (SAFE_DEVICES.has(value)) {
+  if (isAbsolute(path)) {
+    if (SAFE_DEVICES.has(path)) {
       return;
     }
-    if (isUnderProject(value, projectDir)) {
+    if (isUnderProject(path, projectDir)) {
       return;
     }
     throw new Violation(
@@ -93,15 +88,9 @@ function classify(raw: string, projectDir: string): void {
     );
   }
 
-  // 2. Tilde (home directory)
-  if (value.startsWith("~")) {
-    throw new Violation(
-      `home-directory path "${value}" resolves outside the project`,
-    );
-  }
-
-  // 3. Relative path whose .. components escape above the project root
-  if (relativeEscapes(value)) {
+  // 2. Relative path whose .. components escape above the project root
+  //    (normalize has already collapsed the reachable ones).
+  if (path.startsWith("..")) {
     throw new Violation(
       `parent-directory path "${value}" escapes the project root`,
     );
@@ -111,13 +100,12 @@ function classify(raw: string, projectDir: string): void {
 const WRAPPER =
   "Filesystem access outside project blocked: %s. Access files within the project directory only. Ask the user or disable via /hooks.";
 
-const TRAILING_SLASHES = /\/+$/;
-
 function violationIn(words: string[], projectDir: string): string | null {
-  const project = projectDir.replace(TRAILING_SLASHES, "");
-  // An empty root cannot anchor anything; allowing is the fail-open choice
-  // (the router never produces it — payload narrowing rejects empty cwd).
-  if (project === "") {
+  // normalize("") and normalize(".") both give "." — a rootless project
+  // cannot anchor anything; allowing is the fail-open choice (the router
+  // never produces it — payload narrowing rejects an empty cwd).
+  const project = normalize(projectDir);
+  if (project === ".") {
     return null;
   }
   try {
@@ -131,28 +119,6 @@ function violationIn(words: string[], projectDir: string): string | null {
     return null;
   }
   return null;
-}
-
-// Inspect a parsed command string. Returns the deny reason, or null to allow.
-// Fail-open by policy: if unbash cannot parse the command, or the walk itself
-// fails, there is nothing to reason about and the command is allowed.
-//
-// Static-analysis boundary (documented, deliberate): commands that build
-// their paths at runtime inside interpreters (eval "...", sh -c '...',
-// python3 -c "...", heredoc bodies), file:// URLs, and symlinks that point
-// out of the project are NOT catchable here - substring heuristics for them
-// would deny prose mentions of paths, so they are left to the human.
-// Exported so it can be unit-tested directly.
-export function findViolation(
-  command: string,
-  // biome-ignore lint/style/noProcessEnv: designed config channel (CLAUDE_PROJECT_DIR)
-  projectDir: string = process.env.CLAUDE_PROJECT_DIR ?? process.cwd(),
-): string | null {
-  const parsed: ParsedCommand | null = parseCommand(command);
-  if (parsed === null) {
-    return null;
-  }
-  return violationIn(parsed.words, projectDir);
 }
 
 export const filesystemPolicy: Policy = {

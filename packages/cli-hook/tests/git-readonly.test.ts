@@ -1,17 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { parseCommand } from "../src/core/ast.ts";
 import { gitReadonlyPolicy } from "../src/policies/git-readonly.ts";
+import { policyCheck, reasonOf } from "./helpers/policy.ts";
 
 const REASON =
   "Git write operation blocked (read-only policy): only read-only git is allowed (status, diff, log, show, branch -l, tag -l, stash list, ...). Ask the user to run write operations manually.";
 
-const check = (command: string) => {
-  const cmd = parseCommand(command);
-  if (cmd === null) {
-    return null;
-  }
-  return gitReadonlyPolicy.check(cmd, { cwd: "/proj" });
-};
+const check = (command: string) => policyCheck(gitReadonlyPolicy, command);
 
 const DENY = [
   "git add .",
@@ -106,12 +100,7 @@ const ALLOW = [
 
 describe("git-readonly policy", () => {
   it.each(DENY)("denies %s", (command) => {
-    const out = check(command)?.hookSpecificOutput;
-    let reason: string | undefined;
-    if (out?.hookEventName === "PreToolUse") {
-      reason = out.permissionDecisionReason;
-    }
-    expect(reason).toBe(REASON);
+    expect(reasonOf(check(command))).toBe(REASON);
   });
 
   it.each(ALLOW)("allows %s", (command) => {
