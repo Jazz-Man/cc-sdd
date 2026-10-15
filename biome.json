@@ -36,6 +36,9 @@
     },
     "enabled": true,
     "rules": {
+      "complexity": {
+        "noExcessiveLinesPerFunction": "error"
+      },
       "correctness": {
         "noNodejsModules": "off",
         "noUndeclaredVariables": {
