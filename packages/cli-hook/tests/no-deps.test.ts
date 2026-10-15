@@ -54,6 +54,14 @@ const DENY = [
   "Cargo ADD serde",
   "npx",
   "bunx",
+  "uvx ruff",
+  "uvx ruff@latest check .",
+  "yarn global add x",
+  "yarn global remove x",
+  "npm exec --yes create-vite@latest",
+  "npm create vite@latest",
+  "npm init vite",
+  "python3.12 -m pip install x",
 ];
 
 const ALLOW = [
@@ -74,6 +82,8 @@ const ALLOW = [
   "echo 'npm install x'",
   "man npm install",
   "NPM info x",
+  "uv tool list",
+  "python3.13 --version",
 ];
 
 describe("no-deps policy", () => {

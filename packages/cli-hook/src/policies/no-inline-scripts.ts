@@ -1,4 +1,4 @@
-import type { CommandUnit } from "../core/ast.ts";
+import { baseName, type CommandUnit } from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
@@ -14,6 +14,7 @@ const INTERPRETERS: Record<
   bash: { longs: [], shorts: ["c"] },
   bun: { longs: ["--eval"], shorts: ["e"] },
   dash: { longs: [], shorts: ["c"] },
+  fish: { longs: [], shorts: ["c"] },
   ksh: { longs: [], shorts: ["c"] },
   node: { longs: ["--eval", "--print"], shorts: ["e", "p"] },
   osascript: { longs: [], shorts: ["e"] },
@@ -66,14 +67,14 @@ function readsStdinScript(args: readonly string[]): boolean {
   return args.length === 0 || args.includes("-");
 }
 
-function interpreterViolates(lname: string, args: readonly string[]): boolean {
-  if (EVAL_SUBCOMMANDS.has(lname)) {
+function interpreterViolates(name: string, args: readonly string[]): boolean {
+  if (EVAL_SUBCOMMANDS.has(name)) {
     return args[0] === "eval";
   }
-  if (INTERPRETERS[lname] === undefined) {
+  if (INTERPRETERS[name] === undefined) {
     return false;
   }
-  return args.some((arg) => isInlineArg(lname, arg)) || readsStdinScript(args);
+  return args.some((arg) => isInlineArg(name, arg)) || readsStdinScript(args);
 }
 
 function wrapperViolates(lname: string, args: readonly string[]): boolean {
@@ -85,7 +86,7 @@ function wrapperViolates(lname: string, args: readonly string[]): boolean {
     if (next === undefined) {
       return false;
     }
-    const candidate = arg.toLowerCase();
+    const candidate = baseName(arg.toLowerCase());
     if (candidate === "eval") {
       return true;
     }
@@ -104,7 +105,8 @@ function unitViolates(unit: CommandUnit): boolean {
     return true;
   }
   return (
-    interpreterViolates(lname, unit.args) || wrapperViolates(lname, unit.args)
+    interpreterViolates(baseName(lname), unit.args) ||
+    wrapperViolates(lname, unit.args)
   );
 }
 

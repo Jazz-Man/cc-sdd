@@ -1,3 +1,4 @@
+import { baseName } from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
@@ -77,6 +78,9 @@ const MUTATIONS: Record<string, readonly (readonly string[])[]> = {
     ["dedupe"],
     ["ddp"],
     ["dist-tag"],
+    ["exec"],
+    ["create"],
+    ["init"],
   ],
   npx: [[]],
   pip: [["install"], ["uninstall"], ["download"]],
@@ -133,6 +137,7 @@ const MUTATIONS: Record<string, readonly (readonly string[])[]> = {
     ["tool", "upgrade"],
     ["self", "update"],
   ],
+  uvx: [[]],
   yarn: [
     ["add"],
     ["remove"],
@@ -142,11 +147,15 @@ const MUTATIONS: Record<string, readonly (readonly string[])[]> = {
     ["dlx"],
     ["link"],
     ["set", "version"],
+    ["global", "add"],
+    ["global", "remove"],
+    ["global", "install"],
+    ["global", "upgrade"],
   ],
 };
 
 function mutates(name: string, args: string[]): boolean {
-  const prefixes = MUTATIONS[name.toLowerCase()];
+  const prefixes = MUTATIONS[baseName(name.toLowerCase())];
   if (prefixes === undefined) {
     return false;
   }

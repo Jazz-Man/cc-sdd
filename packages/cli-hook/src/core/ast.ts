@@ -4,6 +4,11 @@ function wordLike(obj: Record<string, unknown>): boolean {
   return typeof obj.text === "string" && typeof obj.value === "string";
 }
 
+// Strip a trailing version suffix from a command name: python3.13 → python,
+// node20 → node, perl5.34 → perl. Policies look tools up by this base name so
+// versioned binaries cannot sidestep a table keyed on the plain name.
+const VERSION_SUFFIX = /\d+(?:\.\d+)*$/;
+
 function wordValues(node: unknown): string[] {
   if (node === null || typeof node !== "object") {
     return [];
@@ -80,4 +85,8 @@ export function parseCommand(command: string): ParsedCommand | null {
   };
   visit(ast.commands);
   return { raw: command, units, words };
+}
+
+export function baseName(name: string): string {
+  return name.replace(VERSION_SUFFIX, "");
 }

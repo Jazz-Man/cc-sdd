@@ -50,6 +50,15 @@ const DENY = [
   // biome-ignore lint/security/noSecrets: heredoc fixture, not a secret
   "python - <<'EOF'\nprint(1)\nEOF",
   "find . -type f | xargs sh -c 'echo $0'",
+  // versioned interpreter names
+  "python3.13 -c 'print(1)'",
+  "python3.12 -c 'print(1)'",
+  "node20 -e 'console.log(1)'",
+  "perl5.34 -e 'print 1'",
+  "ruby3.2 -e 'puts 1'",
+  "env python3.13 -c 'print(1)'",
+  // fish was missing entirely
+  "fish -c 'echo hi'",
 ];
 
 const ALLOW = [
@@ -73,6 +82,8 @@ const ALLOW = [
   'echo "use python -c carefully"',
   "man bash",
   "git status",
+  "python3.13 --version",
+  "node22 --version",
 ];
 
 describe("no-inline-scripts policy", () => {

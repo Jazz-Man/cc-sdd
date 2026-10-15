@@ -46,6 +46,29 @@ const DENY = [
   "git tag -m msg v1.0",
   "git tag -F notes v1.0",
   "git stash branch newbr",
+  // global options before the subcommand must not hide it
+  "git -C . push",
+  "git -C subdir rebase",
+  "git --no-pager push",
+  "git -c core.hooksPath=/dev/null commit",
+  "git --git-dir=.git add x",
+  "git --work-tree=. commit -m x",
+  // stash with flags only is still a push
+  "git stash -u",
+  "git stash -m wip",
+  // table gaps found in review
+  "git filter-branch --tree-filter 'rm x' HEAD",
+  "git branch --set-upstream-to=origin/x",
+  "git branch -u origin/x",
+  "git read-tree HEAD",
+  "git checkout-index -a",
+  "git commit-tree HEAD",
+  "git fast-import",
+  "git pack-refs --all",
+  "git update-server-info",
+  "git reflog expire --all",
+  "git reflog delete HEAD@{0}",
+  "git sparse-checkout set src",
 ];
 
 const ALLOW = [
@@ -72,6 +95,13 @@ const ALLOW = [
   "echo 'git add .'",
   "grep 'git push' log",
   "GIT STATUS",
+  "git -C . status",
+  "git --no-pager log",
+  "git -c x=y status",
+  "git reflog",
+  "git reflog show HEAD",
+  "git sparse-checkout list",
+  "git remote get-url origin",
 ];
 
 describe("git-readonly policy", () => {
