@@ -65,23 +65,12 @@
   },
   "overrides": [
     {
-      "includes": ["packages/skill-builder/index.ts"],
+      "assist": {
+        "enabled": false
+      },
+      "includes": ["packages/cli-hook/tests/fixtures/**"],
       "linter": {
-        "rules": {
-          "performance": {
-            "noBarrelFile": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["vitest.config.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noDefaultExport": "off"
-          }
-        }
+        "enabled": false
       }
     }
   ],
