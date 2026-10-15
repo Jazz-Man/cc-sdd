@@ -15,6 +15,7 @@
 - **Mandatory reading before any code** (implementer AND reviewer): the spec above, then `tmp/pattern-source.md` (git-ignored pattern-source reference — identity, license posture, module map of the reference implementation). The reference checkout lives under `tmp/sh-guard/`; nothing from it is copied verbatim.
 - **Gates after every task, from `packages/cli-hook/`:** `bun test` · `tsc -p tsconfig.json --noEmit` · `rtk biome check --reporter=concise src tests build.ts`. Bare `biome` is mangled by an rtk hook — always the `rtk`-prefixed form.
 - **The agent never runs git write commands.** Every task ends with a STOP: report the diff; **the user reviews and commits**. The `Commit` steps below describe the user's commit, not an agent action.
+- **SAFETY (owner directive 2026-10-15): fork bombs and inline-function payloads are verified by UNIT TESTS ONLY.** No implementer, reviewer, or smoke step ever EXECUTES a fork-bomb or inline-function command to "see the deny work" — real execution starves the machine, which is precisely what the guard exists to prevent. Verification happens by asserting the deny JSON in tests (and, in Task 8 smokes, only with ordinary ask-class payloads like `tee /tmp/x` — never fork-bomb payloads).
 - No dependency changes of any kind (read-only deps).
 - After any `src/` change that must reach the live hook: `cd packages/cli-hook && bun run build-bin` (rebuilds `~/.local/bin/claude-code-cli-hook`), then the user reloads plugins.
 - Comments in code carry knowledge (why/invariants), never a bare file path.
