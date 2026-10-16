@@ -8,6 +8,15 @@ Plans, briefs, and review packages that hold several code blocks label each bloc
 
 Background (2026-09-29): biome 2.5.14 cannot enforce this mechanically — no built-in comment-content rule exists, and GritQL plugins cannot see comments (CST trivia; verified empirically). A mechanical guard may replace this rule later; until then it binds by convention.
 
+## Comments carry invariants, never history
+
+A comment states only what a maintainer must know to avoid breaking the
+code — a timeless invariant, quirk, or contract the code cannot express.
+Never a changelog: no dates, no task/round/bean numbers, no "owner
+decision" provenance, no version-history narratives. When a decision was
+made and why it changed is git blame's job, not the comment's. Long
+prose comments confuse future agents more than no comment at all.
+
 ## No trailing export blocks
 
 Never end a module with an `export { ... }` re-export statement. The
