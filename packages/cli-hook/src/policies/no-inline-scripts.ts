@@ -1,4 +1,8 @@
-import { baseName, type CommandUnit } from "../core/ast.ts";
+import {
+  baseName,
+  type CommandRedirect,
+  type CommandUnit,
+} from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
@@ -70,12 +74,34 @@ function readsStdinScript(args: readonly string[]): boolean {
   return args.length === 0 || args.includes("-");
 }
 
-function interpreterViolates(name: string, args: readonly string[]): boolean {
+// Heredoc-fed script: a `<<`/`<<-` heredoc on an interpreter is stdin-fed
+// inline code — the body IS the script (bean cc-sdd-jbnq). The delimiter
+// rides unit args (unbash 5.1.0), so the match keys on the redirect target
+// equaling an arg; a real file arg colliding with some heredoc's delimiter
+// denies too (deny-leaning, rare).
+function heredocFed(
+  args: readonly string[],
+  redirects: readonly CommandRedirect[],
+): boolean {
+  return redirects.some(
+    (r) =>
+      (r.operator === "<<" || r.operator === "<<-") && args.includes(r.target),
+  );
+}
+
+function interpreterViolates(
+  name: string,
+  args: readonly string[],
+  redirects: readonly CommandRedirect[],
+): boolean {
   if (EVAL_SUBCOMMANDS.has(name)) {
     return args[0] === "eval";
   }
   if (INTERPRETERS[name] === undefined) {
     return false;
+  }
+  if (heredocFed(args, redirects)) {
+    return true;
   }
   return args.some((arg) => isInlineArg(name, arg)) || readsStdinScript(args);
 }
@@ -102,13 +128,16 @@ function wrapperViolates(lname: string, args: readonly string[]): boolean {
   });
 }
 
-function unitViolates(unit: CommandUnit): boolean {
+function unitViolates(
+  unit: CommandUnit,
+  redirects: readonly CommandRedirect[],
+): boolean {
   const lname = unit.name.toLowerCase();
   if (lname === "eval") {
     return true;
   }
   return (
-    interpreterViolates(baseName(lname), unit.args) ||
+    interpreterViolates(baseName(lname), unit.args, redirects) ||
     wrapperViolates(lname, unit.args)
   );
 }
@@ -119,7 +148,7 @@ export const noInlineScriptsPolicy: Policy = {
       return deny(FUNCTION_REASON);
     }
     for (const unit of cmd.units) {
-      if (unitViolates(unit)) {
+      if (unitViolates(unit, cmd.redirects)) {
         return deny(REASON);
       }
     }

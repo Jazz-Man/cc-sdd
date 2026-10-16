@@ -1,4 +1,7 @@
 {
+  "dependencies": {
+    "unbash": "catalog:core"
+  },
   "devDependencies": {
     "@effect/tsgo": "catalog:lsp",
     "@tsconfig/bun": "catalog:types",
@@ -19,7 +22,7 @@
   "workspaces": {
     "catalogs": {
       "core": {
-        "unbash": "4.0.11"
+        "unbash": "5.1.0"
       },
       "effect": {
         "effect": "4.0.0",

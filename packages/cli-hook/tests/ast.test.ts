@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { parseCommand } from "../src/core/ast.ts";
 
 describe("parseCommand", () => {
-  it("walks best-effort ASTs from malformed input (unbash reports errors, never throws)", () => {
+  it("walks best-effort ASTs from malformed input (unbash never throws)", () => {
     expect(parseCommand('cat "')?.words).toContain("cat");
   });
 
@@ -26,11 +26,41 @@ describe("parseCommand", () => {
     ]);
   });
 
-  it("collects units from nested substitution scripts", () => {
-    expect(parseCommand("echo $(git push)")?.units.map((u) => u.name)).toEqual([
-      "echo",
-      "git",
+  it("collects units from nested substitution scripts (deduped, raw text out of args)", () => {
+    expect(parseCommand("echo $(git push)")?.units).toEqual([
+      { args: [], name: "echo" },
+      { args: ["push"], name: "git" },
     ]);
+  });
+
+  it("drops only WHOLE-WORD substitutions from args; spliced ones ride for the fail-closed gate", () => {
+    expect(
+      parseCommand('echo "pre $(git push) post" `cat x`')?.units[0]?.args,
+    ).toEqual(["pre $(git push) post"]);
+  });
+
+  it("keeps plain variable args intact (fail-closed gate depends on them)", () => {
+    expect(parseCommand("cat $HOME/foo ${HOME}/bar")?.units[0]?.args).toEqual([
+      "$HOME/foo",
+      "${HOME}/bar",
+    ]);
+  });
+});
+
+describe("parseCommand (redirects, words, functionDefs)", () => {
+  it("keeps redirect targets out of unit args but records them", () => {
+    const parsed = parseCommand("git log > $(mktemp)");
+    expect(parsed?.units.map((u) => u.name)).toEqual(["git", "mktemp"]);
+    expect(parsed?.units[0]?.args).toEqual(["log"]);
+    expect(parsed?.redirects).toEqual([{ operator: ">", target: "$(mktemp)" }]);
+  });
+
+  it("keeps equal-valued distinct commands (substitution + real command)", () => {
+    expect(parseCommand("FOO=$(git status) git status")?.units).toHaveLength(2);
+  });
+
+  it("keeps repeated identical sibling commands as two units (identity, not value)", () => {
+    expect(parseCommand("git status && git status")?.units).toHaveLength(2);
   });
 
   it("keeps quoted args as single values", () => {

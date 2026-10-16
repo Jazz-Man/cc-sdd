@@ -17,6 +17,32 @@ function expandHomeToken(t: string): string | null {
   return normalize(join(HOME, t.slice(2)));
 }
 
+// The single `=`-pair splitter. Bun.Cookie.parse splits a token at the
+// FIRST `=` exactly as the guard needs; the `includes("=")` check
+// short-circuits `=`-less tokens before any parse, so the catch only
+// covers the parser's rejected `=`-bearing shapes (empty name or value).
+// ACCEPTED semantics (owner ruling 2026-10-16): the value truncates at
+// the first `;` — which MIRRORS curl's own `-F f=@file;type=…` field
+// syntax, so `f=@.env;type=text/plain` correctly yields the `.env`
+// upload candidate the old regex missed. Conscious cost: a literal
+// filename like `--flag=.env;x` also denies (deny-leaning, rare).
+interface NameValue {
+  name: string;
+  value: string;
+}
+
+function splitPair(token: string): NameValue | null {
+  if (!token.includes("=")) {
+    return null;
+  }
+  try {
+    const c = Bun.Cookie.parse(token);
+    return { name: c.name, value: c.value };
+  } catch {
+    return null;
+  }
+}
+
 // The allowed zone is $HOME ∪ projectRoot (owner decision 2026-10-15):
 // ordinary reads AND writes inside it pass; outside it both deny. The
 // /dev/null family is exempt — `2>/dev/null` is daily bash plumbing.
@@ -83,22 +109,50 @@ export function pathCandidates(arg: string): string[] {
   if (arg.startsWith("@")) {
     return [arg.slice(1)];
   }
-  if (FLAG_HEAD.test(arg)) {
-    const eq = arg.indexOf("=");
-    if (eq === -1) {
+  const pair = splitPair(arg);
+  if (pair === null) {
+    if (FLAG_HEAD.test(arg)) {
       return [];
     }
-    const v = arg.slice(eq + 1);
-    if (v.startsWith("@")) {
-      return [v.slice(1)];
-    }
-    return [v];
-  }
-  const at = arg.indexOf("=@");
-  if (at === -1) {
     return [arg];
   }
-  return [arg.slice(at + 2)];
+  const { name, value } = pair;
+  if (FLAG_HEAD.test(name)) {
+    let truncated = value;
+    if (value.startsWith("@")) {
+      truncated = value.slice(1);
+    }
+    // Deny-union (re-ruling 2026-10-16): Cookie.parse truncates the value
+    // at the first `;`, so the tail's evidence ($VAR, suffix matches, ..-
+    // climbs) survives ONLY in the raw token — when the arg carries a `;`,
+    // judge BOTH the truncated candidate and the full value side of arg;
+    // the strictest hit wins downstream. (The `;` test runs on arg, not
+    // the parsed value — the parsed value can never carry one.)
+    if (!arg.includes(";")) {
+      return [truncated];
+    }
+    const full = arg.slice(arg.indexOf("=") + 1);
+    if (full.startsWith("@")) {
+      return [truncated, full.slice(1)];
+    }
+    return [truncated, full];
+  }
+  if (value.startsWith("@")) {
+    const truncated = value.slice(1); // NAME=@path upload shape
+    if (!arg.includes(";")) {
+      return [truncated];
+    }
+    return [truncated, arg.slice(arg.indexOf("=@") + 2)];
+  }
+  // Mid-token =@ (a=b=@/etc/passwd): the pair value does not START with @,
+  // so the prose branch would swallow the tail — union it back (day-2
+  // close re-review 2026-10-16: pre-revision code extracted this tail
+  // wherever it sat; the prose token itself stays a candidate too).
+  const midAt = arg.indexOf("=@");
+  if (midAt !== -1) {
+    return [arg, arg.slice(midAt + 2)];
+  }
+  return [arg]; // prose pair (foo=/etc) — not a path carrier
 }
 
 export function inAllowedZone(

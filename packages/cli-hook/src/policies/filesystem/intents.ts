@@ -1,3 +1,4 @@
+import { parseEnv } from "node:util";
 import { baseName, type ParsedCommand } from "../../core/ast.ts";
 
 // Glued output-flag value: the file rides `-o` with no separator, so
@@ -5,8 +6,12 @@ import { baseName, type ParsedCommand } from "../../core/ast.ts";
 const GLUED_OUTPUT_FLAG = /^-o.+/;
 const OUTPUT_DOCUMENT_PREFIX = "--output-document=";
 // NAME=VALUE assignment token: a wrapper's variable assignments ride the
-// prefix region, they are never the command.
-const ASSIGNMENT_HEAD = /^[A-Za-z_][A-Za-z0-9_]*=/;
+// prefix region, they are never the command. node:util parseEnv detects
+// them gracefully ({}) on non-assignments and handles quoted values
+// (X="a b") the old head-regex missed.
+function isAssignment(token: string): boolean {
+  return Object.keys(parseEnv(token)).length > 0;
+}
 
 // Intent per command base name (baseName strips version suffixes). Keys are
 // sorted per assist convention — the grouping lives in the VALUES: reads,
@@ -87,7 +92,7 @@ export function intentOf(
     const t = args[i] ?? "";
     if (t === "sudo") {
       sudo = true;
-    } else if (!(t.startsWith("-") || ASSIGNMENT_HEAD.test(t))) {
+    } else if (!(t.startsWith("-") || isAssignment(t))) {
       const known = INTENTS[baseName(t)];
       if (known !== undefined) {
         return { intent: known, rest: args.slice(i + 1), sudo };

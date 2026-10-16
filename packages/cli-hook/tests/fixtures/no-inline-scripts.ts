@@ -35,6 +35,12 @@ export const DENY: string[] = [
   "python -",
   "node -",
   "python - <<'EOF'\nprint(1)\nEOF",
+  // heredoc-fed interpreters (bean cc-sdd-jbnq, day-2 close 2026-10-16):
+  // the heredoc body IS the inline script — the `<<` Redirect record
+  // collected by ast.ts must deny it exactly like the piped/stdin forms.
+  // Payloads are DATA in this file; nothing here is executed.
+  "bash <<EOF\necho hi\nEOF",
+  "python3 <<'EOF'\nprint(1)\nEOF",
   "find . -type f | xargs sh -c 'echo $0'",
   // versioned interpreter names
   "python3.13 -c 'print(1)'",
@@ -73,6 +79,9 @@ export const ALLOW: string[] = [
   "git status",
   "python3.13 --version",
   "node22 --version",
+  // non-interpreter heredoc consumers stay allowed (bean cc-sdd-jbnq):
+  // only interpreter-adjacent heredocs carry inline code
+  "cat <<EOF\nhello\nEOF",
 ];
 
 export const FUNCTIONS: string[] = [
