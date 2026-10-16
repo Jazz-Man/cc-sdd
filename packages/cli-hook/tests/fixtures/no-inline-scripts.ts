@@ -35,12 +35,16 @@ export const DENY: string[] = [
   "python -",
   "node -",
   "python - <<'EOF'\nprint(1)\nEOF",
-  // heredoc-fed interpreters (bean cc-sdd-jbnq, day-2 close 2026-10-16):
-  // the heredoc body IS the inline script — the `<<` Redirect record
-  // collected by ast.ts must deny it exactly like the piped/stdin forms.
-  // Payloads are DATA in this file; nothing here is executed.
+  // heredoc/here-string-fed interpreters: the fed body IS the inline
+  // script — the Redirect records collected by ast.ts must deny it exactly
+  // like the piped/stdin forms. Payloads are DATA here; nothing executes.
   "bash <<EOF\necho hi\nEOF",
   "python3 <<'EOF'\nprint(1)\nEOF",
+  // wrapper-prefixed heredoc: the interpreter hides behind the wrapper
+  "env bash <<EOF\necho hi\nEOF",
+  "nice -n 5 python3 <<'EOF'\nprint(1)\nEOF",
+  // here-string on an interpreter is inline code, same family as heredoc
+  "python3 <<< 'print(1)'",
   "find . -type f | xargs sh -c 'echo $0'",
   // versioned interpreter names
   "python3.13 -c 'print(1)'",
@@ -49,7 +53,6 @@ export const DENY: string[] = [
   "perl5.34 -e 'print 1'",
   "ruby3.2 -e 'puts 1'",
   "env python3.13 -c 'print(1)'",
-  // fish was missing entirely
   "fish -c 'echo hi'",
   // bare interpreters read a piped/heredoc script (or open a REPL) — no args
   "bun",
@@ -79,9 +82,10 @@ export const ALLOW: string[] = [
   "git status",
   "python3.13 --version",
   "node22 --version",
-  // non-interpreter heredoc consumers stay allowed (bean cc-sdd-jbnq):
-  // only interpreter-adjacent heredocs carry inline code
+  // non-interpreter heredoc/here-string consumers stay allowed: only
+  // interpreter-adjacent feeds carry inline code
   "cat <<EOF\nhello\nEOF",
+  "cat <<< hello",
 ];
 
 export const FUNCTIONS: string[] = [
@@ -90,7 +94,7 @@ export const FUNCTIONS: string[] = [
   "bomb(){ bomb | bomb & }; bomb",
   "function fb { fb | fb & }; fb",
   "a(){ b& }; b(){ a& }; a",
-  // benign inline use is denied BY DESIGN (owner 2026-10-15: an inline
-  // function is always the wrong shape for an agent Bash call)
+  // benign inline use is denied BY DESIGN: an inline function is always
+  // the wrong shape for an agent Bash call
   'usage(){ echo "usage: foo" | less & }; usage',
 ];

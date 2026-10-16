@@ -1,7 +1,7 @@
 import { basename } from "node:path";
 import { HOME } from "./resolve.ts";
 
-// ---- Tier tables (spec §7.1; fresh data, see tmp/pattern-source.md) ----
+// ---- Tier tables ----
 // Membership collections are Sets (.has); plain arrays are pattern lists,
 // iterated only for suffix/prefix matching (SECRET_SUFFIXES).
 
@@ -25,10 +25,9 @@ const SECRETS_SUBPATHS = new Set([
   ".docker",
   ".kube",
 ]);
-// No "system" tier and no SYSTEM_PATHS table (owner 2026-10-16): everything
-// outside $HOME ∪ projectRoot is denied by the boundary — a point-list of
-// /etc files was a vestige of the pre-boundary design and changed only the
-// reason text, while misleading readers into thinking it was the gate.
+// No "system" tier: everything outside $HOME ∪ projectRoot is denied by
+// the boundary — a point-list of /etc files would change only the reason
+// text while misleading readers into thinking it was the gate.
 const PERSONAL_HOME_SUBPATHS = new Set([".config", ".vscode", ".cursor"]);
 const PERSONAL_BASENAMES = new Set([
   ".bashrc",
@@ -39,10 +38,9 @@ const PERSONAL_BASENAMES = new Set([
   ".vimrc",
   ".gitconfig",
 ]);
-// macOS home layout (research 2026-10-15, verified on macOS 26.7.1).
-// ~/Library: full deny (Keychains, Safari, Mail, Application Support).
-// Personal content folders: deny writes/deletes; reads pass. Matching is
-// case-insensitive — the root APFS volume is (/TMP is /tmp).
+// macOS home layout: ~/Library denies everything (Keychains, Safari, Mail,
+// Application Support); personal content folders deny writes/deletes, reads
+// pass. Matching is case-insensitive — the root APFS volume is (/TMP is /tmp).
 const MACOS_PERSONAL_DIRS = new Set([
   "desktop",
   "documents",

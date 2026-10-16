@@ -22,6 +22,8 @@
 - biome preset "all": fix structure in code, no new inline ignores. `tests/fixtures/**` already has linter+assist disabled (keep fixtures as plain `string[]` exports).
 - **Reason-string convention (owner 2026-10-16):** DENY reasons state the rule family and quote the offending token — full stop. No "ask the user", no workaround guidance, no "disable via /hooks". Single exception: the `./tmp/` redirect hint (sanctioned channel, not a bypass). ASK verdicts keep their "confirm with the user" phrasing.
 - **Collection convention (owner 2026-10-16):** membership lookups use `Set.has`; plain arrays only where iterated for pattern matching (suffix checks).
+- **Fixture convention (owner 2026-10-16):** fixture tables are clean literal arrays — rows land directly in `DENY`/`ASK`/`ALLOW` at authoring time, grouped by comment sections. NO `.push(...)` increments: round staging lives in the plan/git history, never in the shipped fixture file.
+- **Comment diet (owner 2026-10-16, codified in .claude/rules/code-style.md):** comments carry timeless invariants only — no dates, no round/task numbers, no provenance, no version-history narratives. Git blame owns history.
 - **Module layout (owner decision 2026-10-16, supersedes the earlier single-file choice):** `src/policies/filesystem/` = `tiers.ts` (§7.1 tables + `tierOf` + `isSecretBasename`), `resolve.ts` (`expandToken`, `inAllowedZone`, `SAFE_DEVICES`, tmp-hint helpers), `reasons.ts` (reason builders), `policy.ts` (`filesystemPolicy`, `check()`); Task 3 adds `intents.ts`, Task 4 adds `guards.ts`. Biome's 300-line-per-file limit binds every module. Consumers import from `./policies/filesystem/policy.ts` (no index re-export layer).
 
 ## Review Focus

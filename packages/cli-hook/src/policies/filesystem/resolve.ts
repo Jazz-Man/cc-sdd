@@ -21,10 +21,9 @@ function expandHomeToken(t: string): string | null {
 // FIRST `=` exactly as the guard needs; the `includes("=")` check
 // short-circuits `=`-less tokens before any parse, so the catch only
 // covers the parser's rejected `=`-bearing shapes (empty name or value).
-// ACCEPTED semantics (owner ruling 2026-10-16): the value truncates at
-// the first `;` — which MIRRORS curl's own `-F f=@file;type=…` field
-// syntax, so `f=@.env;type=text/plain` correctly yields the `.env`
-// upload candidate the old regex missed. Conscious cost: a literal
+// The value truncates at the first `;` — which MIRRORS curl's own
+// `-F f=@file;type=…` field syntax, so `f=@.env;type=text/plain` correctly
+// yields the `.env` upload candidate. Conscious cost: a literal
 // filename like `--flag=.env;x` also denies (deny-leaning, rare).
 interface NameValue {
   name: string;
@@ -43,9 +42,9 @@ function splitPair(token: string): NameValue | null {
   }
 }
 
-// The allowed zone is $HOME ∪ projectRoot (owner decision 2026-10-15):
-// ordinary reads AND writes inside it pass; outside it both deny. The
-// /dev/null family is exempt — `2>/dev/null` is daily bash plumbing.
+// The allowed zone is $HOME ∪ projectRoot: ordinary reads AND writes
+// inside it pass; outside it both deny. The /dev/null family is exempt —
+// `2>/dev/null` is daily bash plumbing.
 const SAFE_DEVICES = new Set([
   "/dev/null",
   "/dev/stdin",
@@ -53,7 +52,7 @@ const SAFE_DEVICES = new Set([
   "/dev/stderr",
   "/dev/zero",
   "/dev/urandom",
-  "/dev/random", // v1 parity (owner list 2026-10-16)
+  "/dev/random",
 ]);
 
 const TMP_PREFIXES = [
@@ -67,8 +66,8 @@ const TMP_PREFIXES = [
 // `$HOME` ($HOMEevil is a DIFFERENT, unset variable — name boundary).
 // Every other braced form (`${HOMEPATH}`, `${HOMEBREW_PREFIX}`,
 // `${HOME:0:1}` which expands to "/") returns null and falls through to
-// the raw-$ fail-closed deny — an open `${HOME` prefix strip was a zone
-// escape (full opus re-review, 2026-10-16).
+// the raw-$ fail-closed deny — an open `${HOME` prefix strip is a zone
+// escape.
 export function homeVarToTilde(token: string): string | null {
   if (token.startsWith("${HOME}")) {
     return `~${token.slice(7)}`;
@@ -122,7 +121,7 @@ export function pathCandidates(arg: string): string[] {
     if (value.startsWith("@")) {
       truncated = value.slice(1);
     }
-    // Deny-union (re-ruling 2026-10-16): Cookie.parse truncates the value
+    // Deny-union: Cookie.parse truncates the value
     // at the first `;`, so the tail's evidence ($VAR, suffix matches, ..-
     // climbs) survives ONLY in the raw token — when the arg carries a `;`,
     // judge BOTH the truncated candidate and the full value side of arg;
@@ -145,9 +144,8 @@ export function pathCandidates(arg: string): string[] {
     return [truncated, arg.slice(arg.indexOf("=@") + 2)];
   }
   // Mid-token =@ (a=b=@/etc/passwd): the pair value does not START with @,
-  // so the prose branch would swallow the tail — union it back (day-2
-  // close re-review 2026-10-16: pre-revision code extracted this tail
-  // wherever it sat; the prose token itself stays a candidate too).
+  // so the prose branch would swallow the tail — union it back; the prose
+  // token itself stays a candidate too.
   const midAt = arg.indexOf("=@");
   if (midAt !== -1) {
     return [arg, arg.slice(midAt + 2)];

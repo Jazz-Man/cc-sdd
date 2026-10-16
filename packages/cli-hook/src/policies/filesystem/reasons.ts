@@ -27,10 +27,8 @@ export const TIER_REASONS: Record<Tier, (token: string) => string> = {
     `Filesystem policy: "${token}" is a protected Claude settings file — agents must not read or change the guard's own configuration.`,
 };
 
-// The ask verdict keeps its confirm-with-user instruction by owner
-// exception (DENY reasons carry no advisory tails; asks must tell the user
-// what confirming means) — the exception covers that phrasing, never a
-// disable tail.
+// DENY reasons carry no advisory tails; asks must tell the user what
+// confirming means — that phrasing is the exception, never a disable tail.
 export const ASK_REASON = (verb: string, token: string) =>
   `Filesystem policy: confirm with the user before ${verb} ("${token}"). This call needs explicit user approval.`;
 

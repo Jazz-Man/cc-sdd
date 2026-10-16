@@ -1,3 +1,4 @@
+import { parseEnv } from "node:util";
 import {
   baseName,
   type CommandRedirect,
@@ -70,23 +71,50 @@ function isInlineArg(lname: string, arg: string): boolean {
 
 // Stdin-fed script: an interpreter invoked with no arguments reads piped or
 // heredoc-fed code; a bare "-" argument names stdin explicitly.
-function readsStdinScript(args: readonly string[]): boolean {
-  return args.length === 0 || args.includes("-");
-}
+const readsStdinScript = (args: readonly string[]) =>
+  args.length === 0 || args.includes("-");
 
-// Heredoc-fed script: a `<<`/`<<-` heredoc on an interpreter is stdin-fed
-// inline code — the body IS the script (bean cc-sdd-jbnq). The delimiter
-// rides unit args (unbash 5.1.0), so the match keys on the redirect target
-// equaling an arg; a real file arg colliding with some heredoc's delimiter
-// denies too (deny-leaning, rare).
-function heredocFed(
+// NAME=VALUE assignment token — the same wrapper-noise class intents.ts'
+// intentOf scan skips (mirrored, not imported: merging the two unwrap
+// rules would couple the policies).
+const isAssignment = (token: string) => Object.keys(parseEnv(token)).length > 0;
+
+// Stdin-fed script via a heredoc-family operator: `<<`/`<<-` feed the body,
+// `<<<` feeds a here-string — on an interpreter the fed operand IS inline
+// code. The delimiter rides unit args, so the match keys on the redirect
+// target equaling an arg; a real file arg colliding with some heredoc's
+// delimiter denies too (deny-leaning, rare).
+const FED_OPERATORS = new Set(["<<", "<<-", "<<<"]);
+
+const heredocFed = (
+  args: readonly string[],
+  redirects: readonly CommandRedirect[],
+) =>
+  redirects.some(
+    (r) => FED_OPERATORS.has(r.operator) && args.includes(r.target),
+  );
+
+// Wrapper-prefixed heredoc: under env/nice/nohup/… the interpreter hides in
+// the wrapper's args and the heredoc Redirect attaches to the WRAPPER unit,
+// so the plain heredoc check keyed on the unit name never sees it. The scan
+// skips the same noise classes as intents.ts' intentOf (`-`-tokens,
+// NAME=VALUE assignments, unknown bare tokens); a first interpreter-name
+// token next to a real heredoc denies — the evidence stays in the unit's
+// own args/redirects, where the delimiter rides.
+function wrapperHeredocViolates(
+  lname: string,
   args: readonly string[],
   redirects: readonly CommandRedirect[],
 ): boolean {
-  return redirects.some(
-    (r) =>
-      (r.operator === "<<" || r.operator === "<<-") && args.includes(r.target),
+  if (!WRAPPERS.has(lname)) {
+    return false;
+  }
+  const wrapped = args.find(
+    (t) =>
+      !(t.startsWith("-") || isAssignment(t)) &&
+      INTERPRETERS[baseName(t.toLowerCase())] !== undefined,
   );
+  return wrapped !== undefined && heredocFed(args, redirects);
 }
 
 function interpreterViolates(
@@ -138,7 +166,8 @@ function unitViolates(
   }
   return (
     interpreterViolates(baseName(lname), unit.args, redirects) ||
-    wrapperViolates(lname, unit.args)
+    wrapperViolates(lname, unit.args) ||
+    wrapperHeredocViolates(lname, unit.args, redirects)
   );
 }
 

@@ -7,7 +7,7 @@ import { gitReadonlyPolicy } from "./policies/git-readonly.ts";
 import { noDepsPolicy } from "./policies/no-deps.ts";
 import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";
 
-// Fixed registry order (owner's priority): first non-null decision wins (spec §4).
+// Registry order is fixed: the first non-null decision wins.
 const POLICIES: Policy[] = [
   // filesystemPolicy,
   noDepsPolicy,

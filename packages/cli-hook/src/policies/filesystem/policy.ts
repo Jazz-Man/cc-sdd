@@ -39,13 +39,13 @@ const WRITE_ONLY_TIERS = new Set<Tier>([
 
 // A glued short-flag path value (`tar -C/etc`, `tar -C=/etc`): tar's
 // re-rooting directory rides the flag with no space, so pathCandidates sees
-// a bare flag (breaker-round gap; the `=` spelling, fix round 1).
+// a bare flag.
 const GLUED_DIR_FLAG = /^-C.+/;
 // The `=` separator a glued `-C=` value keeps after the flag slice.
 const LEADING_EQUALS = /^=/;
 
 // Scope rules above the zone boundary: the filesystem root denies for ANY
-// intent (reads included — owner pin 2026-10-15), and the home directory as
+// intent (reads included), and the home directory as
 // a whole denies writes and deletes. Whole-home READS ask instead, at the
 // tail of candidateDecision.
 function scopeDenyOrAsk(
@@ -68,8 +68,8 @@ function scopeDenyOrAsk(
 
 // One resolved path candidate of one argument, judged with the command's
 // intent: a decision, or null. Unresolvable $-shapes and tilde-user
-// spellings fail closed BEFORE classification (plan amendment A — these
-// name paths bash resolves outside every lexical class the guard has).
+// spellings fail closed BEFORE classification — these
+// name paths bash resolves outside every lexical class the guard has.
 function candidateDecision(
   candidate: string,
   arg: string,
@@ -179,8 +179,8 @@ function unitDecision(
   return null;
 }
 
-// Tool-channel entry (Task 6 wires Read/Edit/Write/NotebookEdit here).
-// file_path is a literal path — no $-decomposition, no unresolved gate.
+// Tool-channel entry: file_path is a literal path — no $-decomposition,
+// no unresolved gate.
 export function checkFilePath(
   filePath: string,
   intent: "read" | "write",

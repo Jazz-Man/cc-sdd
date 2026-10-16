@@ -2,7 +2,7 @@ import { parseEnv } from "node:util";
 import { baseName, type ParsedCommand } from "../../core/ast.ts";
 
 // Glued output-flag value: the file rides `-o` with no separator, so
-// pathCandidates sees a bare flag (breaker-round gap).
+// pathCandidates sees a bare flag.
 const GLUED_OUTPUT_FLAG = /^-o.+/;
 const OUTPUT_DOCUMENT_PREFIX = "--output-document=";
 // NAME=VALUE assignment token: a wrapper's variable assignments ride the
@@ -62,7 +62,7 @@ const INTENTS: Record<string, Intent> = {
 
 // Wrappers: the real command is args[0] (unbash flattens `env rm …`).
 // `sudo` is NOT a wrapper here — any unit reaching sudo denies outright
-// (SUDO_REASON, owner decision 2026-10-15). Deliberately NOT shared with
+// (SUDO_REASON). Deliberately NOT shared with
 // no-inline-scripts' WRAPPERS: the sets encode different rules (interpreter
 // adjacency vs intent unwrapping — e.g. `find` is a wrapper there but a
 // read-intent command here); merging couples them.
@@ -105,8 +105,8 @@ export function intentOf(
 }
 
 // The value of an explicit output flag — separated (-o X, --output-document
-// X), self-contained (--output-document=X), or GLUED (-oVALUE — the
-// breaker-round gap: `curl -o/tmp/pwned` writes outside the zone when the
+// X), self-contained (--output-document=X), or GLUED (-oVALUE —
+// `curl -o/tmp/pwned` writes outside the zone when the
 // value rides the flag with no separator); null when args[i] is not one.
 export function outputTargetAt(args: string[], i: number): string | null {
   const a = args[i] ?? "";
