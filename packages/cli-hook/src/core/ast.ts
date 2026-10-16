@@ -20,14 +20,52 @@ function wordValues(node: unknown): string[] {
   return Object.values(obj).flatMap(wordValues);
 }
 
+// Redirection targets never appear in a command's suffix (unbash keeps
+// them on Command.redirects), so collecting them is additive to the
+// args/words views, not double-counting.
+function collectRedirects(
+  node: Record<string, unknown>,
+  out: CommandRedirect[],
+): void {
+  const list = node.redirects;
+  if (Array.isArray(list)) {
+    for (const r of list) {
+      if (r !== null && typeof r === "object") {
+        const redirect = r as Record<string, unknown>;
+        const { operator, target } = redirect;
+        if (
+          typeof operator === "string" &&
+          target !== null &&
+          typeof target === "object" &&
+          wordLike(target as Record<string, unknown>)
+        ) {
+          out.push({
+            operator,
+            target: (target as Record<string, unknown>).value as string,
+          });
+        }
+      }
+    }
+  }
+}
+
 export interface CommandUnit {
   args: string[];
   name: string;
 }
 
+// One redirection of one command: the direction lives in the operator
+// (`>`/`>>`/`2>` write, `<` read) and the target is the word redirected to.
+// These are NOT arguments — CommandUnit deliberately excludes them.
+export interface CommandRedirect {
+  operator: string;
+  target: string;
+}
+
 export interface ParsedCommand {
   functionDefs: string[]; // inline function definition names (any form)
   raw: string;
+  redirects: CommandRedirect[];
   units: CommandUnit[];
   words: string[];
 }
@@ -52,6 +90,7 @@ export function parseCommand(command: string): ParsedCommand | null {
   }
   const units: CommandUnit[] = [];
   const words: string[] = [];
+  const redirects: CommandRedirect[] = [];
   const functionDefs: string[] = [];
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: walk semantics frozen by two reviews; splitting risks reordering the units/words traversal
@@ -74,6 +113,7 @@ export function parseCommand(command: string): ParsedCommand | null {
       if (typeof name.value === "string") {
         units.push({ args: wordValues(obj.suffix), name: name.value });
       }
+      collectRedirects(obj, redirects);
     }
     // unbash types EVERY definition form (parens, named, `function` keyword,
     // mutual) as a Function node — one branch covers them all.
@@ -94,7 +134,7 @@ export function parseCommand(command: string): ParsedCommand | null {
     }
   };
   visit(ast.commands);
-  return { functionDefs, raw: command, units, words };
+  return { functionDefs, raw: command, redirects, units, words };
 }
 
 export function baseName(name: string): string {

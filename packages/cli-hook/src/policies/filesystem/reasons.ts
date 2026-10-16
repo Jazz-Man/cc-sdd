@@ -26,3 +26,16 @@ export const TIER_REASONS: Record<Tier, (token: string) => string> = {
   settings: (token) =>
     `Filesystem policy: "${token}" is a protected Claude settings file — agents must not read or change the guard's own configuration.`,
 };
+
+// The ask verdict keeps its confirm-with-user instruction by owner
+// exception (DENY reasons carry no advisory tails; asks must tell the user
+// what confirming means) — the exception covers that phrasing, never a
+// disable tail.
+export const ASK_REASON = (verb: string, token: string) =>
+  `Filesystem policy: confirm with the user before ${verb} ("${token}"). This call needs explicit user approval.`;
+
+export const PATH_RULE_REASON = (bin: string) =>
+  `Filesystem policy: running binaries by absolute path ("${bin}") is blocked — commands are on PATH by name.`;
+
+export const SUDO_REASON =
+  "Filesystem policy: sudo is blocked — privilege escalation is never an agent operation; every needed command runs under the user account.";

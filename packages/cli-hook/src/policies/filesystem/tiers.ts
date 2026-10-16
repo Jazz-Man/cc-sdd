@@ -1,5 +1,5 @@
-import { homedir } from "node:os";
 import { basename } from "node:path";
+import { HOME } from "./resolve.ts";
 
 // ---- Tier tables (spec §7.1; fresh data, see tmp/pattern-source.md) ----
 // Membership collections are Sets (.has); plain arrays are pattern lists,
@@ -128,10 +128,10 @@ export function tierOf(absPath: string): Tier | null {
   if (isSecretBasename(base) || SECRETS_BASENAMES.has(base.toLowerCase())) {
     return "secrets";
   }
-  const h = homedir();
-  const underHome = h !== "" && (absPath === h || absPath.startsWith(`${h}/`));
+  const underHome =
+    HOME !== "" && (absPath === HOME || absPath.startsWith(`${HOME}/`));
   if (underHome) {
-    const homeTierHit = homeTier(absPath.slice(h.length + 1), base);
+    const homeTierHit = homeTier(absPath.slice(HOME.length + 1), base);
     if (homeTierHit !== null) {
       return homeTierHit;
     }

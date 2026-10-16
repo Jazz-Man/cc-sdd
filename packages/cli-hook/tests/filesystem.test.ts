@@ -33,7 +33,7 @@ describe("filesystem policy v2", () => {
     ).toBeNull();
   });
 
-  it("tier denies quote the offending token", () => {
+  it("boundary denies quote the offending token", () => {
     expect(
       reasonOf(policyCheck(filesystemPolicy, "cat /etc/passwd")),
     ).toContain("/etc/passwd");
@@ -43,5 +43,42 @@ describe("filesystem policy v2", () => {
     expect(reasonOf(policyCheck(filesystemPolicy, "tee /tmp/x y"))).toContain(
       "./tmp/",
     );
+  });
+
+  it("the home-whole ask reason carries only the confirm instruction", () => {
+    expect(reasonOf(policyCheck(filesystemPolicy, "ls ~"))).toBe(
+      'Filesystem policy: confirm with the user before reading the home directory as a whole ("~"). This call needs explicit user approval.',
+    );
+  });
+});
+
+describe("context", () => {
+  it("allows writes inside $HOME and inside projectRoot, denies outside the zone", () => {
+    expect(
+      decisionOf(
+        policyCheck(filesystemPolicy, "tee build/x x", "/proj/sub", "/proj"),
+      ),
+    ).toBeNull();
+    // projectRoot carves an allowed zone even outside $HOME
+    expect(
+      decisionOf(
+        policyCheck(
+          filesystemPolicy,
+          "tee /workspace/repo/x x",
+          "/workspace/repo",
+          "/workspace/repo",
+        ),
+      ),
+    ).toBeNull();
+    expect(
+      decisionOf(
+        policyCheck(
+          filesystemPolicy,
+          "tee /elsewhere/x x",
+          "/proj/sub",
+          "/proj",
+        ),
+      ),
+    ).toBe("deny");
   });
 });

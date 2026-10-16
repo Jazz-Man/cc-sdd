@@ -792,9 +792,18 @@ DENY.push(
   // redirects are targets too
   "ls >> /var/tmp/out",
   "cat < /etc/hosts",
-  // wrapper-carried intent
+  // wrapper-carried intent — including options/assignments between the
+  // wrapper and the command (Task 3 review, probe-confirmed family)
   "sudo rm -rf /",
   "env tee /etc/motd x",
+  "env X=1 tee .git/config x",
+  "env X=1 sudo tee ~/.zshrc x",
+  "env -u X sudo tee .git/config x",
+  "timeout 10 rm -rf ~",
+  "nice -n 5 cp x ~/Desktop/",
+  "xargs -I{} rm ~/.zshrc",
+  // glued -C= escapes (review finding 3)
+  "tar -C=/etc -c .",
   // git-config write + personal-config write
   "tee .git/config x",
   "echo x > .git/config",
@@ -857,20 +866,38 @@ const INTENTS: Record<string, Intent> = {
 // read-intent command here); merging couples them.
 const WRAPPERS = new Set(["env", "nice", "nohup", "timeout", "xargs"]);
 
+// Unwrap transparent wrappers across their own options and env assignments
+// (`env X=1 tee`, `nice -n 5 cp`, `timeout 10 rm`, `xargs -I{} rm`,
+// `env -u X sudo …`). The scan walks the prefix region left-to-right:
+// `-`-tokens, NAME=VALUE assignments, sudo (flagged wherever seen), and
+// UNKNOWN bare tokens (option values like `-u X`'s X — an unknown command
+// has null intent anyway, so skipping it loses nothing) are noise; the
+// first INTENTS-known token is the command. None found → intent null and
+// rest = the full args (any-intent tier/boundary checks still see them).
 function intentOf(
   name: string,
   args: string[],
 ): { intent: Intent | null; rest: string[]; sudo: boolean } {
-  let n = name;
-  let rest = args;
-  let sudo = n === "sudo";
-  while (!sudo && WRAPPERS.has(n) && rest.length > 0) {
-    n = rest[0] ?? "";
-    rest = rest.slice(1);
-    sudo = n === "sudo";
+  let sudo = name === "sudo";
+  let intent: Intent | null = INTENTS[baseName(name)] ?? null;
+  if (!WRAPPERS.has(name) && name !== "sudo") {
+    return { intent, rest: args, sudo };
   }
-  const intent = INTENTS[baseName(n)] ?? null;
-  return { intent, rest, sudo };
+  let i = 0;
+  while (i < args.length) {
+    const t = args[i] ?? "";
+    if (t === "sudo") {
+      sudo = true;
+    } else if (!t.startsWith("-") && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(t)) {
+      const known = INTENTS[baseName(t)];
+      if (known !== undefined) {
+        return { intent: known, rest: args.slice(i + 1), sudo };
+      }
+      // unknown bare token: possible option value — noise, keep scanning
+    }
+    i += 1;
+  }
+  return { intent: null, rest: args, sudo };
 }
 
 // The value of an explicit output flag — separated (-o X, --output-document
@@ -919,7 +946,7 @@ Then the scope decision and the new `check` (replaces the Task-2 stub body):
 
 ```ts
 const ASK_REASON = (verb: string, token: string) =>
-  `Filesystem policy: confirm with the user before ${verb} ("${token}"). This call needs explicit user approval. Disable via /hooks.`;
+  `Filesystem policy: confirm with the user before ${verb} ("${token}"). This call needs explicit user approval.`;
 
 const PATH_RULE_REASON = (bin: string) =>
   `Filesystem policy: running binaries by absolute path ("${bin}") is blocked — commands are on PATH by name.`;

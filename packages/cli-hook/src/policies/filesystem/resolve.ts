@@ -8,14 +8,13 @@ const HOME_HEAD = /^\$HOME(?![A-Za-z0-9_])/;
 const FLAG_HEAD = /^-/;
 
 function expandHomeToken(t: string): string | null {
-  const h = homedir();
-  if (h === "") {
+  if (HOME === "") {
     return null;
   }
   if (t === "~") {
-    return normalize(h);
+    return normalize(HOME);
   }
-  return normalize(join(h, t.slice(2)));
+  return normalize(join(HOME, t.slice(2)));
 }
 
 // The allowed zone is $HOME ∪ projectRoot (owner decision 2026-10-15):
@@ -109,8 +108,7 @@ export function inAllowedZone(
   if (SAFE_DEVICES.has(absPath)) {
     return true;
   }
-  const h = homedir();
-  if (h !== "" && (absPath === h || absPath.startsWith(`${h}/`))) {
+  if (HOME !== "" && (absPath === HOME || absPath.startsWith(`${HOME}/`))) {
     return true;
   }
   const root = normalize(context.projectRoot);
@@ -145,3 +143,6 @@ export function expandToken(
   // and resolve against its working directory.
   return normalize(join(context.cwd, t));
 }
+
+// Frozen at module load: home does not change mid-session.
+export const HOME = homedir();

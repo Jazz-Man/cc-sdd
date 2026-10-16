@@ -1,12 +1,27 @@
-import { deny } from "../../core/decision.ts";
+import { isAbsolute } from "node:path";
+import type { CommandUnit } from "../../core/ast.ts";
+import { ask, deny } from "../../core/decision.ts";
 import type {
   Policy,
   PolicyCheckResult,
   PolicyContext,
 } from "../../core/policy.ts";
-import { boundaryReason, TIER_REASONS } from "./reasons.ts";
+import {
+  type Intent,
+  intentOf,
+  outputTargetAt,
+  redirectTargets,
+} from "./intents.ts";
+import {
+  ASK_REASON,
+  boundaryReason,
+  PATH_RULE_REASON,
+  SUDO_REASON,
+  TIER_REASONS,
+} from "./reasons.ts";
 import {
   expandToken,
+  HOME,
   inAllowedZone,
   pathCandidates,
   tildeUser,
@@ -14,15 +29,51 @@ import {
 } from "./resolve.ts";
 import { type Tier, tierOf } from "./tiers.ts";
 
-// Write-only tiers until intent arrives: the Bash channel cannot tell read
-// from write in an argument list, so Task 2 lets their reads pass.
-const writeOnlyTier = (tier: Tier) =>
-  ["personal", "git-config", "macos-personal"].includes(tier);
+// Tiers that gate on intent: reads pass, writes/deletes deny. The remaining
+// tiers (secrets, settings, git-hooks, macos-library) deny at ANY intent.
+const WRITE_ONLY_TIERS = new Set<Tier>([
+  "personal",
+  "git-config",
+  "macos-personal",
+]);
 
-// One resolved path candidate of one argument: a decision, or null.
+// A glued short-flag path value (`tar -C/etc`, `tar -C=/etc`): tar's
+// re-rooting directory rides the flag with no space, so pathCandidates sees
+// a bare flag (breaker-round gap; the `=` spelling, fix round 1).
+const GLUED_DIR_FLAG = /^-C.+/;
+// The `=` separator a glued `-C=` value keeps after the flag slice.
+const LEADING_EQUALS = /^=/;
+
+// Scope rules above the zone boundary: the filesystem root denies for ANY
+// intent (reads included — owner pin 2026-10-15), and the home directory as
+// a whole denies writes and deletes. Whole-home READS ask instead, at the
+// tail of candidateDecision.
+function scopeDenyOrAsk(
+  intent: Intent,
+  abs: string,
+  token: string,
+): PolicyCheckResult {
+  if (abs === "/") {
+    return deny(
+      `Filesystem policy: "${token}" targets the filesystem root — blocked.`,
+    );
+  }
+  if (abs === HOME && (intent === "write" || intent === "delete")) {
+    return deny(
+      `Filesystem policy: "${token}" targets the home directory as a whole — ${intent} blocked.`,
+    );
+  }
+  return null;
+}
+
+// One resolved path candidate of one argument, judged with the command's
+// intent: a decision, or null. Unresolvable $-shapes and tilde-user
+// spellings fail closed BEFORE classification (plan amendment A — these
+// name paths bash resolves outside every lexical class the guard has).
 function candidateDecision(
   candidate: string,
   arg: string,
+  intent: Intent | null,
   context: PolicyContext,
 ): PolicyCheckResult {
   if (unresolvedVar(candidate)) {
@@ -40,29 +91,89 @@ function candidateDecision(
     return null;
   }
   const tier = tierOf(abs);
-  if (tier === null) {
-    if (inAllowedZone(abs, context)) {
-      return null;
+  if (tier !== null && !WRITE_ONLY_TIERS.has(tier)) {
+    return deny(TIER_REASONS[tier](arg));
+  }
+  if (tier !== null && (intent === "write" || intent === "delete")) {
+    return deny(TIER_REASONS[tier](arg));
+  }
+  if (intent !== null) {
+    const scoped = scopeDenyOrAsk(intent, abs, arg);
+    if (scoped !== null) {
+      return scoped;
     }
+  }
+  if (!inAllowedZone(abs, context)) {
     return deny(boundaryReason(arg, abs));
   }
-  if (writeOnlyTier(tier)) {
-    return null; // intent-aware handling arrives in Task 3
+  if (intent === "read" && abs === HOME) {
+    return ask(ASK_REASON("reading the home directory as a whole", arg));
   }
-  return deny(TIER_REASONS[tier](arg));
+  return null;
 }
 
-// One argument of one command unit: a decision, or null for "no opinion".
-// The Bash channel walks pathCandidates so glued tokens (@/etc/passwd,
-// --file=/tmp/x.tar) classify their value side; bare flags stay skipped.
-function argDecision(arg: string, context: PolicyContext): PolicyCheckResult {
+// One argument's path candidates: an explicit output target wins (network
+// commands), then the glued -C directory value, then the standard
+// @/flag-value decomposition. Reasons quote the full original arg.
+function argCandidates(arg: string, outputTarget: string | null): string[] {
+  if (outputTarget !== null) {
+    return [outputTarget];
+  }
+  if (GLUED_DIR_FLAG.test(arg)) {
+    // slice(2) keeps a glued `=` separator on the value (`-C=/etc` →
+    // "=/etc") — strip it so the value resolves absolute, like
+    // pathCandidates' flag=value form.
+    return [arg.slice(2).replace(LEADING_EQUALS, "")];
+  }
+  return pathCandidates(arg);
+}
+
+// One argument of one unwrapped command unit: a decision, or null. Network
+// commands narrow this to explicit output targets and explicit path syntax
+// (@-reads, flag=value, =@): URLs, headers and data words are not paths.
+function argDecision(
+  rest: string[],
+  i: number,
+  intent: Intent | null,
+  context: PolicyContext,
+): PolicyCheckResult {
+  const arg = rest[i] ?? "";
   if (arg.includes("://")) {
     return null;
   }
-  for (const candidate of pathCandidates(arg)) {
-    const decision = candidateDecision(candidate, arg, context);
-    if (decision !== null) {
-      return decision;
+  let outputTarget: string | null = null;
+  if (intent === "network") {
+    outputTarget = outputTargetAt(rest, i);
+    if (outputTarget === null && pathCandidates(arg)[0] === arg) {
+      return null;
+    }
+  }
+  for (const candidate of argCandidates(arg, outputTarget)) {
+    const hit = candidateDecision(candidate, arg, intent, context);
+    if (hit !== null) {
+      return hit;
+    }
+  }
+  return null;
+}
+
+// One command unit: PATH rule first, then the sudo blanket rule, then the
+// intent-aware walk over the unwrapped argument list.
+function unitDecision(
+  unit: CommandUnit,
+  context: PolicyContext,
+): PolicyCheckResult {
+  if (isAbsolute(unit.name)) {
+    return deny(PATH_RULE_REASON(unit.name));
+  }
+  const { intent, rest, sudo } = intentOf(unit.name, unit.args);
+  if (sudo) {
+    return deny(SUDO_REASON);
+  }
+  for (let i = 0; i < rest.length; i += 1) {
+    const hit = argDecision(rest, i, intent, context);
+    if (hit !== null) {
+      return hit;
     }
   }
   return null;
@@ -86,7 +197,7 @@ export function checkFilePath(
     }
     return deny(boundaryReason(filePath, abs));
   }
-  if (writeOnlyTier(tier)) {
+  if (WRITE_ONLY_TIERS.has(tier)) {
     if (intent === "write") {
       return deny(TIER_REASONS[tier](filePath));
     }
@@ -98,11 +209,15 @@ export function checkFilePath(
 export const filesystemPolicy: Policy = {
   check(cmd, context) {
     for (const unit of cmd.units) {
-      for (const arg of unit.args) {
-        const decision = argDecision(arg, context);
-        if (decision !== null) {
-          return decision;
-        }
+      const hit = unitDecision(unit, context);
+      if (hit !== null) {
+        return hit;
+      }
+    }
+    for (const r of redirectTargets(cmd)) {
+      const hit = candidateDecision(r.token, r.token, r.intent, context);
+      if (hit !== null) {
+        return hit;
       }
     }
     return null;
