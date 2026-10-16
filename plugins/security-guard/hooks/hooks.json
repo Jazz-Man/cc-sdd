@@ -1,5 +1,5 @@
 {
-  "description": "Routes every Bash tool call through the claude-code-cli-hook policy binary (filesystem, no-deps, git-readonly, no-inline-scripts; fail-open).",
+  "description": "Routes Bash and file-tool calls through the claude-code-cli-hook policy binary (filesystem deny/ask engine, no-deps, git-readonly, no-inline-scripts; fail-open).",
   "hooks": {
     "PreToolUse": [
       {
@@ -10,7 +10,7 @@
             "type": "command"
           }
         ],
-        "matcher": "Bash"
+        "matcher": "^(Bash|Read|Edit|Write|NotebookEdit)$"
       }
     ]
   }

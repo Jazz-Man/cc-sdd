@@ -77,58 +77,69 @@ const NETWORK_TOOLS = new Set([
 // read-intent command here); merging couples them.
 const WRAPPERS = new Set(["env", "nice", "nohup", "timeout", "xargs"]);
 
-export type Intent = "read" | "write" | "delete";
+// Prefix-region noise: `-`-head option tokens and NAME=VALUE assignments
+// never name the command. Unknown bare tokens stay in the walk — they can
+// still flag a NETWORK_TOOLS entry.
+function isScanNoise(token: string): boolean {
+  return token.startsWith("-") || isAssignment(token);
+}
 
 // Unwrap transparent wrappers across their own options and env assignments
 // (`env X=1 tee`, `nice -n 5 cp`, `timeout 10 rm`, `xargs -I{} rm`,
 // `env -u X sudo …`). The scan walks the prefix region left-to-right:
-// `-`-tokens, NAME=VALUE assignments, and UNKNOWN bare tokens (option
-// values like `-u X`'s X — an unknown command has null intent anyway, so
-// skipping it loses nothing) are noise; the first INTENTS-known token is
-// the command. sudo and NETWORK_TOOLS names are flagged wherever seen in
-// the region — both deny on the unwrapped name, before any argument walk.
-// None found → intent null and rest = the full args (any-intent
-// tier/boundary checks still see them).
-export function intentOf(
-  name: string,
+// noise tokens (isScanNoise) are skipped for intent resolution, sudo and
+// NETWORK_TOOLS names are flagged wherever seen in the region — both deny
+// on the unwrapped name, before any argument walk. The first INTENTS-known
+// token is the command; none found → intent null and rest = the full args
+// (any-intent tier/boundary checks still see them).
+function unwrapScan(
   args: string[],
-): {
-  intent: Intent | null;
-  rest: string[];
-  sudo: boolean;
-  network: string | null;
-} {
-  let sudo = name === "sudo";
-  const base = baseName(name);
-  const intent: Intent | null = INTENTS[base] ?? null;
-  let network: string | null = null;
-  if (NETWORK_TOOLS.has(base)) {
-    network = base;
-  }
-  if (!WRAPPERS.has(name) && name !== "sudo") {
-    return { intent, network, rest: args, sudo };
-  }
+  sudoIn: boolean,
+  networkIn: string | null,
+): Unwrapped {
+  let sudo = sudoIn;
+  let network = networkIn;
   let i = 0;
   while (i < args.length) {
     const t = args[i] ?? "";
     if (t === "sudo") {
       sudo = true;
-    } else if (!(t.startsWith("-") || isAssignment(t))) {
+    } else if (!isScanNoise(t)) {
       const known = INTENTS[baseName(t)];
       if (known !== undefined) {
         return { intent: known, network, rest: args.slice(i + 1), sudo };
       }
-      if (network === null) {
-        const tool = baseName(t);
-        if (NETWORK_TOOLS.has(tool)) {
-          network = tool;
-        }
+      if (network === null && NETWORK_TOOLS.has(baseName(t))) {
+        network = baseName(t);
       }
       // unknown bare token: possible option value — noise, keep scanning
     }
     i += 1;
   }
   return { intent: null, network, rest: args, sudo };
+}
+
+interface Unwrapped {
+  intent: Intent | null;
+  network: string | null;
+  rest: string[];
+  sudo: boolean;
+}
+
+export type Intent = "read" | "write" | "delete";
+
+export function intentOf(name: string, args: string[]): Unwrapped {
+  const base = baseName(name);
+  const intent: Intent | null = INTENTS[base] ?? null;
+  let network: string | null = null;
+  if (NETWORK_TOOLS.has(base)) {
+    network = base;
+  }
+  const sudo = name === "sudo";
+  if (!WRAPPERS.has(name) && name !== "sudo") {
+    return { intent, network, rest: args, sudo };
+  }
+  return unwrapScan(args, sudo, network);
 }
 
 // Redirect targets with their direction (parseCommand surfaces the exact

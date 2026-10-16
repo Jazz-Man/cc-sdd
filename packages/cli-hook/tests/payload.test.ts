@@ -13,6 +13,7 @@ describe("toHookInput", () => {
     expect(toHookInput(PAYLOAD)).toEqual({
       command: "git push",
       cwd: "/proj",
+      filePath: undefined,
       hookEventName: "PreToolUse",
       toolName: "Bash",
     });
@@ -47,5 +48,22 @@ describe("toHookInput", () => {
     expect(toHookInput(withoutCwd)).toBeNull();
     expect(toHookInput({ ...PAYLOAD, cwd: 42 })).toBeNull();
     expect(toHookInput({ ...PAYLOAD, cwd: "" })).toBeNull();
+  });
+
+  it("extracts file_path and notebook_path", () => {
+    const r1 = toHookInput({
+      cwd: "/p",
+      hook_event_name: "PreToolUse",
+      tool_input: { file_path: "/etc/passwd" },
+      tool_name: "Read",
+    });
+    expect(r1?.filePath).toBe("/etc/passwd");
+    const r2 = toHookInput({
+      cwd: "/p",
+      hook_event_name: "PreToolUse",
+      tool_input: { notebook_path: "/p/n.ipynb" },
+      tool_name: "NotebookEdit",
+    });
+    expect(r2?.filePath).toBe("/p/n.ipynb");
   });
 });

@@ -14,6 +14,15 @@ function bashPayload(command: string) {
   };
 }
 
+function filePayload(tool_name: string, filePath: string) {
+  return {
+    cwd: "/proj",
+    hook_event_name: "PreToolUse",
+    tool_input: { file_path: filePath },
+    tool_name,
+  };
+}
+
 describe("runHook (unit)", () => {
   it("denies git writes through the router", () => {
     expect(decisionOf(runHook(bashPayload("git push")))).toBe("deny");
@@ -139,6 +148,76 @@ describe("router v2", () => {
         process.env.CLAUDE_PROJECT_DIR = prev;
       }
     }
+  });
+
+  it("CLAUDE_PROJECT_DIR feeds projectRoot, not the cwd fallback", () => {
+    const prev = process.env.CLAUDE_PROJECT_DIR;
+    process.env.CLAUDE_PROJECT_DIR = "/zone-a";
+    try {
+      // Write inside /zone-a only: allowed iff the env arm wins over cwd.
+      expect(
+        runHook({
+          cwd: "/zone-b",
+          hook_event_name: "PreToolUse",
+          tool_input: { command: "tee /zone-a/out" },
+          tool_name: "Bash",
+        }),
+      ).toBeNull();
+    } finally {
+      if (prev === undefined) {
+        delete process.env.CLAUDE_PROJECT_DIR;
+      } else {
+        process.env.CLAUDE_PROJECT_DIR = prev;
+      }
+    }
+  });
+});
+
+describe("tool channel", () => {
+  it("Read of a system file denies", () => {
+    expect(decisionOf(runHook(filePayload("Read", "/etc/passwd")))).toBe(
+      "deny",
+    );
+  });
+  it("Edit of home shell rc denies (personal config write)", () => {
+    expect(decisionOf(runHook(filePayload("Edit", "~/.zshrc")))).toBe("deny");
+  });
+  it("Write inside the project allows", () => {
+    const prev = process.env.CLAUDE_PROJECT_DIR;
+    delete process.env.CLAUDE_PROJECT_DIR;
+    try {
+      expect(runHook(filePayload("Write", "/proj/src/x.ts"))).toBeNull();
+    } finally {
+      if (prev !== undefined) {
+        process.env.CLAUDE_PROJECT_DIR = prev;
+      }
+    }
+  });
+  it("Read of .git/hooks denies (any reference)", () => {
+    expect(
+      decisionOf(runHook(filePayload("Read", "/proj/.git/hooks/pre-commit"))),
+    ).toBe("deny");
+  });
+  it("non-file tools fail open", () => {
+    expect(runHook(filePayload("Grep", "/etc/passwd"))).toBeNull();
+    expect(
+      runHook({
+        cwd: "/proj",
+        hook_event_name: "PreToolUse",
+        tool_input: {},
+        tool_name: "Glob",
+      }),
+    ).toBeNull();
+  });
+  it("Read without file_path fails open", () => {
+    expect(
+      runHook({
+        cwd: "/proj",
+        hook_event_name: "PreToolUse",
+        tool_input: {},
+        tool_name: "Read",
+      }),
+    ).toBeNull();
   });
 });
 

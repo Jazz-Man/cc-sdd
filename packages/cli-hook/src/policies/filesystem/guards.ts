@@ -25,7 +25,10 @@ const ASCII_WHITESPACE = " \t\n\r";
 const ANY_WHITESPACE = /\s/;
 const WORD_SPLIT = /\s+/;
 
-export function injectionHit(raw: string): string | null {
+// The four hit-classes keep the scan's fixed precedence: the first
+// non-null wins, so a command carrying several signals reports the
+// earliest class' reason.
+function substringHit(raw: string): string | null {
   for (const s of INJECTION_SUBSTRINGS) {
     if (raw.includes(s)) {
       return s;
@@ -34,20 +37,41 @@ export function injectionHit(raw: string): string | null {
   if (raw.includes("\0")) {
     return "null byte";
   }
+  return null;
+}
+
+function controlHit(raw: string): string | null {
   for (const ch of raw) {
     if (isControlByte(ch.codePointAt(0) ?? 0)) {
       return "control characters";
     }
   }
+  return null;
+}
+
+function pathOverrideHit(raw: string): string | null {
   for (const word of raw.split(WORD_SPLIT)) {
     if (word.startsWith("PATH=") && !word.includes("$PATH")) {
       return "PATH override";
     }
   }
+  return null;
+}
+
+function whitespaceHit(raw: string): string | null {
   for (const ch of raw) {
     if (ANY_WHITESPACE.test(ch) && !ASCII_WHITESPACE.includes(ch)) {
       return "non-ASCII whitespace";
     }
   }
   return null;
+}
+
+export function injectionHit(raw: string): string | null {
+  return (
+    substringHit(raw) ??
+    controlHit(raw) ??
+    pathOverrideHit(raw) ??
+    whitespaceHit(raw)
+  );
 }

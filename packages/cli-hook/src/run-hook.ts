@@ -1,9 +1,12 @@
 import process from "node:process";
 import type { SyncHookJSONOutput } from "@cc-sdd/agent-types";
 import { parseCommand } from "./core/ast.ts";
-import { toHookInput } from "./core/payload.ts";
+import { type ParsedHookInput, toHookInput } from "./core/payload.ts";
 import type { Policy } from "./core/policy.ts";
-import { filesystemPolicy } from "./policies/filesystem/policy.ts";
+import {
+  checkFilePath,
+  filesystemPolicy,
+} from "./policies/filesystem/policy.ts";
 import { gitReadonlyPolicy } from "./policies/git-readonly.ts";
 import { noDepsPolicy } from "./policies/no-deps.ts";
 import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";
@@ -17,34 +20,62 @@ const POLICIES: Policy[] = [
   filesystemPolicy, // v2: deny | ask, runs last
 ];
 
+const READ_TOOLS = new Set(["Read"]);
+const WRITE_TOOLS = new Set(["Edit", "Write", "NotebookEdit"]);
+
+function projectRootOf(payload: ParsedHookInput): string {
+  // @effect-diagnostics-next-line processEnv:off
+  return process.env.CLAUDE_PROJECT_DIR ?? payload.cwd;
+}
+
+function routeBash(payload: ParsedHookInput): SyncHookJSONOutput | null {
+  if (payload.command === undefined) {
+    return null;
+  }
+  const cmd = parseCommand(payload.command);
+  if (cmd === null) {
+    return null;
+  }
+  for (const policy of POLICIES) {
+    const result = policy.check(cmd, {
+      cwd: payload.cwd,
+      projectRoot: projectRootOf(payload),
+    });
+    if (result !== null) {
+      return result;
+    }
+  }
+  return null;
+}
+
+function routeFileTool(payload: ParsedHookInput): SyncHookJSONOutput | null {
+  if (payload.filePath === undefined) {
+    return null;
+  }
+  let intent: "read" | "write" = "write";
+  if (READ_TOOLS.has(payload.toolName)) {
+    intent = "read";
+  }
+  return checkFilePath(payload.filePath, intent, {
+    cwd: payload.cwd,
+    projectRoot: projectRootOf(payload),
+  });
+}
+
 export function runHook(input: unknown): SyncHookJSONOutput | null {
   try {
     const payload = toHookInput(input);
-    if (payload === null) {
+    if (payload === null || payload.hookEventName !== "PreToolUse") {
       return null;
     }
-    if (payload.hookEventName !== "PreToolUse") {
-      return null;
+    if (payload.toolName === "Bash") {
+      return routeBash(payload);
     }
-    if (payload.toolName !== "Bash" || payload.command === undefined) {
-      return null;
-    }
-    const cmd = parseCommand(payload.command);
-    if (cmd === null) {
-      return null;
-    }
-    const projectRoot = process.env.CLAUDE_PROJECT_DIR ?? payload.cwd;
-    for (const policy of POLICIES) {
-      const result = policy.check(cmd, {
-        cwd: payload.cwd,
-        projectRoot,
-      });
-      if (result !== null) {
-        return result;
-      }
+    if (READ_TOOLS.has(payload.toolName) || WRITE_TOOLS.has(payload.toolName)) {
+      return routeFileTool(payload);
     }
     return null;
   } catch {
-    return null; // fail-open: a broken guard must not break Bash usage
+    return null; // fail-open: a broken guard must not break tool usage
   }
 }
