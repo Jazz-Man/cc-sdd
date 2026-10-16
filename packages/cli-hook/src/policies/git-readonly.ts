@@ -5,6 +5,9 @@ import type { Policy } from "../core/policy.ts";
 const REASON =
   "Git write operation blocked (read-only policy): only read-only git is allowed (status, diff, log, show, branch -l, tag -l, stash list, ...).";
 
+const HOOK_REASON =
+  "Git hook access blocked (read-only policy): the `git hook` subcommand reads and runs .git/hooks entries — name-based execution the filesystem policy cannot see.";
+
 const UNCONDITIONAL = new Set([
   "add",
   "commit",
@@ -231,6 +234,11 @@ export const gitReadonlyPolicy: Policy = {
   check(cmd) {
     for (const unit of cmd.units) {
       const call = gitUnitCall(unit);
+      // `git hook` reads and runs .git/hooks entries BY NAME — no path
+      // appears in args for the filesystem scan to catch.
+      if (call !== null && call.sub.toLowerCase() === "hook") {
+        return deny(HOOK_REASON);
+      }
       if (call !== null && mutating(call.sub.toLowerCase(), call.rest)) {
         return deny(REASON);
       }

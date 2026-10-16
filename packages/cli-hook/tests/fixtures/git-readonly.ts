@@ -57,6 +57,11 @@ export const DENY: string[] = [
   "git reflog expire --all",
   "git reflog delete HEAD@{0}",
   "git sparse-checkout set src",
+  // `git hook` reaches .git/hooks entries by name — no path for the
+  // filesystem scan to catch
+  "git hook run pre-commit",
+  "git hook list pre-commit",
+  "git -C . hook run x",
 ];
 
 export const ALLOW: string[] = [
