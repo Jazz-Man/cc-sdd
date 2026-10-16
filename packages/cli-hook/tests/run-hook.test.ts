@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import process from "node:process";
 import { runHook } from "../src/run-hook.ts";
-import { decisionOf } from "./helpers/policy.ts";
+import { decisionOf, reasonOf } from "./helpers/policy.ts";
 
 const MAIN = `${import.meta.dir}/../src/main.ts`;
 
@@ -25,7 +26,7 @@ describe("runHook (unit)", () => {
     if (out?.hookEventName === "PreToolUse") {
       reason = out.permissionDecisionReason;
     }
-    expect(reason).toContain("Filesystem access outside project blocked");
+    expect(reason).toContain("Dependency install/update blocked");
   });
 
   it("denies filesystem escapes", () => {
@@ -33,19 +34,27 @@ describe("runHook (unit)", () => {
   });
 
   it("uses the payload cwd for filesystem decisions", () => {
-    const withCwd = {
-      ...bashPayload("cat /payload-root/f"),
-      cwd: "/payload-root",
-    };
-    expect(runHook(withCwd)).toBeNull();
-    expect(
-      decisionOf(
-        runHook({
-          ...bashPayload("cat /usr/local/lib/f"),
-          cwd: "/payload-root",
-        }),
-      ),
-    ).toBe("deny");
+    const prev = process.env.CLAUDE_PROJECT_DIR;
+    delete process.env.CLAUDE_PROJECT_DIR;
+    try {
+      const withCwd = {
+        ...bashPayload("cat /payload-root/f"),
+        cwd: "/payload-root",
+      };
+      expect(runHook(withCwd)).toBeNull();
+      expect(
+        decisionOf(
+          runHook({
+            ...bashPayload("cat /usr/local/lib/f"),
+            cwd: "/payload-root",
+          }),
+        ),
+      ).toBe("deny");
+    } finally {
+      if (prev !== undefined) {
+        process.env.CLAUDE_PROJECT_DIR = prev;
+      }
+    }
   });
 
   it("allows ordinary commands", () => {
@@ -80,6 +89,56 @@ describe("runHook (unit — fail-open)", () => {
       }),
     ).toBeNull();
     expect(runHook(bashPayload(""))).toBeNull();
+  });
+});
+
+describe("router v2", () => {
+  it("filesystem ask propagates through the router", () => {
+    expect(decisionOf(runHook(bashPayload("ls ~")))).toBe("ask");
+  });
+
+  it("absolute-policy deny wins over a filesystem ask on the same command", () => {
+    expect(decisionOf(runHook(bashPayload("npm install /tmp/x")))).toBe("deny");
+  });
+
+  it("no-inline fires before the filesystem injection guard on bash -c /dev/tcp", () => {
+    const result = runHook(bashPayload("bash -c 'echo x > /dev/tcp/host/80'"));
+    expect(decisionOf(result)).toBe("deny");
+    expect(reasonOf(result)).toContain("Inline scripts are blocked");
+  });
+
+  it("projectRoot falls back to cwd when CLAUDE_PROJECT_DIR is unset", () => {
+    const prev = process.env.CLAUDE_PROJECT_DIR;
+    delete process.env.CLAUDE_PROJECT_DIR;
+    try {
+      // cwd /proj is the project → inside-write allow
+      expect(runHook(bashPayload("tee /proj/out x"))).toBeNull();
+    } finally {
+      if (prev !== undefined) {
+        process.env.CLAUDE_PROJECT_DIR = prev;
+      }
+    }
+  });
+
+  it("projectRoot carves an allowed zone outside $HOME", () => {
+    const prev = process.env.CLAUDE_PROJECT_DIR;
+    process.env.CLAUDE_PROJECT_DIR = "/workspace/repo";
+    try {
+      expect(
+        runHook({
+          cwd: "/workspace/repo",
+          hook_event_name: "PreToolUse",
+          tool_input: { command: "tee /workspace/repo/x y" },
+          tool_name: "Bash",
+        }),
+      ).toBeNull();
+    } finally {
+      if (prev === undefined) {
+        delete process.env.CLAUDE_PROJECT_DIR;
+      } else {
+        process.env.CLAUDE_PROJECT_DIR = prev;
+      }
+    }
   });
 });
 

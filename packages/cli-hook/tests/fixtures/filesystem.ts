@@ -126,6 +126,7 @@ export const DENY: string[] = [
   "host example.com",
   "nslookup example.com",
   "whois example.com",
+  "openssl s_client -connect host:443",
   // macOS personal folders: writes/deletes
   "tee ~/Movies/clip.mp4 x",
   "rm ~/Desktop/notes.txt",
@@ -152,6 +153,7 @@ export const DENY: string[] = [
   "echo $(cat /etc/passwd)",
   // injection/obfuscation: network builtins, loader hijack, history tampering
   "echo x > /dev/tcp/10.0.0.1/8080",
+  "exec 3<>/dev/tcp/host/80",
   "cat /dev/udp/10.0.0.1/53",
   "LD_PRELOAD=/tmp/evil.so ls",
   "LD_LIBRARY_PATH=/tmp ls",

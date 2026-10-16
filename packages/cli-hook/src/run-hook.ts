@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { SyncHookJSONOutput } from "@cc-sdd/agent-types";
 import { parseCommand } from "./core/ast.ts";
 import { toHookInput } from "./core/payload.ts";
@@ -7,12 +8,13 @@ import { gitReadonlyPolicy } from "./policies/git-readonly.ts";
 import { noDepsPolicy } from "./policies/no-deps.ts";
 import { noInlineScriptsPolicy } from "./policies/no-inline-scripts.ts";
 
-// Registry order is fixed: the first non-null decision wins.
+// Registry order is fixed: the first non-null decision wins. Absolutes
+// (deny-only hard rules) run before the filesystem zone policy.
 const POLICIES: Policy[] = [
-  // filesystemPolicy,
-  noDepsPolicy,
+  noDepsPolicy, // absolutes first: deny-only, owner's hard rules
   gitReadonlyPolicy,
   noInlineScriptsPolicy,
+  filesystemPolicy, // v2: deny | ask, runs last
 ];
 
 export function runHook(input: unknown): SyncHookJSONOutput | null {
@@ -31,10 +33,11 @@ export function runHook(input: unknown): SyncHookJSONOutput | null {
     if (cmd === null) {
       return null;
     }
+    const projectRoot = process.env.CLAUDE_PROJECT_DIR ?? payload.cwd;
     for (const policy of POLICIES) {
       const result = policy.check(cmd, {
         cwd: payload.cwd,
-        projectRoot: payload.cwd,
+        projectRoot,
       });
       if (result !== null) {
         return result;
