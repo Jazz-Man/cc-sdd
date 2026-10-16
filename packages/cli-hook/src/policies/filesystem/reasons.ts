@@ -37,3 +37,9 @@ export const PATH_RULE_REASON = (bin: string) =>
 
 export const SUDO_REASON =
   "Filesystem policy: sudo is blocked — privilege escalation is never an agent operation; every needed command runs under the user account.";
+
+export const INJECTION_REASON = (pattern: string) =>
+  `Filesystem policy: command contains a blocked obfuscation/injection pattern (${pattern}).`;
+
+export const NETWORK_REASON = (name: string) =>
+  `Network command blocked: "${name}" — fetching pages/docs goes through the web MCP tools; anything else, the user runs it and pastes the result.`;

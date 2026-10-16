@@ -97,7 +97,8 @@
       "Bash(dig:*)",
       "Bash(host:*)",
       "Bash(nslookup:*)",
-      "Bash(whois:*)"
+      "Bash(whois:*)",
+      "Bash(openssl:*)"
     ]
   }
 }

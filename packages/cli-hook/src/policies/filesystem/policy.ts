@@ -6,15 +6,12 @@ import type {
   PolicyCheckResult,
   PolicyContext,
 } from "../../core/policy.ts";
-import {
-  type Intent,
-  intentOf,
-  outputTargetAt,
-  redirectTargets,
-} from "./intents.ts";
+import { type Intent, intentOf, redirectTargets } from "./intents.ts";
 import {
   ASK_REASON,
   boundaryReason,
+  INJECTION_REASON,
+  NETWORK_REASON,
   PATH_RULE_REASON,
   SUDO_REASON,
   TIER_REASONS,
@@ -112,13 +109,9 @@ function candidateDecision(
   return null;
 }
 
-// One argument's path candidates: an explicit output target wins (network
-// commands), then the glued -C directory value, then the standard
-// @/flag-value decomposition. Reasons quote the full original arg.
-function argCandidates(arg: string, outputTarget: string | null): string[] {
-  if (outputTarget !== null) {
-    return [outputTarget];
-  }
+// One argument's path candidates: the glued -C directory value, then the
+// standard @/flag-value decomposition. Reasons quote the full original arg.
+function argCandidates(arg: string): string[] {
   if (GLUED_DIR_FLAG.test(arg)) {
     // slice(2) keeps a glued `=` separator on the value (`-C=/etc` →
     // "=/etc") — strip it so the value resolves absolute, like
@@ -128,9 +121,8 @@ function argCandidates(arg: string, outputTarget: string | null): string[] {
   return pathCandidates(arg);
 }
 
-// One argument of one unwrapped command unit: a decision, or null. Network
-// commands narrow this to explicit output targets and explicit path syntax
-// (@-reads, flag=value, =@): URLs, headers and data words are not paths.
+// One argument of one unwrapped command unit: a decision, or null. URLs are
+// not path candidates.
 function argDecision(
   rest: string[],
   i: number,
@@ -141,14 +133,7 @@ function argDecision(
   if (arg.includes("://")) {
     return null;
   }
-  let outputTarget: string | null = null;
-  if (intent === "network") {
-    outputTarget = outputTargetAt(rest, i);
-    if (outputTarget === null && pathCandidates(arg)[0] === arg) {
-      return null;
-    }
-  }
-  for (const candidate of argCandidates(arg, outputTarget)) {
+  for (const candidate of argCandidates(arg)) {
     const hit = candidateDecision(candidate, arg, intent, context);
     if (hit !== null) {
       return hit;
@@ -157,8 +142,8 @@ function argDecision(
   return null;
 }
 
-// One command unit: PATH rule first, then the sudo blanket rule, then the
-// intent-aware walk over the unwrapped argument list.
+// One command unit: PATH rule first, then the sudo and network blanket
+// rules, then the intent-aware walk over the unwrapped argument list.
 function unitDecision(
   unit: CommandUnit,
   context: PolicyContext,
@@ -166,9 +151,12 @@ function unitDecision(
   if (isAbsolute(unit.name)) {
     return deny(PATH_RULE_REASON(unit.name));
   }
-  const { intent, rest, sudo } = intentOf(unit.name, unit.args);
+  const { intent, rest, sudo, network } = intentOf(unit.name, unit.args);
   if (sudo) {
     return deny(SUDO_REASON);
+  }
+  if (network !== null) {
+    return deny(NETWORK_REASON(network));
   }
   for (let i = 0; i < rest.length; i += 1) {
     const hit = argDecision(rest, i, intent, context);
@@ -208,6 +196,10 @@ export function checkFilePath(
 
 export const filesystemPolicy: Policy = {
   check(cmd, context) {
+    const injection = injectionHit(cmd.raw);
+    if (injection !== null) {
+      return deny(INJECTION_REASON(injection));
+    }
     for (const unit of cmd.units) {
       const hit = unitDecision(unit, context);
       if (hit !== null) {

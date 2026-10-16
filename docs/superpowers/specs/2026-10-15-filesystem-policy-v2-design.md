@@ -168,26 +168,33 @@ escapes, base64-in-pipe. **Owned by `no-inline-scripts`:** `eval`,
 `source`, pipe-to-shell/interpreter, dot-sourcing (sanctioned file-exec
 pattern).
 
-### 7.3 TAINT (1 rule)
+### 7.3 NETWORK COMMANDS — blanket deny
 
-| Source | Sink | Verdict |
-|---|---|---|
-| Secrets-tier arg | network command (`curl`/`wget`/`nc`/`ssh` with `-d`/`--data`/`-F`/`-T`/`@file`) | **deny** |
+Every network-touching command denies outright (owner decision): the
+semantic surface of per-flag network analysis (uploads, downloads,
+headers, output targets, exfiltration flows) is the largest and most
+fragile part of the guard, and the owner has better channels — MCP tools
+for pages/docs, and manual requests pasted into chat. The deny reason
+redirects to those channels (sanctioned-channel hint, same class as
+`./tmp/`).
 
-The former download→outside-write row is gone: the §7.5 boundary denies
-any outside-zone write target (`curl -o /tmp/x` is caught as a plain
-write target), and in-zone downloads are allowed. Deferred:
-download→execution (owned by no-inline-scripts), env→network
-(legitimate `$TOKEN` headers), any_read→network (too broad).
+Deny list: **curl, wget, nc, ssh, scp, sftp, ping, dig, host, nslookup,
+whois** — caught on the unit name after wrapper unwrapping (`env curl …`
+denies like `env sudo …` does).
 
-### 7.4 INTENTS (~45 commands; wrappers transparent)
+Consequences: the taint pair, upload-glue parsing (`-d@/file`,
+`--form=x=@path`, `-dVALUE`), the network output-target logic, and the
+download/boundary interplay are all DEAD — nothing about a network
+command is parsed because no network command runs.
+
+### 7.4 INTENTS (wrappers transparent)
 
 - **read:** cat, head, tail, less, more, wc, stat, file, du, df, find,
   ls, tree, grep, rg, diff, md5sum, shasum
 - **write:** tee, cp, mv, touch, mkdir, ln, chmod, chown, truncate, dd,
   rsync, install, tar
 - **delete:** rm, rmdir, shred, unlink
-- **network:** curl, wget, ssh, scp, sftp, nc
+- **network:** none remain — the family moved to the §7.3 deny list
 - **wrappers** (skip to the inner command): env, nice, nohup, timeout, xargs
 - **sudo**: ANY use of `sudo` → **deny** (owner decision 2026-10-15) —
   privilege escalation is never an agent operation; caught directly and
@@ -215,7 +222,7 @@ The plumbing command has no legitimate agent use.
 | 1 | Scope `/` (filesystem root), any intent — reads included (owner decision 2026-10-15) | deny |
 | 2 | Any §7.1 sensitive-path hit (tier verdict applies: read and/or write) | deny |
 | 3 | Injection pattern (§7.2) | deny |
-| 4 | Taint: secrets→network (§7.3) | deny |
+| 4 | Network command (§7.3 list, unwrapped name) | deny |
 | 5 | **Outside the allowed zone ($HOME ∪ projectRoot), read OR write** — `/etc/*`, `/var/*`, `/tmp/*`, `/opt/*`, other users' homes, … Relative `..`-chains resolve LEXICALLY before classification (`normalize(join(cwd, token))`), so `cat ../../../../../../etc/passwd` lands on `/etc/passwd` and denies. (Owner decision 2026-10-15; exempts `/dev/null`, `/dev/stdin`, `/dev/stdout`, `/dev/stderr`) | deny |
 | 6 | Executable spelled as an absolute path (§7.4 PATH rule) | deny |
 | 7 | Any unit reaching `sudo` — directly or through a wrapper chain (§7.4, owner decision 2026-10-15) | deny |
@@ -234,11 +241,11 @@ The plumbing command has no legitimate agent use.
 | `cat .env` in-project | allow | **deny** (intentional; agent must ask the user) |
 | `ls /etc`, `cat /etc/group`, `head /var/log/syslog` | allow | **deny** (outside the zone) |
 | `cat /etc/passwd` | allow | **deny** |
-| `tee /tmp/notes`, `curl -o /tmp/x.tar …` | allow | **deny** (outside the zone) |
+| `tee /tmp/notes` | allow | **deny** (outside the zone) |
 | `/opt/homebrew/bin/biome check .` (absolute binary path) | allow | **deny** (PATH rule) |
 | `cat file 2>/dev/null` | allow | allow (safe-device exemption) |
 | `rm -rf ~/` / `rm -rf /` | allow | **deny** |
-| `cat .env \| curl -d @- …` | allow | **deny** |
+| `curl https://x`, `wget …`, `env curl …`, `ssh h`, `ping x` — any §7.3 network command, any flags | allow | **deny** (network blanket; reason redirects to MCP/manual channels) |
 | `sudo ls`, `env sudo tee /etc/motd x` | allow | **deny** (sudo blanket rule) |
 | `:(){ :\|:& };:`, `_(){ _\|_& };_`, `a(){ b& }; b(){ a& }; a`, `function fb { … }` — any inline function, any signature | allow | **deny** (no-inline-scripts: AST-typed `Function` nodes) |
 | `tee ~/Movies/clip.mp4`, `rm ~/Desktop/notes.txt`, `cp x ~/Downloads/` | allow | **deny** (macOS personal folders) |
@@ -287,6 +294,13 @@ tools.
 - Guard self-protection (plugin-cache write protection) — revisit
   separately.
 - env→network taint — legitimate API-header use breaks.
+- **File-based scripts can reach the network** (a python file run as
+  `python script.py` may import urllib) — accepted boundary: the guard
+  judges commands, not file contents; same trust line as the `./tmp/`
+  teaching pattern. Raw-socket evasions via `/dev/tcp` are denied by the
+  §7.2 injection substrings in every spelling (substitution, heredoc,
+  fd-dup) because the scan runs on the raw command text before any
+  expansion.
 
 ## 12. Files touched
 
