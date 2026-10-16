@@ -6,6 +6,7 @@ import type {
   PolicyCheckResult,
   PolicyContext,
 } from "../../core/policy.ts";
+import { injectionHit } from "./guards.ts";
 import { type Intent, intentOf, redirectTargets } from "./intents.ts";
 import {
   ASK_REASON,
