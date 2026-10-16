@@ -37,6 +37,7 @@
     "enabled": true,
     "rules": {
       "complexity": {
+        "noExcessiveCognitiveComplexity": "error",
         "noExcessiveLinesPerFunction": "error"
       },
       "correctness": {
@@ -64,6 +65,7 @@
       "style": {
         "noExcessiveLinesPerFile": "error",
         "noMagicNumbers": "off",
+        "noProcessEnv": "off",
         "noTernary": "error",
         "useBlockStatements": "error",
         "useExportsLast": "error",
