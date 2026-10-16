@@ -2,9 +2,6 @@ import { baseName } from "../core/ast.ts";
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
-const REASON =
-  "Dependency install/update blocked: do not install, update, or remove packages (pip/uv/pipx/poetry, npm/npx/yarn/pnpm/bun/bunx, cargo/rustup, composer, gem, go get/install, swift package, brew).";
-
 // Deny when args start with any listed prefix (whole words). [] = any args.
 const MUTATIONS: Record<string, readonly (readonly string[])[]> = {
   brew: [
@@ -165,6 +162,9 @@ function mutates(name: string, args: string[]): boolean {
       prefix.every((w, i) => w === args[i]?.toLowerCase()),
   );
 }
+
+export const REASON =
+  "Dependency install/update blocked: do not install, update, or remove packages (pip/uv/pipx/poetry, npm/npx/yarn/pnpm/bun/bunx, cargo/rustup, composer, gem, go get/install, swift package, brew).";
 
 export const noDepsPolicy: Policy = {
   check(cmd) {

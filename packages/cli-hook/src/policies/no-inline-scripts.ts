@@ -7,12 +7,6 @@ import {
 import { deny } from "../core/decision.ts";
 import type { Policy } from "../core/policy.ts";
 
-const REASON =
-  "Inline scripts are blocked (interpreter -e/-c/--eval, shell -c/eval, stdin-fed scripts): inline code cannot be reviewed for safety. Write the script to a file under ./tmp/ and run that file instead — project linters and checkers can then review it.";
-
-const FUNCTION_REASON =
-  "Inline function definitions are blocked: shell code belongs in a file — write the script under ./tmp/ at the project root and run that file. This also covers every fork-bomb signature (a function that spawns itself or another defined function).";
-
 // Long flags match exactly; short flags also match clustered spellings
 // (`python -uc`, `bash -ic`).
 const INTERPRETERS: Record<
@@ -170,6 +164,12 @@ function unitViolates(
     wrapperHeredocViolates(lname, unit.args, redirects)
   );
 }
+
+export const REASON =
+  "Inline scripts are blocked (interpreter -e/-c/--eval, shell -c/eval, stdin-fed scripts): inline code cannot be reviewed for safety. Write the script to a file under ./tmp/ and run that file instead — project linters and checkers can then review it.";
+
+export const FUNCTION_REASON =
+  "Inline function definitions are blocked: shell code belongs in a file — write the script under ./tmp/ at the project root and run that file. This also covers every fork-bomb signature (a function that spawns itself or another defined function).";
 
 export const noInlineScriptsPolicy: Policy = {
   check(cmd) {

@@ -1,27 +1,48 @@
 # security-guard
 
-Mechanical Bash guard for Claude Code. One `PreToolUse` hook (matcher `Bash`)
-pipes the hook payload into the `claude-code-cli-hook` policy binary
-(`packages/cli-hook` in this repo), which parses the shell command into an AST
-and runs four policies in a fixed order — first decision wins:
+Mechanical guard for Claude Code. One `PreToolUse` hook (matcher
+`^(Bash|Read|Edit|Write|NotebookEdit)$`) pipes the hook payload into the
+`claude-code-cli-hook` policy binary (`packages/cli-hook` in this repo).
+Bash commands are parsed into an AST and run through four policies in a
+fixed order — first decision wins; file-tool calls route through the same
+binary and check their literal `file_path` against the filesystem policy
+alone:
 
-1. **filesystem** — dangerous filesystem operations (unsafe devices, writes
-   escaping the project via `$HOME`/`$TMPDIR`/… resolution, …)
-2. **no-deps** — dependency installs/updates/removals (pip/uv, npm/pnpm/yarn,
+1. **no-deps** — dependency installs/updates/removals (pip/uv, npm/pnpm/yarn,
    bun, cargo, brew, gem, go, swift, composer, …)
-3. **git-readonly** — every git write subcommand (`commit`, `push`, `tag
-   <name>`, bare `git branch x`, …); only read-only git passes
-4. **no-inline-scripts** — inline code execution (`bun/node -e`, `python -c`,
-   `php -r`, `deno eval`, `osascript -e`, `sh/bash/zsh -c`, `eval`, clustered
-   flags like `python -uc`, stdin-fed scripts via pipe/heredoc/`-`,
-   wrapper-carried `xargs sh -c`/`find -exec bash -c`); the deny reason
-   directs the agent to write the script under `./tmp/` and run the file.
-   `sed`/`awk` stay allowed (everyday text processing)
+2. **git-readonly** — every git write subcommand (`commit`, `push`, `tag
+   <name>`, bare `git branch x`, …) plus `git hook <anything>` (reads and
+   runs `.git/hooks` entries); only read-only git passes
+3. **no-inline-scripts** — inline code execution: interpreter
+   `-e`/`-c`/`--eval` (`python -c`, `node -e`, `php -r`, `osascript -e`,
+   `deno eval`, clustered flags like `python -uc`), `sh/bash/zsh -c`,
+   `eval`, stdin-fed scripts (pipe, heredoc, bare `-`), inline function
+   definitions of every form (also covering every fork-bomb signature),
+   wrapper-carried (`xargs sh -c`, `find -exec bash -c`, `env`, …); the
+   deny reason directs the agent to write the script under `./tmp/` and
+   run the file. `sed`/`awk` stay allowed (everyday text processing)
+4. **filesystem** (v2) — deny/ask path policy. The allowed zone is
+   `$HOME ∪ projectRoot`: ordinary reads AND writes inside it pass, outside
+   it both deny (`..`-chains resolve lexically; the `/dev/null` family is
+   exempt). Sensitive-path tiers deny regardless of zone: secrets
+   (`.env*`, keys, `.ssh`/`.aws`/…), Claude settings files, `.git/config`
+   writes, `.git/hooks` at any reference, personal config writes,
+   `~/Library`, macOS personal folders' writes; reading the home directory
+   as a whole asks. On top of the zone: network commands deny outright
+   (`curl`, `wget`, `nc`, `ssh`, `scp`, `sftp`, `ping`, `dig`, `host`,
+   `nslookup`, `whois`, `openssl` — pages/docs go through the web MCP
+   tools), injection/obfuscation signals deny (`/dev/tcp`, `LD_PRELOAD`,
+   `PATH=` override, history tampering, control characters), absolute
+   binary paths deny (the PATH rule), `sudo` denies outright.
 
 A violation denies the call with a `permissionDecisionReason` naming the
-policy. Everything else — non-Bash tools, benign commands, malformed payloads,
-and any internal error — **fails open** (silent allow): a broken guard must
-never brick Bash usage.
+policy; whole-home reads surface a permission prompt (ask). Everything
+else — non-matching tools, benign commands, malformed payloads, and any
+internal error — **fails open** (silent allow): a broken guard must never
+brick tool usage.
+
+Pattern provenance and the module map live in `tmp/pattern-source.md`
+(git-ignored) at the repository root.
 
 ## Prerequisite (build the binary)
 
