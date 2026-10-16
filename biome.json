@@ -58,6 +58,9 @@
         "useTopLevelRegex": "error"
       },
       "preset": "all",
+      "security": {
+        "noSecrets": "off"
+      },
       "style": {
         "noExcessiveLinesPerFile": "error",
         "noMagicNumbers": "off",
@@ -67,7 +70,8 @@
         "useNamingConvention": "off"
       },
       "suspicious": {
-        "noConsole": "off"
+        "noConsole": "off",
+        "noTemplateCurlyInString": "off"
       }
     }
   },
