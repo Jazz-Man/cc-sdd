@@ -35,6 +35,12 @@ export const ASK_REASON = (verb: string, token: string) =>
 export const PATH_RULE_REASON = (bin: string) =>
   `Filesystem policy: running binaries by absolute path ("${bin}") is blocked — commands are on PATH by name.`;
 
+export const UNRESOLVED_VAR_REASON = (token: string) =>
+  `Filesystem policy: "${token}" contains a shell variable the guard cannot resolve.`;
+
+export const TILDE_USER_REASON = (token: string) =>
+  `Filesystem policy: "${token}" uses a tilde-user path — only ~ and ~/ are resolvable inside the guard.`;
+
 export const SUDO_REASON =
   "Filesystem policy: sudo is blocked — privilege escalation is never an agent operation; every needed command runs under the user account.";
 

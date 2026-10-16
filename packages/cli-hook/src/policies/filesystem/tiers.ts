@@ -40,7 +40,8 @@ const PERSONAL_BASENAMES = new Set([
 ]);
 // macOS home layout: ~/Library denies everything (Keychains, Safari, Mail,
 // Application Support); personal content folders deny writes/deletes, reads
-// pass. Matching is case-insensitive — the root APFS volume is (/TMP is /tmp).
+// pass. Matching is case-insensitive — the root APFS volume is
+// case-insensitive (/TMP is /tmp).
 const MACOS_PERSONAL_DIRS = new Set([
   "desktop",
   "documents",

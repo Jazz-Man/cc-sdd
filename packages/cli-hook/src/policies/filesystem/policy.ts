@@ -16,6 +16,8 @@ import {
   PATH_RULE_REASON,
   SUDO_REASON,
   TIER_REASONS,
+  TILDE_USER_REASON,
+  UNRESOLVED_VAR_REASON,
 } from "./reasons.ts";
 import {
   expandToken,
@@ -75,14 +77,10 @@ function candidateDecision(
   context: PolicyContext,
 ): PolicyCheckResult {
   if (unresolvedVar(candidate)) {
-    return deny(
-      `Filesystem policy: "${arg}" contains a shell variable the guard cannot resolve.`,
-    );
+    return deny(UNRESOLVED_VAR_REASON(arg));
   }
   if (tildeUser(candidate)) {
-    return deny(
-      `Filesystem policy: "${arg}" uses a tilde-user path — only ~ and ~/ are resolvable inside the guard.`,
-    );
+    return deny(TILDE_USER_REASON(arg));
   }
   const abs = expandToken(candidate, context);
   if (abs === null) {
@@ -134,21 +132,46 @@ function argDecision(
   if (arg.includes("://")) {
     return null;
   }
-  for (const candidate of argCandidates(arg)) {
-    const hit = candidateDecision(candidate, arg, intent, context);
-    if (hit !== null) {
-      return hit;
-    }
-  }
-  return null;
+  return severityUnion(
+    argCandidates(arg).map((candidate) =>
+      candidateDecision(candidate, arg, intent, context),
+    ),
+  );
 }
 
-// One command unit: PATH rule first, then the sudo and network blanket
+// Severity union over judged decisions: deny wins wherever it appears; a
+// first ask must not shadow a later deny on the same command line — under
+// bypassPermissions an ask auto-allows, so the shadow is a silent bypass.
+function severityUnion(hits: PolicyCheckResult[]): PolicyCheckResult {
+  let askHit: PolicyCheckResult = null;
+  for (const hit of hits) {
+    const out = hit?.hookSpecificOutput;
+    if (
+      out?.hookEventName === "PreToolUse" &&
+      out.permissionDecision === "deny"
+    ) {
+      return hit;
+    }
+    if (askHit === null) {
+      askHit = hit;
+    }
+  }
+  return askHit;
+}
+
+// One command unit: the fail-closed name gates (unresolvable $-shapes,
+// tilde-user spellings), then the PATH rule and the sudo and network blanket
 // rules, then the intent-aware walk over the unwrapped argument list.
 function unitDecision(
   unit: CommandUnit,
   context: PolicyContext,
 ): PolicyCheckResult {
+  if (unresolvedVar(unit.name)) {
+    return deny(UNRESOLVED_VAR_REASON(unit.name));
+  }
+  if (tildeUser(unit.name)) {
+    return deny(TILDE_USER_REASON(unit.name));
+  }
   if (isAbsolute(unit.name)) {
     return deny(PATH_RULE_REASON(unit.name));
   }
@@ -159,13 +182,9 @@ function unitDecision(
   if (network !== null) {
     return deny(NETWORK_REASON(network));
   }
-  for (let i = 0; i < rest.length; i += 1) {
-    const hit = argDecision(rest, i, intent, context);
-    if (hit !== null) {
-      return hit;
-    }
-  }
-  return null;
+  return severityUnion(
+    rest.map((_, i) => argDecision(rest, i, intent, context)),
+  );
 }
 
 // Tool-channel entry: file_path is a literal path — no $-decomposition,
@@ -190,6 +209,11 @@ export function checkFilePath(
     if (intent === "write") {
       return deny(TIER_REASONS[tier](filePath));
     }
+    // The write-only tier says nothing about reads — the zone boundary
+    // still gates them.
+    if (!inAllowedZone(abs, context)) {
+      return deny(boundaryReason(filePath, abs));
+    }
     return null;
   }
   return deny(TIER_REASONS[tier](filePath));
@@ -201,19 +225,11 @@ export const filesystemPolicy: Policy = {
     if (injection !== null) {
       return deny(INJECTION_REASON(injection));
     }
-    for (const unit of cmd.units) {
-      const hit = unitDecision(unit, context);
-      if (hit !== null) {
-        return hit;
-      }
-    }
-    for (const r of redirectTargets(cmd)) {
-      const hit = candidateDecision(r.token, r.token, r.intent, context);
-      if (hit !== null) {
-        return hit;
-      }
-    }
-    return null;
+    const unitHits = cmd.units.map((unit) => unitDecision(unit, context));
+    const redirectHits = redirectTargets(cmd).map((r) =>
+      candidateDecision(r.token, r.token, r.intent, context),
+    );
+    return severityUnion([...unitHits, ...redirectHits]);
   },
   name: "filesystem",
 };

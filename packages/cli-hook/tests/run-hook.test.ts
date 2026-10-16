@@ -198,6 +198,14 @@ describe("tool channel", () => {
       decisionOf(runHook(filePayload("Read", "/proj/.git/hooks/pre-commit"))),
     ).toBe("deny");
   });
+  it("Read of an out-of-zone write-only tier hits the boundary", () => {
+    expect(
+      decisionOf(runHook(filePayload("Read", "/opt/repo/.git/config"))),
+    ).toBe("deny");
+  });
+  it("Read of in-zone .git/config allows (write-only tier, read passes)", () => {
+    expect(runHook(filePayload("Read", "/proj/.git/config"))).toBeNull();
+  });
   it("non-file tools fail open", () => {
     expect(runHook(filePayload("Grep", "/etc/passwd"))).toBeNull();
     expect(

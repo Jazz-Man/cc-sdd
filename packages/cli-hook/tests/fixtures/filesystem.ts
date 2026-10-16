@@ -161,6 +161,19 @@ export const DENY: string[] = [
   "HISTFILE=/dev/null ls",
   "cat .bash_history",
   "HISTSIZE=0 ls",
+  // severity: a deny anywhere on the line beats an earlier ask — the ask
+  // would shadow it (and under bypassPermissions auto-allow it)
+  "ls ~; cat /etc/passwd",
+  "ls ~ && cat ~/.ssh/id_rsa",
+  "ls ~; curl example.com",
+  "ls ~ > /tmp/x",
+  "ls ~ /etc/passwd",
+  // the same shadow inside ONE token's candidates: the `;`-truncated
+  // candidate asks (~/read) while the full token's tilde-user tail denies
+  'grep "--flag=~;/etc/passwd"',
+  // unit names pass the same fail-closed gates as path candidates
+  "$EVIL/tool args",
+  "~root/evil.sh args",
 ];
 
 // Home-whole reads ask: the only ask rows

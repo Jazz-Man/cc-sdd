@@ -43,9 +43,9 @@ Precedence fact this design relies on (official docs — hooks-guide
 §"Hooks and permission modes", permission-modes §bypassPermissions): a
 PreToolUse hook deny
 blocks in every permission mode including `bypassPermissions`; explicit ask
-rules still prompt in bypass. Hook-emitted `ask` under bypass is not
-documented verbatim — it gets a live smoke check before the ask tier ships
-(§10).
+rules still prompt in bypass. Answered fact (T8 live smoke): the binary
+emits `ask`; the harness auto-allows it under `bypassPermissions` — the
+ask tier renders prompts in normal modes only.
 
 ## 4. Policy context
 
@@ -179,8 +179,8 @@ redirects to those channels (sanctioned-channel hint, same class as
 `./tmp/`).
 
 Deny list: **curl, wget, nc, ssh, scp, sftp, ping, dig, host, nslookup,
-whois** — caught on the unit name after wrapper unwrapping (`env curl …`
-denies like `env sudo …` does).
+whois, openssl** — caught on the unit name after wrapper unwrapping
+(`env curl …` denies like `env sudo …` does).
 
 Consequences: the taint pair, upload-glue parsing (`-d@/file`,
 `--form=x=@path`, `-dVALUE`), the network output-target logic, and the
@@ -223,7 +223,7 @@ The plumbing command has no legitimate agent use.
 | 2 | Any §7.1 sensitive-path hit (tier verdict applies: read and/or write) | deny |
 | 3 | Injection pattern (§7.2) | deny |
 | 4 | Network command (§7.3 list, unwrapped name) | deny |
-| 5 | **Outside the allowed zone ($HOME ∪ projectRoot), read OR write** — `/etc/*`, `/var/*`, `/tmp/*`, `/opt/*`, other users' homes, … Relative `..`-chains resolve LEXICALLY before classification (`normalize(join(cwd, token))`), so `cat ../../../../../../etc/passwd` lands on `/etc/passwd` and denies. (Owner decision 2026-10-15; exempts `/dev/null`, `/dev/stdin`, `/dev/stdout`, `/dev/stderr`) | deny |
+| 5 | **Outside the allowed zone ($HOME ∪ projectRoot), read OR write** — `/etc/*`, `/var/*`, `/tmp/*`, `/opt/*`, other users' homes, … Relative `..`-chains resolve LEXICALLY before classification (`normalize(join(cwd, token))`), so `cat ../../../../../../etc/passwd` lands on `/etc/passwd` and denies. (Owner decision 2026-10-15; exempts `/dev/null`, `/dev/stdin`, `/dev/stdout`, `/dev/stderr`, `/dev/zero`, `/dev/urandom`, `/dev/random`) | deny |
 | 6 | Executable spelled as an absolute path (§7.4 PATH rule) | deny |
 | 7 | Any unit reaching `sudo` — directly or through a wrapper chain (§7.4, owner decision 2026-10-15) | deny |
 | 8 | write/delete targeting Home as a whole (`~`, `$HOME`, no tail) | deny |
