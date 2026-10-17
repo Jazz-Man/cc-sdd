@@ -17,6 +17,8 @@ try {
   const res = await Bun.build({
     bytecode: true,
     compile: {
+      autoloadBunfig: false,
+      autoloadDotenv: false,
       outfile,
       target: "bun-darwin-arm64",
     },
